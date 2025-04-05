@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Navbar } from '@/components/Navbar';
@@ -9,7 +8,8 @@ import { Card } from '@/components/ui/card';
 import LikeButton from '@/components/LikeButton';
 import CommentSection from '@/components/CommentSection';
 import { Loader2 } from 'lucide-react';
-import { getArticleById, Article as ArticleType } from '@/services/articleService';
+import { getArticleById, Article as ArticleType, getAllArticles } from '@/services/articleService';
+import { supabase } from '@/integrations/supabase/client';
 
 const Article = () => {
   const { id } = useParams();
@@ -28,14 +28,9 @@ const Article = () => {
         setArticle(fetchedArticle);
         
         // Fetch related articles (all except current)
-        const { data: allArticles, error } = await supabase
-          .from('articles')
-          .select('*')
-          .neq('id', id);
-        
-        if (!error && allArticles) {
-          setRelatedArticles(allArticles);
-        }
+        const allArticles = await getAllArticles();
+        const filtered = allArticles.filter(a => a.id !== id);
+        setRelatedArticles(filtered);
       }
       setIsLoading(false);
     };

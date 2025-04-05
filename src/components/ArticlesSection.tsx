@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Calendar, ArrowLeft } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { useInView } from 'react-intersection-observer';
 import LikeCount from '@/components/LikeCount';
-import { getAllArticles, Article, ensureArticlesExist } from '@/services/articleService';
+import { getAllArticles, Article } from '@/services/articleService';
 import { Loader2 } from 'lucide-react';
 
 export function ArticlesSection() {
@@ -22,9 +21,6 @@ export function ArticlesSection() {
   
   useEffect(() => {
     const fetchArticles = async () => {
-      // Ensure we have some sample articles to display
-      await ensureArticlesExist();
-      
       // Fetch articles
       const articlesData = await getAllArticles();
       setArticles(articlesData.slice(0, 3)); // Just display first 3 articles
