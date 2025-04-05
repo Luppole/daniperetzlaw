@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 export interface Article {
@@ -26,8 +25,6 @@ export interface Comment {
 // Fetch a single article by ID
 export async function getArticleById(id: string): Promise<Article | null> {
   try {
-    // Use a type assertion to overcome the TypeScript constraint
-    // while we wait for the types to be correctly regenerated
     const result = await supabase
       .from('articles')
       .select('*')
@@ -45,7 +42,6 @@ export async function getArticleById(id: string): Promise<Article | null> {
 // Fetch all articles
 export async function getAllArticles(): Promise<Article[]> {
   try {
-    // Use a type assertion to overcome the TypeScript constraint
     const result = await supabase
       .from('articles')
       .select('*')
@@ -56,6 +52,78 @@ export async function getAllArticles(): Promise<Article[]> {
   } catch (error) {
     console.error('Error fetching articles:', error);
     return [];
+  }
+}
+
+// Add a new article
+export async function addArticle(articleData: Partial<Article>): Promise<Article | null> {
+  try {
+    const { data, error } = await supabase
+      .from('articles')
+      .insert({
+        title: articleData.title,
+        summary: articleData.summary,
+        content: articleData.content,
+        category: articleData.category,
+        author: articleData.author,
+        image_url: articleData.image_url,
+      })
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data as unknown as Article;
+  } catch (error) {
+    console.error('Error adding article:', error);
+    return null;
+  }
+}
+
+// Update an existing article
+export async function updateArticle(id: string, articleData: Partial<Article>): Promise<Article | null> {
+  try {
+    const { data, error } = await supabase
+      .from('articles')
+      .update({
+        title: articleData.title,
+        summary: articleData.summary,
+        content: articleData.content,
+        category: articleData.category,
+        image_url: articleData.image_url,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', id)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    return data as unknown as Article;
+  } catch (error) {
+    console.error('Error updating article:', error);
+    return null;
+  }
+}
+
+// Delete an article
+export async function deleteArticle(id: string): Promise<boolean> {
+  try {
+    const { error: commentsError } = await supabase
+      .from('comments')
+      .delete()
+      .eq('article_id', id);
+    
+    if (commentsError) throw commentsError;
+    
+    const { error } = await supabase
+      .from('articles')
+      .delete()
+      .eq('id', id);
+    
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    console.error('Error deleting article:', error);
+    return false;
   }
 }
 
@@ -78,7 +146,6 @@ export async function getArticleLikeCount(articleId: string): Promise<number> {
 // Toggle like for an article
 export async function toggleArticleLike(articleId: string, userId: string): Promise<boolean> {
   try {
-    // Check if the user has already liked the article
     const { data: existingLike, error: checkError } = await supabase
       .from('likes')
       .select('*')
@@ -91,7 +158,6 @@ export async function toggleArticleLike(articleId: string, userId: string): Prom
     }
 
     if (existingLike) {
-      // User already liked the article, so unlike it
       const { error: deleteError } = await supabase
         .from('likes')
         .delete()
@@ -99,15 +165,14 @@ export async function toggleArticleLike(articleId: string, userId: string): Prom
         .eq('user_id', userId);
 
       if (deleteError) throw deleteError;
-      return false; // Unliked
+      return false;
     } else {
-      // User hasn't liked the article yet, so like it
       const { error: insertError } = await supabase
         .from('likes')
         .insert({ article_id: articleId, user_id: userId });
 
       if (insertError) throw insertError;
-      return true; // Liked
+      return true;
     }
   } catch (error) {
     console.error('Error toggling article like:', error);
@@ -137,7 +202,6 @@ export async function getArticleComments(articleId: string): Promise<Comment[]> 
   try {
     console.log('Fetching comments for article ID:', articleId);
     
-    // First, get the comments
     const { data, error } = await supabase
       .from('comments')
       .select('*')
@@ -153,10 +217,8 @@ export async function getArticleComments(articleId: string): Promise<Comment[]> 
       return [];
     }
 
-    // Get a list of user IDs from the comments
     const userIds = data.map(comment => comment.user_id);
     
-    // Then fetch the profiles separately
     const { data: profilesData, error: profilesError } = await supabase
       .from('profiles')
       .select('id, full_name')
@@ -166,7 +228,6 @@ export async function getArticleComments(articleId: string): Promise<Comment[]> 
       console.error('Error fetching profiles:', profilesError);
     }
     
-    // Create a map of user_id to full_name for quick lookups
     const profileMap = new Map();
     if (profilesData) {
       profilesData.forEach(profile => {
@@ -174,7 +235,6 @@ export async function getArticleComments(articleId: string): Promise<Comment[]> 
       });
     }
     
-    // Map comments with user names from the profile map
     const commentsWithUserNames = data.map(comment => ({
       ...comment,
       user_name: profileMap.get(comment.user_id) || 'משתמש אנונימי'
@@ -212,7 +272,6 @@ export async function addComment(articleId: string, userId: string, content: str
       return null;
     }
     
-    // Get the user's name from profiles with proper error handling
     const { data: profileData, error: profileError } = await supabase
       .from('profiles')
       .select('full_name')
@@ -236,8 +295,6 @@ export async function addComment(articleId: string, userId: string, content: str
 // Ensure articles exist in the database
 export async function ensureArticlesExist(): Promise<void> {
   try {
-    // Check if articles already exist
-    // Use a type assertion to overcome the TypeScript constraint
     const result = await supabase
       .from('articles')
       .select('*', { count: 'exact' });
@@ -247,7 +304,6 @@ export async function ensureArticlesExist(): Promise<void> {
       return;
     }
     
-    // If we already have articles, we're done
     if (result.count && result.count > 0) {
       console.log(`Found ${result.count} existing articles`);
       return;

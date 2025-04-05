@@ -10,6 +10,7 @@ import { Check, Calendar as CalendarIcon } from "lucide-react";
 import { addDays, format, startOfDay, isBefore, isToday } from "date-fns";
 import { he } from "date-fns/locale";
 import { toast } from "sonner";
+import { supabase } from '@/integrations/supabase/client';
 
 type AppointmentModalProps = {
   trigger: React.ReactNode;
@@ -38,7 +39,7 @@ export function AppointmentModal({ trigger }: AppointmentModalProps) {
     [format(addDays(new Date(), 2), 'yyyy-MM-dd')]: ["11:00", "15:00"],
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!date || !timeSlot || !name || !phone || !email) {
       toast.error("אנא מלא את כל השדות החובה");
@@ -47,9 +48,26 @@ export function AppointmentModal({ trigger }: AppointmentModalProps) {
 
     setIsSubmitting(true);
 
-    // Simulate API call
-    setTimeout(() => {
-      setIsSubmitting(false);
+    try {
+      // Format the date as DD/MM/YYYY for storage
+      const formattedDate = format(date, 'dd/MM/yyyy');
+      
+      // Save the appointment to the database
+      const { data, error } = await supabase
+        .from('appointments')
+        .insert({
+          name,
+          email,
+          phone,
+          date: formattedDate,
+          time: timeSlot,
+          details,
+          status: 'pending'
+        })
+        .select();
+      
+      if (error) throw error;
+      
       toast.success("פגישה נקבעה בהצלחה! נשלח אליך אישור למייל");
       
       // Reset form
@@ -61,7 +79,12 @@ export function AppointmentModal({ trigger }: AppointmentModalProps) {
       
       // Close modal
       setIsOpen(false);
-    }, 1000);
+    } catch (error) {
+      console.error('Error saving appointment:', error);
+      toast.error('אירעה שגיאה בקביעת הפגישה, אנא נסה שנית');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const isSlotBooked = (slot: string) => {

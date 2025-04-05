@@ -2,6 +2,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useAdmin } from '@/contexts/AdminContext';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { 
@@ -12,10 +13,11 @@ import {
   DropdownMenuSeparator, 
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
-import { UserCircle, LogOut, User } from 'lucide-react';
+import { UserCircle, LogOut, User, ShieldAlert } from 'lucide-react';
 
 export function UserMenu() {
   const { user, signOut } = useAuth();
+  const { isAdmin } = useAdmin();
   const navigate = useNavigate();
 
   const handleSignOut = async () => {
@@ -60,6 +62,20 @@ export function UserMenu() {
           <User className="ml-2 h-4 w-4" />
           <span>הפרופיל שלי</span>
         </DropdownMenuItem>
+        
+        {isAdmin && (
+          <>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem 
+              className="cursor-pointer font-medium text-law-navy" 
+              onClick={() => navigate('/admin')}
+            >
+              <ShieldAlert className="ml-2 h-4 w-4" />
+              <span>פאנל ניהול</span>
+            </DropdownMenuItem>
+          </>
+        )}
+        
         <DropdownMenuSeparator />
         <DropdownMenuItem 
           className="cursor-pointer text-red-600 focus:text-red-600" 
