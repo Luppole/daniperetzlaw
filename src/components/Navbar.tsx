@@ -84,13 +84,13 @@ export function Navbar() {
 
   return (
     <header className={cn(
-      'fixed w-full z-50 transition-all duration-300',
-      isScrolled ? 'bg-white/95 shadow-md backdrop-blur-sm py-2' : 'bg-transparent py-4'
+      'fixed w-full z-50 transition-all duration-300 backdrop-blur-sm',
+      isScrolled ? 'bg-white/95 shadow-md py-2' : 'bg-transparent py-4'
     )}>
       <div className="container mx-auto px-4 flex justify-between items-center">
         <div 
           onClick={() => navigate('/')}
-          className="flex items-center cursor-pointer hover:opacity-90 transition-opacity duration-300"
+          className="flex items-center cursor-pointer hover:opacity-90 transition-all duration-300"
         >
           <div className="bg-law-navy p-2 rounded-md transform transition-transform hover:scale-105">
             <span className="text-2xl font-rubik font-bold text-law-silver">DP</span>
@@ -114,15 +114,15 @@ export function Navbar() {
                 key={link.href}
                 onClick={() => handleLinkClick(link.href)}
                 className={cn(
-                  "px-4 py-2 text-law-gray transition-all duration-300 nav-link relative",
-                  isActive ? 'text-law-navy font-medium' : 'hover:text-law-navy',
+                  "px-4 py-2 text-law-navy transition-all duration-300 relative",
+                  isActive ? 'font-medium' : 'text-law-gray hover:text-law-navy',
                   "animate-fade-in"
                 )}
                 style={{ animationDelay: `${index * 0.1}s` }}
               >
                 {link.title}
                 {isActive && (
-                  <span className="absolute bottom-0 left-0 w-full h-0.5 bg-law-navy transform origin-right scale-x-100 transition-transform" />
+                  <span className="absolute bottom-0 left-0 w-1/2 h-0.5 bg-law-navy transform origin-right scale-x-100 transition-transform" />
                 )}
               </button>
             );
