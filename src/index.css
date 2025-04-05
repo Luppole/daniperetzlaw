@@ -153,11 +153,12 @@
   }
   
   .section-title::after {
-    content: none; /* Remove static underline */
+    content: "";
+    @apply absolute -bottom-2 right-0 w-0 h-1 bg-law-navy rounded-full transition-all duration-500;
   }
   
   .section-title:hover::after {
-    @apply content-[''] absolute -bottom-2 right-0 w-full h-1 bg-law-navy rounded-full transition-all duration-300;
+    @apply w-full;
   }
 
   .section-subtitle {

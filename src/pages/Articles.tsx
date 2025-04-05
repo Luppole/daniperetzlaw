@@ -14,7 +14,7 @@ const Articles = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState('');
   
-  // Sample articles data (in real app, this would come from an API/database)
+  // Sample articles data with real placeholder images
   const allArticles = [
     {
       id: '1',
@@ -23,7 +23,7 @@ const Articles = () => {
       author: 'דני פרץ',
       category: 'דיני חוזים',
       summary: 'סקירה מקיפה של פסיקת בית המשפט העליון בנושא דיני חוזים בשנה האחרונה והשלכותיה על עסקאות מסחריות.',
-      image: '/lovable-uploads/41432968-0b99-4cba-9e29-f6fdea6a4272.png'
+      image: 'https://images.unsplash.com/photo-1589578527966-fdac0f44566c?q=80&w=1287&auto=format&fit=crop'
     },
     {
       id: '2',
@@ -32,7 +32,7 @@ const Articles = () => {
       author: 'דני פרץ',
       category: 'דיני משפחה',
       summary: 'מאמר מקיף על היתרונות, החסרונות והשיקולים לעריכת הסכם ממון לפני נישואין, כולל דוגמאות מהפסיקה.',
-      image: '/lovable-uploads/41432968-0b99-4cba-9e29-f6fdea6a4272.png'
+      image: 'https://images.unsplash.com/photo-1565619624098-cf4168a7cd9d?q=80&w=1026&auto=format&fit=crop'
     },
     {
       id: '3',
@@ -41,7 +41,7 @@ const Articles = () => {
       author: 'דני פרץ',
       category: 'דיני עבודה',
       summary: 'סקירה של זכויות עובדים בתקופות משבר, כולל התייחסות למשבר הקורונה והשלכותיו על יחסי עובד-מעביד.',
-      image: '/lovable-uploads/41432968-0b99-4cba-9e29-f6fdea6a4272.png'
+      image: 'https://images.unsplash.com/photo-1521791136064-7986c2920216?q=80&w=1169&auto=format&fit=crop'
     },
     {
       id: '4',
@@ -50,7 +50,7 @@ const Articles = () => {
       author: 'דני פרץ',
       category: 'חדלות פירעון',
       summary: 'סקירה מקיפה של חוק חדלות פירעון ושיקום כלכלי החדש והשלכותיו על חייבים, נושים ובעלי עסקים.',
-      image: '/lovable-uploads/41432968-0b99-4cba-9e29-f6fdea6a4272.png'
+      image: 'https://images.unsplash.com/photo-1505664194779-8beaceb93744?q=80&w=1170&auto=format&fit=crop'
     },
     {
       id: '5',
@@ -59,7 +59,7 @@ const Articles = () => {
       author: 'דני פרץ',
       category: 'צוואות וירושות',
       summary: 'מדריך מקיף לטעויות נפוצות בעריכת צוואות וניהול ירושות, עם טיפים מעשיים כיצד להימנע מהן.',
-      image: '/lovable-uploads/41432968-0b99-4cba-9e29-f6fdea6a4272.png'
+      image: 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?q=80&w=1170&auto=format&fit=crop'
     },
     {
       id: '6',
@@ -68,7 +68,7 @@ const Articles = () => {
       author: 'דני פרץ',
       category: 'מקרקעין',
       summary: 'מדריך מקיף להיבטים המשפטיים ברכישת דירה יד שנייה, כולל בדיקות שיש לבצע ומכשולים שיש להיזהר מהם.',
-      image: '/lovable-uploads/41432968-0b99-4cba-9e29-f6fdea6a4272.png'
+      image: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?q=80&w=1073&auto=format&fit=crop'
     }
   ];
 
@@ -107,11 +107,11 @@ const Articles = () => {
         <div className="container mx-auto px-4">
           {/* Header */}
           <div className="text-center mb-12 animate-fade-in">
-            <h1 className="text-4xl md:text-5xl font-bold text-law-navy mb-4 relative inline-block">
+            <h1 className="text-4xl md:text-5xl font-bold font-rubik text-law-navy mb-4 relative inline-block">
               מאמרים משפטיים
-              <span className="absolute bottom-0 left-0 w-full h-1 bg-law-navy transform origin-right scale-x-0 transition-transform duration-700 animate-[scale-in_0.7s_ease-out_forwards]" style={{ animationDelay: '0.3s' }}></span>
+              <span className="absolute bottom-0 left-0 w-0 h-1 bg-law-navy transform origin-right transition-all duration-700 animate-[scale-in_0.7s_ease-out_forwards] hover:w-full" style={{ animationDelay: '0.3s' }}></span>
             </h1>
-            <p className="text-lg text-law-gray max-w-2xl mx-auto opacity-0 animate-[fade-in_0.5s_ease-out_forwards]" style={{ animationDelay: '0.5s' }}>
+            <p className="text-lg text-law-gray max-w-2xl mx-auto font-heebo opacity-0 animate-[fade-in_0.5s_ease-out_forwards]" style={{ animationDelay: '0.5s' }}>
               מידע מקצועי עדכני וניתוח משפטי מעמיק בנושאים שונים מעולם המשפט
             </p>
           </div>
@@ -125,7 +125,7 @@ const Articles = () => {
                   <Input 
                     type="search"
                     placeholder="חיפוש מאמרים..."
-                    className="pr-10 w-full focus:ring-2 focus:ring-law-navy/30 transition-all duration-300"
+                    className="pr-10 w-full focus:ring-2 focus:ring-law-navy/30 transition-all duration-300 font-heebo"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
                   />
@@ -135,7 +135,7 @@ const Articles = () => {
                 <Filter size={18} className="ml-2 text-law-gray" />
                 <Button 
                   variant={selectedCategory === '' ? "default" : "outline"}
-                  className={selectedCategory === '' ? "bg-law-navy text-white transition-all duration-300 hover:bg-law-navy/90" : "border-law-navy text-law-navy transition-all duration-300 hover:bg-law-navy/10"}
+                  className={selectedCategory === '' ? "bg-law-navy text-white transition-all duration-300 hover:bg-law-navy/90 font-heebo" : "border-law-navy text-law-navy transition-all duration-300 hover:bg-law-navy/10 font-heebo"}
                   onClick={() => setSelectedCategory('')}
                 >
                   הכל
@@ -144,7 +144,7 @@ const Articles = () => {
                   <Button 
                     key={category}
                     variant={selectedCategory === category ? "default" : "outline"}
-                    className={selectedCategory === category ? "bg-law-navy text-white transition-all duration-300 hover:bg-law-navy/90" : "border-law-navy text-law-navy transition-all duration-300 hover:bg-law-navy/10"}
+                    className={selectedCategory === category ? "bg-law-navy text-white transition-all duration-300 hover:bg-law-navy/90 font-heebo" : "border-law-navy text-law-navy transition-all duration-300 hover:bg-law-navy/10 font-heebo"}
                     onClick={() => setSelectedCategory(category)}
                   >
                     {category}
@@ -184,15 +184,15 @@ const Articles = () => {
                   </div>
                   <CardHeader>
                     <div className="flex items-center justify-between mb-3">
-                      <span className="text-sm text-white bg-law-navy px-3 py-1 rounded-full transform transition-all duration-300 hover:translate-x-1">
+                      <span className="text-sm text-white bg-law-navy px-3 py-1 rounded-full transform transition-all duration-300 hover:translate-x-1 font-heebo">
                         {article.category}
                       </span>
-                      <div className="flex items-center text-law-gray text-sm">
+                      <div className="flex items-center text-law-gray text-sm font-heebo">
                         <Calendar className="h-3 w-3 ml-1" />
                         <span>{article.date}</span>
                       </div>
                     </div>
-                    <CardTitle className="text-xl font-serif text-law-navy line-clamp-2 transition-colors duration-300">
+                    <CardTitle className="text-xl font-rubik font-bold text-law-navy line-clamp-2 transition-colors duration-300">
                       <a 
                         href={`/article/${article.id}`}
                         onClick={(e) => {
@@ -207,14 +207,14 @@ const Articles = () => {
                     </CardTitle>
                   </CardHeader>
                   <CardContent className="flex-grow">
-                    <CardDescription className="text-law-gray line-clamp-3">
+                    <CardDescription className="text-law-gray line-clamp-3 font-heebo">
                       {article.summary}
                     </CardDescription>
                   </CardContent>
                   <CardFooter className="pt-4 border-t border-gray-100">
                     <Button 
                       variant="ghost" 
-                      className="text-law-navy hover:bg-law-navy/10 p-0 group transition-all duration-300"
+                      className="text-law-navy hover:bg-law-navy/10 p-0 group transition-all duration-300 font-heebo"
                       onClick={() => navigate(`/article/${article.id}`)}
                     >
                       <span className="inline-block transform transition-all duration-300 group-hover:translate-x-[-4px]">המשך קריאה</span>
@@ -226,14 +226,14 @@ const Articles = () => {
             </div>
           ) : (
             <div className="text-center py-16 bg-law-light rounded-lg opacity-0 animate-fade-in" style={{ animationDelay: '0.8s' }}>
-              <h3 className="text-2xl font-bold text-law-navy mb-4">לא נמצאו תוצאות</h3>
-              <p className="text-law-gray mb-6">לא נמצאו מאמרים התואמים את החיפוש שלך</p>
+              <h3 className="text-2xl font-bold font-rubik text-law-navy mb-4">לא נמצאו תוצאות</h3>
+              <p className="text-law-gray mb-6 font-heebo">לא נמצאו מאמרים התואמים את החיפוש שלך</p>
               <Button 
                 onClick={() => {
                   setSearchQuery('');
                   setSelectedCategory('');
                 }} 
-                className="bg-law-navy hover:bg-law-navy/90 transition-all duration-300 transform hover:scale-105"
+                className="bg-law-navy hover:bg-law-navy/90 transition-all duration-300 transform hover:scale-105 font-heebo"
               >
                 הצג את כל המאמרים
               </Button>
@@ -243,11 +243,11 @@ const Articles = () => {
           {/* Call to Action */}
           <div className="bg-law-navy text-white rounded-lg p-8 mt-16 shadow-lg flex flex-col md:flex-row items-center justify-between opacity-0 animate-[fade-in_0.7s_ease-out_forwards] transform translate-y-4" style={{ animationDelay: '1s' }}>
             <div className="mb-6 md:mb-0 text-center md:text-right">
-              <h3 className="text-2xl font-bold mb-2">מעוניין בייעוץ משפטי?</h3>
-              <p className="text-law-silver max-w-xl">צור קשר עוד היום לקביעת פגישת ייעוץ עם עו"ד דני פרץ בנושאים משפטיים מגוונים</p>
+              <h3 className="text-2xl font-bold font-rubik mb-2">מעוניין בייעוץ משפטי?</h3>
+              <p className="text-law-silver max-w-xl font-heebo">צור קשר עוד היום לקביעת פגישת ייעוץ עם עו"ד דני פרץ בנושאים משפטיים מגוונים</p>
             </div>
             <Button 
-              className="bg-white text-law-navy hover:bg-law-silver hover:text-law-navy transform transition-all duration-300 hover:scale-105 hover:shadow-xl"
+              className="bg-white text-law-navy hover:bg-law-silver hover:text-law-navy transform transition-all duration-300 hover:scale-105 hover:shadow-xl font-heebo"
               onClick={() => navigate('/#contact')}
             >
               צור קשר עכשיו
@@ -259,6 +259,6 @@ const Articles = () => {
       <Footer />
     </div>
   );
-};
+}
 
 export default Articles;

@@ -7,6 +7,10 @@ import { useNavigate } from 'react-router-dom';
 export function HeroSection() {
   const navigate = useNavigate();
 
+  const scrollToAbout = () => {
+    document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' });
+  };
+
   return (
     <section id="hero" className="relative min-h-screen flex items-center">
       <div className="absolute inset-0 bg-law-navy/5 pattern-grid-lg opacity-30"></div>
@@ -69,14 +73,14 @@ export function HeroSection() {
       </div>
       
       <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 animate-bounce">
-        <a href="#about" className="text-law-navy hover:text-law-navy/70 transition-colors">
+        <button onClick={scrollToAbout} className="text-law-navy hover:text-law-navy/70 transition-colors">
           <div className="flex flex-col items-center">
             <span className="mb-2">קרא עוד</span>
             <div className="w-6 h-10 border-2 border-law-navy rounded-full flex justify-center pt-1">
               <div className="w-1 h-3 bg-law-navy rounded-full"></div>
             </div>
           </div>
-        </a>
+        </button>
       </div>
     </section>
   );

@@ -122,16 +122,21 @@ export function Navbar() {
                 key={link.href}
                 onClick={() => handleLinkClick(link.href)}
                 className={cn(
-                  "px-4 py-2 text-law-navy transition-all duration-300 relative",
+                  "px-4 py-2 text-law-navy transition-all duration-300 relative group",
                   isActive ? 'font-medium' : 'text-law-gray hover:text-law-navy',
                   "animate-fade-in"
                 )}
                 style={{ animationDelay: `${index * 0.1}s` }}
               >
                 {link.title}
-                {isActive && (
-                  <span className="absolute bottom-0 left-1/2 w-1/2 h-0.5 bg-law-navy transform -translate-x-1/2 transition-transform" />
-                )}
+                <span 
+                  className={cn(
+                    "absolute bottom-0 left-1/2 w-0 h-0.5 bg-law-navy transition-all duration-300",
+                    isActive 
+                      ? "w-1/2 h-0.5 transform -translate-x-1/2" 
+                      : "w-0 h-0.5 group-hover:w-1/2 transform -translate-x-1/2 group-hover:h-0.5"
+                  )} 
+                />
               </button>
             );
           })}
@@ -168,13 +173,19 @@ export function Navbar() {
                 key={link.href}
                 onClick={() => handleLinkClick(link.href)}
                 className={cn(
-                  "py-2 text-right w-full text-law-gray hover:text-law-navy transition-all duration-300",
+                  "py-2 text-right w-full text-law-gray hover:text-law-navy transition-all duration-300 relative group",
                   isActive ? 'text-law-navy font-medium' : '',
                   "transform transition-all hover:translate-x-2"
                 )}
                 style={{ animationDelay: `${index * 0.05}s` }}
               >
                 {link.title}
+                <span 
+                  className={cn(
+                    "absolute bottom-0 right-0 h-0.5 bg-law-navy transition-all duration-300",
+                    isActive ? "w-8" : "w-0 group-hover:w-8"
+                  )} 
+                />
               </button>
             );
           })}

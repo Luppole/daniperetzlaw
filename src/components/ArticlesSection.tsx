@@ -21,21 +21,24 @@ export function ArticlesSection() {
       title: 'חידושים בדיני חוזים: פסיקה אחרונה של בית המשפט העליון',
       date: '12 מרץ, 2025',
       summary: 'סקירה מקיפה של פסיקת בית המשפט העליון בנושא דיני חוזים בשנה האחרונה והשלכותיה על עסקאות מסחריות.',
-      link: '/article/1'
+      link: '/article/1',
+      image: 'https://images.unsplash.com/photo-1589578527966-fdac0f44566c?q=80&w=1287&auto=format&fit=crop'
     },
     {
       id: '2',
       title: 'יתרונות וחסרונות של הסכם ממון לפני נישואין',
       date: '5 פברואר, 2025',
       summary: 'מאמר מקיף על היתרונות, החסרונות והשיקולים לעריכת הסכם ממון לפני נישואין, כולל דוגמאות מהפסיקה.',
-      link: '/article/2'
+      link: '/article/2',
+      image: 'https://images.unsplash.com/photo-1565619624098-cf4168a7cd9d?q=80&w=1026&auto=format&fit=crop'
     },
     {
       id: '3',
       title: 'זכויות עובדים בתקופת משבר: מה שחשוב לדעת',
       date: '18 ינואר, 2025',
       summary: 'סקירה של זכויות עובדים בתקופות משבר, כולל התייחסות למשבר הקורונה והשלכותיו על יחסי עובד-מעביד.',
-      link: '/article/3'
+      link: '/article/3',
+      image: 'https://images.unsplash.com/photo-1521791136064-7986c2920216?q=80&w=1169&auto=format&fit=crop'
     }
   ];
 
@@ -45,8 +48,6 @@ export function ArticlesSection() {
         <div className={`text-center mb-16 transition-all duration-700 transform ${inView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
           <h2 className="section-title text-3xl md:text-4xl font-bold font-rubik text-law-navy mb-4 relative inline-block">
             מאמרים משפטיים
-            <span className="absolute bottom-0 left-0 w-full h-1 bg-law-navy transform scale-x-0 transition-transform duration-1000" 
-                  style={{ transform: inView ? 'scaleX(1)' : 'scaleX(0)', transitionDelay: '300ms' }}></span>
           </h2>
           <p className="section-subtitle text-lg text-law-gray transition-opacity duration-700 delay-200 font-heebo" 
              style={{ opacity: inView ? 1 : 0, transitionDelay: '400ms' }}>
@@ -64,6 +65,13 @@ export function ArticlesSection() {
                 transitionDelay: `${index * 0.1}s`
               }}
             >
+              <div className="h-48 overflow-hidden rounded-t-lg">
+                <img 
+                  src={article.image} 
+                  alt={article.title}
+                  className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
+                />
+              </div>
               <CardHeader>
                 <div className="flex items-center mb-3 text-law-gray">
                   <Calendar className="h-4 w-4 ml-2 transition-transform duration-300 group-hover:scale-110" />
