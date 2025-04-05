@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Navbar } from '@/components/Navbar';
@@ -7,7 +6,7 @@ import { Calendar, ArrowRight, Share2, Bookmark, Printer, ArrowLeft } from 'luci
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import LikeButton from '@/components/LikeButton';
-import CommentSection from '@/components/CommentSection';
+import CommentSection from '@/components/comments/CommentSection';
 import { Loader2 } from 'lucide-react';
 import { getArticleById, Article as ArticleType, getAllArticles } from '@/services/articleService';
 import { supabase } from '@/integrations/supabase/client';
@@ -19,16 +18,13 @@ const Article = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [relatedArticles, setRelatedArticles] = useState<ArticleType[]>([]);
 
-  // Fetch article and related articles
   useEffect(() => {
     const fetchArticleData = async () => {
       setIsLoading(true);
       if (id) {
-        // Fetch current article
         const fetchedArticle = await getArticleById(id);
         setArticle(fetchedArticle);
         
-        // Fetch related articles (all except current)
         const allArticles = await getAllArticles();
         const filtered = allArticles.filter(a => a.id !== id);
         setRelatedArticles(filtered);
@@ -76,7 +72,6 @@ const Article = () => {
     );
   }
 
-  // Enhanced content with placeholder images for better styling
   const enhancedContent = article.content.replace(
     /<\/h2>/g, 
     '</h2><img src="https://images.unsplash.com/photo-1589829085413-56de8ae18c73?q=80&w=2912&auto=format&fit=crop" class="w-full h-64 object-cover my-6 rounded-lg shadow-md" alt="Legal concept image" />'
@@ -88,7 +83,6 @@ const Article = () => {
       
       <main className="flex-grow pt-24 pb-16">
         <div className="container mx-auto px-4">
-          {/* Breadcrumbs */}
           <div className="mb-8 flex items-center text-sm text-law-gray">
             <Button 
               variant="ghost" 
@@ -110,11 +104,9 @@ const Article = () => {
           </div>
           
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-            {/* Main Content */}
             <div className="lg:col-span-2 animate-fade-in">
               <h1 className="text-3xl md:text-4xl font-bold text-law-navy mb-6">{article.title}</h1>
               
-              {/* Article Meta */}
               <div className="flex flex-wrap items-center mb-8 text-law-gray text-sm">
                 <div className="flex items-center ml-6 mb-2">
                   <Calendar className="h-4 w-4 ml-1" />
@@ -128,7 +120,6 @@ const Article = () => {
                 </div>
               </div>
               
-              {/* Article Image - Smaller size */}
               <div className="mb-8 overflow-hidden rounded-lg shadow-md max-h-[400px]">
                 <img 
                   src={article.image_url} 
@@ -137,18 +128,15 @@ const Article = () => {
                 />
               </div>
               
-              {/* Article Summary */}
               <div className="bg-law-light p-6 rounded-lg mb-8 border-r-4 border-law-navy">
                 <p className="text-lg font-medium text-law-navy">{article.summary}</p>
               </div>
               
-              {/* Article Content - Enhanced with styling */}
               <div 
                 className="prose prose-lg max-w-none prose-headings:text-law-navy prose-headings:font-bold prose-headings:mt-8 prose-headings:mb-4 prose-p:text-gray-700 prose-p:leading-relaxed prose-p:mb-6 prose-ul:text-gray-700 prose-li:mb-2"
                 dangerouslySetInnerHTML={{ __html: enhancedContent }}
               />
               
-              {/* Additional image at the end */}
               <div className="my-10 rounded-lg overflow-hidden shadow-lg">
                 <img 
                   src="https://images.unsplash.com/photo-1589216532372-1c2a367900d9?q=80&w=3087&auto=format&fit=crop" 
@@ -157,12 +145,10 @@ const Article = () => {
                 />
               </div>
               
-              {/* Like Button */}
               <div className="mt-8">
                 <LikeButton articleId={article.id} />
               </div>
               
-              {/* Share Buttons */}
               <div className="mt-10 pt-6 border-t border-gray-200">
                 <h4 className="text-lg font-bold mb-4 text-law-navy">שתף את המאמר</h4>
                 <div className="flex space-x-3 space-x-reverse">
@@ -181,10 +167,8 @@ const Article = () => {
                 </div>
               </div>
               
-              {/* Comment Section */}
               <CommentSection articleId={article.id} />
               
-              {/* Navigation between articles */}
               <div className="mt-10 grid grid-cols-2 gap-4">
                 <Button 
                   variant="outline" 
@@ -219,9 +203,7 @@ const Article = () => {
               </div>
             </div>
             
-            {/* Sidebar */}
             <div className="lg:col-span-1">
-              {/* Author Card */}
               <Card className="mb-8 p-6 bg-law-light border-none shadow-md hover:shadow-lg transition-shadow animate-fade-in">
                 <div className="flex items-center mb-4">
                   <div className="h-16 w-16 rounded-full overflow-hidden ml-4">
@@ -245,7 +227,6 @@ const Article = () => {
                 </Button>
               </Card>
               
-              {/* Related Articles */}
               <div className="bg-white rounded-lg shadow-md p-6 mb-8 animate-fade-in" style={{ animationDelay: '0.2s' }}>
                 <h3 className="text-xl font-bold text-law-navy mb-6 border-r-4 border-law-navy pr-4">מאמרים נוספים</h3>
                 <div className="space-y-4">
@@ -282,7 +263,6 @@ const Article = () => {
                 </div>
               </div>
               
-              {/* Call to Action */}
               <div className="bg-law-navy text-white rounded-lg p-6 shadow-lg animate-fade-in" style={{ animationDelay: '0.3s' }}>
                 <h3 className="text-xl font-bold mb-4">זקוק לייעוץ משפטי?</h3>
                 <p className="mb-6">אנו מציעים ייעוץ מקצועי בתחומים מגוונים. צור קשר עוד היום לפגישת ייעוץ ראשונית.</p>
