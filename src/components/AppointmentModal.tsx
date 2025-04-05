@@ -9,7 +9,7 @@ import { Check, Calendar as CalendarIcon } from "lucide-react";
 import { addDays, format, startOfDay, isBefore, isToday } from "date-fns";
 import { he } from "date-fns/locale";
 import { toast } from "sonner";
-import { supabase } from '@/integrations/supabase/client';
+import { createAppointment } from '@/services/appointmentService';
 
 type AppointmentModalProps = {
   trigger: React.ReactNode;
@@ -25,18 +25,10 @@ export function AppointmentModal({ trigger }: AppointmentModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isOpen, setIsOpen] = useState(false);
 
-  // Generate available time slots
   const timeSlots = [
     "09:00", "10:00", "11:00", "12:00", 
     "13:00", "14:00", "15:00", "16:00", "17:00"
   ];
-
-  // Simulate already booked appointments for demo purposes
-  const bookedSlots: Record<string, string[]> = {
-    [format(new Date(), 'yyyy-MM-dd')]: ["09:00", "13:00", "16:00"],
-    [format(addDays(new Date(), 1), 'yyyy-MM-dd')]: ["10:00", "14:00"],
-    [format(addDays(new Date(), 2), 'yyyy-MM-dd')]: ["11:00", "15:00"],
-  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,33 +40,27 @@ export function AppointmentModal({ trigger }: AppointmentModalProps) {
     setIsSubmitting(true);
 
     try {
-      // Format the date as DD/MM/YYYY for storage
       const formattedDate = format(date, 'dd/MM/yyyy');
       
-      // Use executeRaw to insert into a table that's not in the type definition
-      const { data, error } = await supabase
-        .rpc('insert_appointment', {
-          p_name: name,
-          p_email: email,
-          p_phone: phone,
-          p_date: formattedDate,
-          p_time: timeSlot,
-          p_details: details,
-          p_status: 'pending'
-        });
+      const result = await createAppointment({
+        name,
+        email,
+        phone,
+        date: formattedDate,
+        time: timeSlot,
+        details: details || null
+      });
       
-      if (error) throw error;
+      if (!result.success) throw new Error("Failed to create appointment");
       
       toast.success("פגישה נקבעה בהצלחה! נשלח אליך אישור למייל");
       
-      // Reset form
       setTimeSlot(null);
       setName("");
       setPhone("");
       setEmail("");
       setDetails("");
       
-      // Close modal
       setIsOpen(false);
     } catch (error) {
       console.error('Error saving appointment:', error);

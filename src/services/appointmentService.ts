@@ -16,6 +16,34 @@ export async function getAllAppointments(): Promise<Appointment[]> {
   }
 }
 
+// Create a new appointment
+export async function createAppointment(appointmentData: {
+  name: string;
+  email: string;
+  phone: string;
+  date: string;
+  time: string;
+  details: string | null;
+}): Promise<{success: boolean; id?: string}> {
+  try {
+    const { data, error } = await supabase.rpc('insert_appointment', {
+      p_name: appointmentData.name,
+      p_email: appointmentData.email,
+      p_phone: appointmentData.phone,
+      p_date: appointmentData.date,
+      p_time: appointmentData.time,
+      p_details: appointmentData.details,
+      p_status: 'pending'
+    });
+
+    if (error) throw error;
+    return { success: true, id: data.id };
+  } catch (error) {
+    console.error('Error creating appointment:', error);
+    return { success: false };
+  }
+}
+
 // Update appointment status
 export async function updateAppointmentStatus(id: string, status: 'pending' | 'confirmed' | 'cancelled'): Promise<boolean> {
   try {
