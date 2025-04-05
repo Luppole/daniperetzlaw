@@ -31,7 +31,7 @@ export function Map({ address, className = "w-full h-64" }: MapProps) {
     }
   };
 
-  const geocodeAddress = async (address: string, token: string) => {
+  const geocodeAddress = async (address: string, token: string): Promise<[number, number]> => {
     try {
       const response = await fetch(
         `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(address)}.json?access_token=${token}&country=IL`
@@ -43,8 +43,9 @@ export function Map({ address, className = "w-full h-64" }: MapProps) {
       
       const data = await response.json();
       if (data.features && data.features.length > 0) {
-        setCoordinates(data.features[0].center as [number, number]);
-        return data.features[0].center as [number, number];
+        const center = data.features[0].center as [number, number];
+        setCoordinates(center);
+        return center;
       }
       throw new Error('Address not found');
     } catch (error) {
