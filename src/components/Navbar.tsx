@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { UserMenu } from '@/components/UserMenu';
 import { useAuth } from '@/contexts/AuthContext';
+import { AppointmentModal } from '@/components/AppointmentModal';
 
 export function Navbar() {
   const navigate = useNavigate();
@@ -74,15 +75,6 @@ export function Navbar() {
     if (isMenuOpen) setIsMenuOpen(false);
   };
 
-  const handleAppointmentClick = () => {
-    if (isHomePage) {
-      document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' });
-    } else {
-      navigate('/#contact');
-    }
-    if (isMenuOpen) setIsMenuOpen(false);
-  };
-
   const scrollToHero = () => {
     if (isHomePage) {
       document.getElementById('hero')?.scrollIntoView({ behavior: 'smooth' });
@@ -143,13 +135,16 @@ export function Navbar() {
           })}
           <div className="flex items-center space-x-4 space-x-reverse mr-4">
             <UserMenu />
-            <Button 
-              className="bg-law-navy hover:bg-law-navy/90 text-white transition-all duration-300 transform hover:-translate-y-1 shadow-md hover:shadow-lg btn-pulse flex items-center"
-              onClick={handleAppointmentClick}
-            >
-              <Calendar className="h-4 w-4 ml-2" />
-              קבע פגישה
-            </Button>
+            <AppointmentModal
+              trigger={
+                <Button 
+                  className="bg-law-navy hover:bg-law-navy/90 text-white transition-all duration-300 transform hover:-translate-y-1 shadow-md hover:shadow-lg btn-pulse flex items-center"
+                >
+                  <Calendar className="h-4 w-4 ml-2" />
+                  קבע פגישה
+                </Button>
+              }
+            />
           </div>
         </nav>
         
@@ -196,13 +191,16 @@ export function Navbar() {
               </button>
             );
           })}
-          <Button 
-            className="w-full bg-law-navy hover:bg-law-navy/90 text-white mt-4 btn-pulse flex items-center justify-center"
-            onClick={handleAppointmentClick}
-          >
-            <Calendar className="h-4 w-4 ml-2" />
-            קבע פגישה
-          </Button>
+          <AppointmentModal
+            trigger={
+              <Button 
+                className="w-full bg-law-navy hover:bg-law-navy/90 text-white mt-4 btn-pulse flex items-center justify-center"
+              >
+                <Calendar className="h-4 w-4 ml-2" />
+                קבע פגישה
+              </Button>
+            }
+          />
         </nav>
       )}
     </header>

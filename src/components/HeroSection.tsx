@@ -1,7 +1,9 @@
+
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
+import { AppointmentModal } from '@/components/AppointmentModal';
 
 export function HeroSection() {
   const navigate = useNavigate();
@@ -15,8 +17,12 @@ export function HeroSection() {
   };
 
   return (
-    <section id="hero" className="relative min-h-screen flex items-center pb-20">
-      <div className="absolute inset-0 bg-law-navy/5 pattern-grid-lg opacity-30"></div>
+    <section id="hero" className="relative min-h-screen flex items-center pb-20 animated-pattern">
+      <div className="absolute inset-0 bg-law-navy/5 pattern-grid-lg opacity-30 parallax-layer" style={{ transform: 'translateZ(-10px)' }}></div>
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute -inset-[10%] rounded-full bg-law-navy/2 blur-3xl animate-[pulse_15s_ease-in-out_infinite] opacity-30 top-1/4 right-1/4" style={{ animationDelay: '0s' }}></div>
+        <div className="absolute -inset-[10%] rounded-full bg-law-light/5 blur-3xl animate-[pulse_20s_ease-in-out_infinite] opacity-20 bottom-1/3 left-1/3" style={{ animationDelay: '5s' }}></div>
+      </div>
       
       <div className="container mx-auto px-4 pt-24 grid md:grid-cols-2 gap-8 items-center relative z-10">
         <div className="order-2 md:order-1">
@@ -30,7 +36,7 @@ export function HeroSection() {
             </div>
           </div>
           
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-law-navy mb-6 animate-slide-up">
+          <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-law-navy mb-6 animate-slide-up">
             פתרונות משפטיים <br />
             <span className="relative">
               מקצועיים ואישיים
@@ -38,18 +44,21 @@ export function HeroSection() {
             </span>
           </h1>
           
-          <p className="text-lg text-law-gray mb-10 max-w-xl animate-slide-up" style={{ animationDelay: '0.2s' }}>
+          <p className="text-xl text-law-gray mb-10 max-w-xl animate-slide-up" style={{ animationDelay: '0.2s' }}>
             מתמחה במשפחה, חדלות פרעון ומקרקעין - מספק ליווי משפטי מקיף ומקצועי לאנשים פרטיים ולעסקים.
           </p>
           
           <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 sm:space-x-reverse animate-slide-up" style={{ animationDelay: '0.3s' }}>
-            <Button 
-              className="bg-law-navy hover:bg-law-navy/80 text-white py-6 px-8 rounded-md font-medium transition-all hover:-translate-y-1 hover:shadow-lg"
-              onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}
-            >
-              קבע פגישת ייעוץ
-              <ArrowLeft className="mr-2 h-5 w-5" />
-            </Button>
+            <AppointmentModal
+              trigger={
+                <Button 
+                  className="bg-law-navy hover:bg-law-navy/80 text-white py-6 px-8 rounded-md font-medium transition-all hover:-translate-y-1 hover:shadow-lg"
+                >
+                  קבע פגישת ייעוץ
+                  <ArrowLeft className="mr-2 h-5 w-5" />
+                </Button>
+              }
+            />
             <Button 
               variant="outline" 
               className="border-law-navy text-law-navy py-6 px-8 rounded-md font-medium transition-all hover:bg-law-navy hover:text-white hover:shadow-md"
