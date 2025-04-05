@@ -1,4 +1,29 @@
+
 import { supabase } from '@/integrations/supabase/client';
+
+// Article type definition
+export interface Article {
+  id: string;
+  title: string;
+  summary: string;
+  content: string;
+  category: string;
+  author: string;
+  image_url: string;
+  date: string;
+  created_at: string;
+  updated_at?: string;
+}
+
+// Comment type definition
+export interface Comment {
+  id: string;
+  article_id: string;
+  user_id: string;
+  user_name?: string;
+  content: string;
+  created_at: string;
+}
 
 // Function to ensure default articles exist
 export async function ensureArticlesExist() {
@@ -59,7 +84,7 @@ export async function createArticle(articleData: {
 }): Promise<boolean> {
   try {
     // Add the date field
-    const currentDate = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+    const currentDate = new Date().toISOString().split('T')[0];
 
     const { error } = await supabase.from('articles').insert({
       title: articleData.title,
@@ -75,6 +100,180 @@ export async function createArticle(articleData: {
     return true;
   } catch (error) {
     console.error('Error creating article:', error);
+    return false;
+  }
+}
+
+// Get all articles
+export async function getAllArticles(): Promise<Article[]> {
+  try {
+    const { data, error } = await supabase
+      .from('articles')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+    return data as Article[] || [];
+  } catch (error) {
+    console.error('Error fetching articles:', error);
+    return [];
+  }
+}
+
+// Get article by ID
+export async function getArticleById(id: string): Promise<Article | null> {
+  try {
+    const { data, error } = await supabase
+      .from('articles')
+      .select('*')
+      .eq('id', id)
+      .single();
+
+    if (error) throw error;
+    return data as Article;
+  } catch (error) {
+    console.error('Error fetching article:', error);
+    return null;
+  }
+}
+
+// Delete an article
+export async function deleteArticle(id: string): Promise<boolean> {
+  try {
+    const { error } = await supabase
+      .from('articles')
+      .delete()
+      .eq('id', id);
+
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    console.error('Error deleting article:', error);
+    return false;
+  }
+}
+
+// Update an article
+export async function updateArticle(id: string, articleData: Partial<Article>): Promise<boolean> {
+  try {
+    const { error } = await supabase
+      .from('articles')
+      .update(articleData)
+      .eq('id', id);
+
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    console.error('Error updating article:', error);
+    return false;
+  }
+}
+
+// Add an alias for createArticle for backward compatibility
+export const addArticle = createArticle;
+
+// Get comments for an article
+export async function getArticleComments(articleId: string): Promise<Comment[]> {
+  try {
+    const { data, error } = await supabase
+      .rpc('get_article_comments', { article_id_param: articleId });
+
+    if (error) throw error;
+    return data as Comment[] || [];
+  } catch (error) {
+    console.error('Error fetching comments:', error);
+    return [];
+  }
+}
+
+// Add a comment to an article
+export async function addComment(articleId: string, userId: string, content: string): Promise<boolean> {
+  try {
+    const { error } = await supabase.rpc('add_comment', {
+      p_article_id: articleId,
+      p_user_id: userId,
+      p_content: content
+    });
+
+    if (error) throw error;
+    return true;
+  } catch (error) {
+    console.error('Error adding comment:', error);
+    return false;
+  }
+}
+
+// Get like count for an article
+export async function getArticleLikeCount(articleId: string): Promise<number> {
+  try {
+    const { data, error } = await supabase
+      .rpc('get_article_likes_count', { article_id_param: articleId });
+
+    if (error) throw error;
+    return data || 0;
+  } catch (error) {
+    console.error('Error getting like count:', error);
+    return 0;
+  }
+}
+
+// Check if a user has liked an article
+export async function hasUserLikedArticle(articleId: string, userId: string): Promise<boolean> {
+  try {
+    const { data, error } = await supabase
+      .from('likes')
+      .select('*')
+      .eq('article_id', articleId)
+      .eq('user_id', userId)
+      .single();
+
+    if (error && error.code !== 'PGRST116') {
+      // PGRST116 is the error code for "no rows returned"
+      throw error;
+    }
+
+    return !!data;
+  } catch (error) {
+    console.error('Error checking if user liked article:', error);
+    return false;
+  }
+}
+
+// Toggle like for an article
+export async function toggleArticleLike(articleId: string, userId: string): Promise<boolean> {
+  try {
+    const { data: existingLike, error: checkError } = await supabase
+      .from('likes')
+      .select('*')
+      .eq('article_id', articleId)
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    if (checkError && checkError.code !== 'PGRST116') throw checkError;
+
+    if (existingLike) {
+      // Unlike - remove the like
+      const { error: unlikeError } = await supabase
+        .from('likes')
+        .delete()
+        .eq('id', existingLike.id);
+
+      if (unlikeError) throw unlikeError;
+    } else {
+      // Like - add a new like
+      const { error: likeError } = await supabase
+        .from('likes')
+        .insert({
+          article_id: articleId,
+          user_id: userId
+        });
+
+      if (likeError) throw likeError;
+    }
+
+    return true;
+  } catch (error) {
+    console.error('Error toggling like:', error);
     return false;
   }
 }

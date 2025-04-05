@@ -9,7 +9,7 @@ export async function getAllAppointments(): Promise<Appointment[]> {
     const { data, error } = await supabase.rpc('get_all_appointments');
     
     if (error) throw error;
-    return data as Appointment[];
+    return data as Appointment[] || [];
   } catch (error) {
     console.error('Error fetching appointments:', error);
     return [];
@@ -37,7 +37,7 @@ export async function createAppointment(appointmentData: {
     });
 
     if (error) throw error;
-    return { success: true, id: data.id };
+    return { success: true, id: data?.id };
   } catch (error) {
     console.error('Error creating appointment:', error);
     return { success: false };
@@ -81,9 +81,24 @@ export async function getAppointmentCounts(): Promise<{ total: number; pending: 
     const { data, error } = await supabase.rpc('get_appointment_counts');
     
     if (error) throw error;
-    return data || { total: 0, pending: 0, confirmed: 0 };
+    return data as { total: number; pending: number; confirmed: number; } || { total: 0, pending: 0, confirmed: 0 };
   } catch (error) {
     console.error('Error getting appointment counts:', error);
     return { total: 0, pending: 0, confirmed: 0 };
+  }
+}
+
+// Get available time slots
+export async function getBookedSlots(date: string): Promise<string[]> {
+  try {
+    const { data, error } = await supabase.rpc('get_booked_slots', {
+      date_param: date
+    });
+    
+    if (error) throw error;
+    return (data as {time: string}[]).map(slot => slot.time) || [];
+  } catch (error) {
+    console.error('Error getting booked slots:', error);
+    return [];
   }
 }
