@@ -65,6 +65,8 @@ const CommentForm: React.FC<CommentFormProps> = ({ articleId, onCommentAdded }) 
     setIsSubmitting(true);
     
     try {
+      // The issue might be here - make sure articleId is passed correctly
+      console.log('Submitting comment for article:', articleId);
       const result = await addComment(articleId, user.id, newComment);
       
       if (result) {
@@ -73,11 +75,13 @@ const CommentForm: React.FC<CommentFormProps> = ({ articleId, onCommentAdded }) 
           title: 'התגובה נוספה בהצלחה',
           variant: 'default'
         });
+        // Make sure we call this to refresh the comments list
         onCommentAdded();
       } else {
         throw new Error('Failed to add comment');
       }
     } catch (error) {
+      console.error('Error adding comment:', error);
       toast({
         title: 'שגיאה',
         description: 'אירעה שגיאה בהוספת התגובה',

@@ -20,14 +20,14 @@ const CommentList: React.FC<CommentListProps> = ({ comments, isLoading }) => {
 
   if (comments.length === 0) {
     return (
-      <div className="text-center py-8 bg-gray-50 rounded-lg">
-        <p className="text-gray-500 font-heebo">אין תגובות עדיין. היה הראשון להגיב!</p>
+      <div className="text-center py-12 bg-gray-50 rounded-lg border border-gray-100">
+        <p className="text-gray-500 font-heebo text-lg">אין תגובות עדיין. היה הראשון להגיב!</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {comments.map((comment) => (
         <CommentItem key={comment.id} comment={comment} />
       ))}

@@ -135,7 +135,9 @@ export async function hasUserLikedArticle(articleId: string, userId: string): Pr
 // Get comments for an article
 export async function getArticleComments(articleId: string): Promise<Comment[]> {
   try {
-    // Get comments and join with profiles to get user names
+    console.log('Fetching comments for article ID:', articleId);
+    
+    // Direct join with profiles table
     const { data, error } = await supabase
       .from('comments')
       .select(`
@@ -147,10 +149,13 @@ export async function getArticleComments(articleId: string): Promise<Comment[]> 
       .eq('article_id', articleId)
       .order('created_at', { ascending: false });
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error fetching comments:', error);
+      throw error;
+    }
     
     // Transform the data to include user_name
-    return (data as any[]).map(comment => ({
+    return (data || []).map(comment => ({
       ...comment,
       user_name: comment.profiles?.full_name || 'משתמש אנונימי'
     })) as Comment[];
@@ -163,21 +168,39 @@ export async function getArticleComments(articleId: string): Promise<Comment[]> 
 // Add a new comment to an article
 export async function addComment(articleId: string, userId: string, content: string): Promise<Comment | null> {
   try {
+    console.log('Adding comment with:', { articleId, userId, content });
+    
     const { data, error } = await supabase
       .from('comments')
-      .insert({ article_id: articleId, user_id: userId, content })
+      .insert({ 
+        article_id: articleId, 
+        user_id: userId, 
+        content 
+      })
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error('Insert comment error:', error);
+      throw error;
+    }
+    
+    if (!data) {
+      console.error('No data returned after comment insert');
+      return null;
+    }
     
     // Get the user's name from profiles
-    const { data: profileData } = await supabase
+    const { data: profileData, error: profileError } = await supabase
       .from('profiles')
       .select('full_name')
       .eq('id', userId)
-      .single();
+      .maybeSingle();
       
+    if (profileError) {
+      console.error('Error fetching profile:', profileError);
+    }
+    
     return {
       ...(data as unknown as Comment),
       user_name: profileData?.full_name || 'משתמש אנונימי'
