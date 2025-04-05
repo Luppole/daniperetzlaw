@@ -234,7 +234,7 @@ const Article = () => {
             </div>
             
             <div className="lg:col-span-1">
-              <Card className="mb-12 p-8 bg-law-light border-none shadow-md hover:shadow-lg transition-shadow animate-fade-in sticky top-32">
+              <Card className="mb-12 p-8 bg-law-light border-none shadow-md hover:shadow-lg transition-shadow animate-fade-in relative">
                 <div className="flex items-center mb-8">
                   <div className="h-16 w-16 rounded-full overflow-hidden ml-4 border-2 border-white shadow-md">
                     <img 
