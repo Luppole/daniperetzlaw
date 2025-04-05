@@ -1,12 +1,113 @@
-// Update this page (the content is just a fallback if you fail to update the page)
+
+import React, { useEffect, useState } from 'react';
+import { Navbar } from '@/components/Navbar';
+import { HeroSection } from '@/components/HeroSection';
+import { AboutSection } from '@/components/AboutSection';
+import { ExpertiseSection } from '@/components/ExpertiseSection';
+import { ArticlesSection } from '@/components/ArticlesSection';
+import { FaqSection } from '@/components/FaqSection';
+import { ContactSection } from '@/components/ContactSection';
+import { Footer } from '@/components/Footer';
+import { ArrowUp } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 
 const Index = () => {
+  const [showScrollTop, setShowScrollTop] = useState(false);
+  const location = useLocation();
+
+  useEffect(() => {
+    // Intersection Observer for animate-on-scroll elements
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            entry.target.classList.add('show');
+            // Once the animation has played, we can unobserve the element
+            observer.unobserve(entry.target);
+          }
+        });
+      },
+      { threshold: 0.1, rootMargin: '0px 0px -10% 0px' }
+    );
+
+    const animatedElements = document.querySelectorAll('.animate-on-scroll');
+    animatedElements.forEach((element) => {
+      observer.observe(element);
+    });
+
+    // Scroll to top button handler
+    const handleScroll = () => {
+      setShowScrollTop(window.scrollY > 500);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    
+    // Preload images and critical resources
+    const preloadImages = () => {
+      const criticalImages = document.querySelectorAll('img[data-preload="true"]');
+      criticalImages.forEach((img) => {
+        if (img instanceof HTMLImageElement) {
+          const newImg = new Image();
+          newImg.src = img.src;
+        }
+      });
+    };
+    
+    // Add page loaded class for animations
+    document.body.classList.add('page-loaded');
+    
+    // Initialize preloading
+    preloadImages();
+
+    // Handle hash navigation for smooth scrolling
+    const handleHashNavigation = () => {
+      const hash = location.hash;
+      if (hash) {
+        setTimeout(() => {
+          const element = document.querySelector(hash);
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth' });
+          }
+        }, 100);
+      }
+    };
+
+    handleHashNavigation();
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener('scroll', handleScroll);
+    };
+  }, [location]);
+
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: 'smooth'
+    });
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-100">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold mb-4">Welcome to Your Blank App</h1>
-        <p className="text-xl text-gray-600">Start building your amazing project here!</p>
-      </div>
+    <div className="min-h-screen overflow-x-hidden">
+      <Navbar />
+      <HeroSection />
+      <AboutSection />
+      <ExpertiseSection />
+      <ArticlesSection />
+      <FaqSection />
+      <ContactSection />
+      <Footer />
+      
+      {/* Scroll to top button */}
+      <button
+        onClick={scrollToTop}
+        className={`fixed bottom-6 left-6 bg-law-navy text-white p-3 rounded-full shadow-lg transition-all duration-300 ${
+          showScrollTop ? 'opacity-80 transform translate-y-0 hover:opacity-100' : 'opacity-0 transform translate-y-10 pointer-events-none'
+        }`}
+        aria-label="Scroll to top"
+      >
+        <ArrowUp size={20} />
+      </button>
     </div>
   );
 };
