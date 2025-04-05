@@ -6,10 +6,8 @@ export async function initializeDatabase() {
   try {
     // Initialize the database with the RPC function
     const { error } = await supabase.rpc(
-      'init_database', 
-      {},
-      { headers: { 'Content-Type': 'application/json' } }
-    ) as { data: any; error: any };
+      'init_database'
+    );
     
     if (error) {
       console.error('Error initializing database:', error);
