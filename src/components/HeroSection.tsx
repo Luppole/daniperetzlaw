@@ -2,8 +2,11 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 
 export function HeroSection() {
+  const navigate = useNavigate();
+
   return (
     <section id="hero" className="relative min-h-screen flex items-center">
       <div className="absolute inset-0 bg-law-navy/5 pattern-grid-lg opacity-30"></div>
@@ -33,11 +36,18 @@ export function HeroSection() {
           </p>
           
           <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 sm:space-x-reverse animate-slide-up" style={{ animationDelay: '0.3s' }}>
-            <Button className="bg-law-navy hover:bg-law-navy/80 text-white py-6 px-8 rounded-md font-medium transition-all hover:-translate-y-1">
+            <Button 
+              className="bg-law-navy hover:bg-law-navy/80 text-white py-6 px-8 rounded-md font-medium transition-all hover:-translate-y-1 hover:shadow-lg"
+              onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}
+            >
               קבע פגישת ייעוץ
               <ArrowLeft className="mr-2 h-5 w-5" />
             </Button>
-            <Button variant="outline" className="border-law-navy text-law-navy py-6 px-8 rounded-md font-medium transition-all hover:bg-law-navy hover:text-white">
+            <Button 
+              variant="outline" 
+              className="border-law-navy text-law-navy py-6 px-8 rounded-md font-medium transition-all hover:bg-law-navy hover:text-white hover:shadow-md"
+              onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}
+            >
               צור קשר
             </Button>
           </div>
@@ -47,10 +57,13 @@ export function HeroSection() {
           <div className="relative">
             <div className="absolute -inset-4 bg-law-navy rounded-xl opacity-10 animate-pulse-light"></div>
             <img 
-              src="/lovable-uploads/cc0a7d6f-a252-47aa-9e9a-483e651b9fa1.png" 
+              src="/lovable-uploads/41432968-0b99-4cba-9e29-f6fdea6a4272.png" 
               alt="עו״ד דני פרץ" 
-              className="rounded-lg shadow-xl max-w-full h-auto max-h-[500px] object-cover relative z-10"
+              className="rounded-lg shadow-xl max-w-full h-auto max-h-[500px] object-cover relative z-10 transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl"
             />
+            <div className="absolute -bottom-4 -right-4 w-20 h-20 bg-law-navy rounded-full flex items-center justify-center text-white font-bold text-sm z-20 animate-float">
+              <span className="text-center">15+ שנות<br />ניסיון</span>
+            </div>
           </div>
         </div>
       </div>

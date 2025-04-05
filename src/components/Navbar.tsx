@@ -1,10 +1,12 @@
 
 import React, { useState, useEffect } from 'react';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import { useNavigate } from 'react-router-dom';
 
 export function Navbar() {
+  const navigate = useNavigate();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [activeLink, setActiveLink] = useState('hero');
@@ -48,6 +50,16 @@ export function Navbar() {
     { title: 'צור קשר', href: '#contact' },
   ];
 
+  const handleContactClick = () => {
+    document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' });
+    if (isMenuOpen) setIsMenuOpen(false);
+  };
+
+  const handleAppointmentClick = () => {
+    document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' });
+    if (isMenuOpen) setIsMenuOpen(false);
+  };
+
   return (
     <header className={cn(
       'fixed w-full z-50 transition-all duration-300',
@@ -55,7 +67,7 @@ export function Navbar() {
     )}>
       <div className="container mx-auto px-4 flex justify-between items-center">
         <a href="#hero" className="flex items-center">
-          <div className="bg-law-navy p-2 rounded-md">
+          <div className="bg-law-navy p-2 rounded-md transform transition-transform hover:scale-105">
             <span className="text-2xl font-rubik font-bold text-law-silver">DP</span>
           </div>
           <div className="mr-3">
@@ -83,8 +95,12 @@ export function Navbar() {
               )}
             </a>
           ))}
-          <Button className="mr-4 bg-law-navy hover:bg-law-navy/90 text-white transition-all duration-300 transform hover:-translate-y-1 shadow-md hover:shadow-lg btn-pulse">
-            צור קשר
+          <Button 
+            className="mr-4 bg-law-navy hover:bg-law-navy/90 text-white transition-all duration-300 transform hover:-translate-y-1 shadow-md hover:shadow-lg btn-pulse flex items-center"
+            onClick={handleAppointmentClick}
+          >
+            <Calendar className="h-4 w-4 ml-2" />
+            קבע פגישה
           </Button>
         </nav>
         
@@ -116,8 +132,12 @@ export function Navbar() {
               {link.title}
             </a>
           ))}
-          <Button className="w-full bg-law-navy hover:bg-law-navy/90 text-white mt-4 btn-pulse">
-            צור קשר
+          <Button 
+            className="w-full bg-law-navy hover:bg-law-navy/90 text-white mt-4 btn-pulse flex items-center justify-center"
+            onClick={handleAppointmentClick}
+          >
+            <Calendar className="h-4 w-4 ml-2" />
+            קבע פגישה
           </Button>
         </nav>
       )}
