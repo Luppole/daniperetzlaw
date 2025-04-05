@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
@@ -6,6 +5,10 @@ import { useNavigate } from 'react-router-dom';
 
 export function HeroSection() {
   const navigate = useNavigate();
+
+  const scrollToTop = () => {
+    document.getElementById('hero')?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   const scrollToAbout = () => {
     document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' });
@@ -21,7 +24,7 @@ export function HeroSection() {
             <div className="bg-law-navy p-3 rounded-lg">
               <span className="text-3xl font-rubik font-bold text-white">DP</span>
             </div>
-            <div className="mr-3 border-r-2 border-law-navy pr-3">
+            <div className="mr-3 border-r-2 border-law-navy pr-3 cursor-pointer" onClick={scrollToTop}>
               <h2 className="text-2xl font-rubik font-bold text-law-navy">דני פרץ</h2>
               <p className="text-law-gray">עורך דין</p>
             </div>

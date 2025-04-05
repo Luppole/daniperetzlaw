@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Phone, Mail, MapPin, Clock, CheckCircle, AlertCircle, Loader } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -10,7 +9,7 @@ import { toast } from '@/components/ui/use-toast';
 
 export function ContactSection() {
   const contactInfo = [
-    { icon: <Phone className="h-6 w-6 text-law-blue" />, title: 'טלפון', details: '054-1234567' },
+    { icon: <Phone className="h-6 w-6 text-law-blue" />, title: 'טלפון', details: '053-339-5255' },
     { icon: <Mail className="h-6 w-6 text-law-blue" />, title: 'אימייל', details: 'dani@peretz-law.co.il' },
     { icon: <MapPin className="h-6 w-6 text-law-blue" />, title: 'כתובת', details: 'יפה ירקוני 22, עפולה' },
     { icon: <Clock className="h-6 w-6 text-law-blue" />, title: 'שעות פעילות', details: 'א-ה: 09:00-18:00' },
@@ -93,7 +92,7 @@ export function ContactSection() {
       <div className="container mx-auto">
         <div className="text-center mb-16 animate-on-scroll">
           <h2 className="section-title">צור קשר</h2>
-          <p className="section-subtitle">נשמח לעמוד לשירותכם</p>
+          <p className="section-subtitle">אשמח לעמוד לשירותך</p>
         </div>
         
         <div className="grid md:grid-cols-2 gap-10">

@@ -5,7 +5,7 @@ import { Award, BookOpen, Scale, Users } from 'lucide-react';
 
 export function AboutSection() {
   const stats = [
-    { icon: <Users className="h-8 w-8 text-law-blue" />, value: '500+', label: 'לקוחות מרוצים' },
+    { icon: <Users className="h-8 w-8 text-law-blue" />, value: '300+', label: 'לקוחות מרוצים' },
     { icon: <Award className="h-8 w-8 text-law-blue" />, value: '15+', label: 'שנות ניסיון' },
     { icon: <Scale className="h-8 w-8 text-law-blue" />, value: '90%', label: 'תיקים שהסתיימו בהצלחה' },
     { icon: <BookOpen className="h-8 w-8 text-law-blue" />, value: '50+', label: 'מאמרים משפטיים' },
@@ -23,15 +23,18 @@ export function AboutSection() {
           <div className="glass-card p-8">
             <h3 className="text-2xl font-bold text-law-dark mb-4">עו"ד דני פרץ</h3>
             <p className="text-law-gray mb-4">
-              עו"ד דני פרץ הוא בעל ניסיון של למעלה מ-15 שנים בתחום המשפט האזרחי והמסחרי. 
+              עו"ד דני פרץ הוא עורך דין עצמאי בעל ניסיון של למעלה מ-15 שנים בתחום המשפט האזרחי והמסחרי. 
               הוא הוכר כאחד מעורכי הדין המובילים בתחומו והוביל מספר תיקים משמעותיים שיצרו תקדימים משפטיים.
             </p>
             <p className="text-law-gray mb-6">
               לאחר שסיים את לימודי המשפטים באוניברסיטת תל אביב בהצטיינות, עבד במשרדי עורכי דין מהמובילים בארץ
-              לפני שפתח את המשרד העצמאי שלו בשנת 2010. המשרד מתמחה במתן פתרונות אישיים ומותאמים לכל לקוח ולקוח.
+              לפני שפתח את הפרקטיקה העצמאית שלו בשנת 2010, תוך מתן דגש על ייעוץ אישי ומותאם לכל לקוח.
             </p>
             <div className="flex flex-wrap justify-start">
-              <Button className="bg-law-blue hover:bg-law-blue/80 text-white">
+              <Button 
+                onClick={() => document.getElementById('about')?.scrollIntoView({ behavior: 'smooth' })}
+                className="bg-law-blue hover:bg-law-blue/80 text-white"
+              >
                 קרא עוד
               </Button>
             </div>

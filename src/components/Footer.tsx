@@ -19,7 +19,7 @@ export function Footer() {
               </div>
             </div>
             <p className="text-law-silver mb-4">
-              משרד עורכי דין המתמחה בדיני משפחה, חדלות פרעון ומקרקעין, מספק שירותים משפטיים מקצועיים ואישיים.
+              עורך דין מקצועי המתמחה בדיני משפחה, חדלות פרעון ומקרקעין, מספק ייעוץ משפטי אישי ומקצועי.
             </p>
             <div className="flex space-x-4 space-x-reverse">
               <a href="https://www.facebook.com/danipertz05/" target="_blank" rel="noopener noreferrer" className="text-law-silver hover:text-white transition-colors group">
@@ -84,7 +84,7 @@ export function Footer() {
             <ul className="space-y-3">
               <li className="text-law-silver flex items-start">
                 <Phone className="h-5 w-5 ml-2 text-law-silver" />
-                <span>054-1234567</span>
+                <span>053-339-5255</span>
               </li>
               <li className="text-law-silver flex items-start">
                 <Mail className="h-5 w-5 ml-2 text-law-silver" />
@@ -92,7 +92,7 @@ export function Footer() {
               </li>
               <li className="text-law-silver flex items-start">
                 <MapPin className="h-5 w-5 ml-2 text-law-silver" />
-                <span>רחוב הרצל 53, תל אביב</span>
+                <span>יפה ירקוני 22, עפולה</span>
               </li>
               <li className="text-law-silver">
                 <strong className="text-white">שעות פעילות:</strong> א-ה: 09:00-18:00
