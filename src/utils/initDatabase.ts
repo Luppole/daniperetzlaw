@@ -2,17 +2,13 @@
 import { supabase } from '@/integrations/supabase/client';
 import { ensureArticlesExist } from '@/services/articleService';
 
-// Define types for RPC functions
-type RPCParams = Record<string, any> | null;
-type RPCOptions = { headers?: Record<string, string> };
-
 export async function initializeDatabase() {
   try {
     // Initialize the database with the RPC function
     const { error } = await supabase.rpc(
       'init_database',
-      {} as RPCParams,
-      { headers: { 'Content-Type': 'application/json' } } as RPCOptions
+      {},
+      { headers: { 'Content-Type': 'application/json' } }
     );
     
     if (error) {

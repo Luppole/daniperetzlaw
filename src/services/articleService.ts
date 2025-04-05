@@ -170,14 +170,14 @@ export const addArticle = createArticle;
 // Get comments for an article
 export async function getArticleComments(articleId: string): Promise<Comment[]> {
   try {
-    const { data, error } = await supabase.rpc(
+    const { data, error } = await supabase.rpc<Comment[]>(
       'get_article_comments', 
       { article_id_param: articleId },
       { headers: { 'Content-Type': 'application/json' } }
     );
 
     if (error) throw error;
-    return data as Comment[] || [];
+    return data || [];
   } catch (error) {
     console.error('Error fetching comments:', error);
     return [];
@@ -208,14 +208,14 @@ export async function addComment(articleId: string, userId: string, content: str
 // Get like count for an article
 export async function getArticleLikeCount(articleId: string): Promise<number> {
   try {
-    const { data, error } = await supabase.rpc(
+    const { data, error } = await supabase.rpc<number>(
       'get_article_likes_count', 
       { article_id_param: articleId },
       { headers: { 'Content-Type': 'application/json' } }
     );
 
     if (error) throw error;
-    return data as number || 0;
+    return data || 0;
   } catch (error) {
     console.error('Error getting like count:', error);
     return 0;
