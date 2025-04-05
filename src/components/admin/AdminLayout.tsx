@@ -10,7 +10,8 @@ import {
   MessageSquare, 
   LogOut,
   Menu,
-  X
+  X,
+  ArrowLeft
 } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
@@ -27,6 +28,10 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 
   const handleSignOut = async () => {
     await signOut();
+    navigate('/');
+  };
+
+  const handleBackToWebsite = () => {
     navigate('/');
   };
 
@@ -61,6 +66,16 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         </div>
         
         <div className="flex items-center gap-4">
+          {/* Back to Website Button */}
+          <Button 
+            variant="outline" 
+            onClick={handleBackToWebsite} 
+            className="text-law-navy hover:bg-gray-100 mr-2"
+          >
+            <ArrowLeft className="ml-2 h-4 w-4" />
+            חזרה לאתר
+          </Button>
+
           <Button 
             variant="ghost" 
             onClick={handleSignOut} 
@@ -89,6 +104,15 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                   {navItems.map((item) => (
                     <NavItem key={item.path} item={item} />
                   ))}
+                  <Separator className="my-4" />
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-start" 
+                    onClick={handleBackToWebsite}
+                  >
+                    <ArrowLeft className="ml-2 h-4 w-4" />
+                    חזרה לאתר
+                  </Button>
                 </nav>
               </div>
             </SheetContent>
