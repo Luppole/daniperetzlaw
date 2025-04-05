@@ -6,10 +6,12 @@ import { Appointment } from '@/types/appointments';
 export async function getAllAppointments(): Promise<Appointment[]> {
   try {
     // Use rpc to get all appointments
-    const { data, error } = await supabase.rpc('get_all_appointments', {}) as { data: Appointment[], error: any };
+    const { data, error } = await supabase.rpc('get_all_appointments', {}, {
+      headers: { 'Content-Type': 'application/json' }
+    });
     
     if (error) throw error;
-    return data || [];
+    return data as Appointment[] || [];
   } catch (error) {
     console.error('Error fetching appointments:', error);
     return [];
@@ -34,10 +36,12 @@ export async function createAppointment(appointmentData: {
       p_time: appointmentData.time,
       p_details: appointmentData.details,
       p_status: 'pending'
-    }) as { data: { id: string } | null, error: any };
+    }, {
+      headers: { 'Content-Type': 'application/json' }
+    });
 
     if (error) throw error;
-    return { success: true, id: data?.id };
+    return { success: true, id: data?.id as string | undefined };
   } catch (error) {
     console.error('Error creating appointment:', error);
     return { success: false };
@@ -50,7 +54,9 @@ export async function updateAppointmentStatus(id: string, status: 'pending' | 'c
     const { error } = await supabase.rpc('update_appointment_status', {
       p_id: id,
       p_status: status
-    }) as { error: any };
+    }, {
+      headers: { 'Content-Type': 'application/json' }
+    });
     
     if (error) throw error;
     return true;
@@ -65,7 +71,9 @@ export async function deleteAppointment(id: string): Promise<boolean> {
   try {
     const { error } = await supabase.rpc('delete_appointment', {
       p_id: id
-    }) as { error: any };
+    }, {
+      headers: { 'Content-Type': 'application/json' }
+    });
     
     if (error) throw error;
     return true;
@@ -78,13 +86,12 @@ export async function deleteAppointment(id: string): Promise<boolean> {
 // Get appointment counts for dashboard
 export async function getAppointmentCounts(): Promise<{ total: number; pending: number; confirmed: number; }> {
   try {
-    const { data, error } = await supabase.rpc('get_appointment_counts', {}) as { 
-      data: { total: number; pending: number; confirmed: number; } | null, 
-      error: any 
-    };
+    const { data, error } = await supabase.rpc('get_appointment_counts', {}, {
+      headers: { 'Content-Type': 'application/json' }
+    });
     
     if (error) throw error;
-    return data || { total: 0, pending: 0, confirmed: 0 };
+    return data as { total: number; pending: number; confirmed: number; } || { total: 0, pending: 0, confirmed: 0 };
   } catch (error) {
     console.error('Error getting appointment counts:', error);
     return { total: 0, pending: 0, confirmed: 0 };
@@ -96,10 +103,12 @@ export async function getBookedSlots(date: string): Promise<string[]> {
   try {
     const { data, error } = await supabase.rpc('get_booked_slots', {
       date_param: date
-    }) as { data: {time: string}[] | null, error: any };
+    }, {
+      headers: { 'Content-Type': 'application/json' }
+    });
     
     if (error) throw error;
-    return data ? data.map(slot => slot.time) : [];
+    return (data as {time: string}[] || []).map(slot => slot.time);
   } catch (error) {
     console.error('Error getting booked slots:', error);
     return [];

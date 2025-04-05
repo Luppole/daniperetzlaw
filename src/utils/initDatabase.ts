@@ -5,7 +5,9 @@ import { ensureArticlesExist } from '@/services/articleService';
 export async function initializeDatabase() {
   try {
     // Initialize the database with the RPC function
-    const { error } = await supabase.rpc('init_database', {}) as { error: any };
+    const { error } = await supabase.rpc('init_database', {}, {
+      headers: { 'Content-Type': 'application/json' }
+    });
     
     if (error) {
       console.error('Error initializing database:', error);
