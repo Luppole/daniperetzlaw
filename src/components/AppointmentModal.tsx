@@ -11,7 +11,11 @@ import {
   Loader2, 
   Calendar as CalendarIcon, 
   Clock,
-  Send
+  Send,
+  UserRound,
+  Phone,
+  Mail,
+  FileText
 } from "lucide-react"
 import { Calendar } from "@/components/ui/calendar"
 import { format } from 'date-fns';
@@ -161,141 +165,164 @@ export function AppointmentModal({ trigger }: AppointmentModalProps) {
       <DialogTrigger asChild>
         {trigger}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[550px] p-6 overflow-hidden rounded-xl shadow-xl">
+      <DialogContent className="w-full sm:max-w-[800px] p-6 overflow-y-auto max-h-[90vh] rounded-xl shadow-xl">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-law-navy text-center mb-4">קביעת פגישה</DialogTitle>
         </DialogHeader>
         
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 gap-4">
-            {/* Personal Information */}
-            <div className="space-y-2">
-              <Label htmlFor="name" className="text-right block">שם מלא</Label>
-              <Input 
-                id="name" 
-                value={name} 
-                onChange={(e) => setName(e.target.value)} 
-                placeholder="ישראל ישראלי"
-                className={cn(formErrors.name ? "border-red-500" : "")}
-              />
-              {formErrors.name && <p className="text-red-500 text-xs">שדה חובה</p>}
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {/* Left column - Personal Information */}
+            <div className="space-y-4 order-2 md:order-1">
+              <div className="bg-law-light p-4 rounded-lg mb-4">
+                <h3 className="font-medium text-law-navy mb-3 flex items-center">
+                  <UserRound className="h-5 w-5 ml-2" />
+                  פרטים אישיים
+                </h3>
+                <div className="space-y-3">
+                  <div>
+                    <Label htmlFor="name" className="text-right block">שם מלא</Label>
+                    <div className="relative">
+                      <Input 
+                        id="name" 
+                        value={name} 
+                        onChange={(e) => setName(e.target.value)} 
+                        placeholder="ישראל ישראלי"
+                        className={cn(formErrors.name ? "border-red-500" : "")}
+                      />
+                      {formErrors.name && <p className="text-red-500 text-xs mt-1">שדה חובה</p>}
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="phone" className="text-right block">טלפון</Label>
+                    <div className="relative">
+                      <Input 
+                        type="tel" 
+                        id="phone" 
+                        value={phone} 
+                        onChange={(e) => setPhone(e.target.value)} 
+                        placeholder="052-1234567"
+                        dir="ltr"
+                        className={cn(formErrors.phone ? "border-red-500" : "")}
+                      />
+                      {formErrors.phone && <p className="text-red-500 text-xs mt-1">שדה חובה</p>}
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="email" className="text-right block">אימייל</Label>
+                    <div className="relative">
+                      <Input 
+                        type="email" 
+                        id="email" 
+                        value={email} 
+                        onChange={(e) => setEmail(e.target.value)} 
+                        placeholder="your-email@example.com"
+                        dir="ltr"
+                        className={cn(formErrors.email ? "border-red-500" : "")}
+                      />
+                      {formErrors.email && <p className="text-red-500 text-xs mt-1">אימייל לא תקין</p>}
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-law-light p-4 rounded-lg">
+                <h3 className="font-medium text-law-navy mb-3 flex items-center">
+                  <FileText className="h-5 w-5 ml-2" />
+                  פרטי הפגישה
+                </h3>
+                <div className="space-y-3">
+                  <div>
+                    <Label htmlFor="details" className="text-right block">נושא הפגישה</Label>
+                    <Textarea 
+                      id="details" 
+                      value={details} 
+                      onChange={(e) => setDetails(e.target.value)} 
+                      placeholder="תאר בקצרה את נושא הפגישה"
+                      className="min-h-[100px]"
+                    />
+                  </div>
+                  
+                  {selectedDate && time && (
+                    <div className="mt-4 p-3 bg-white/80 border border-law-silver/30 rounded-lg text-center text-law-navy">
+                      <p className="font-medium">נבחר:</p>
+                      <p>{format(selectedDate, 'EEEE, d בMMMM yyyy', { locale: he })}</p>
+                      <p className="font-bold text-lg">{time}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              <Button 
+                type="submit" 
+                disabled={isSubmitting}
+                className="w-full bg-law-navy hover:bg-law-navy/90 text-white py-6 mt-6"
+              >
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="ml-2 h-5 w-5 animate-spin" />
+                    שולח...
+                  </>
+                ) : (
+                  <>
+                    <Send className="ml-2 h-5 w-5" />
+                    קבע פגישה
+                  </>
+                )}
+              </Button>
             </div>
             
-            <div className="space-y-2">
-              <Label htmlFor="phone" className="text-right block">טלפון</Label>
-              <Input 
-                type="tel" 
-                id="phone" 
-                value={phone} 
-                onChange={(e) => setPhone(e.target.value)} 
-                placeholder="052-1234567"
-                dir="ltr"
-                className={cn(formErrors.phone ? "border-red-500" : "")}
-              />
-              {formErrors.phone && <p className="text-red-500 text-xs">שדה חובה</p>}
-            </div>
-            
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-right block">אימייל</Label>
-              <Input 
-                type="email" 
-                id="email" 
-                value={email} 
-                onChange={(e) => setEmail(e.target.value)} 
-                placeholder="your-email@example.com"
-                dir="ltr"
-                className={cn(formErrors.email ? "border-red-500" : "")}
-              />
-              {formErrors.email && <p className="text-red-500 text-xs">אימייל לא תקין</p>}
-            </div>
-          </div>
-          
-          <div className="border-t border-gray-200 my-4 pt-4">
-            <div className="flex items-center justify-center mb-4">
-              <CalendarIcon className="h-5 w-5 ml-2 text-law-navy" />
-              <h3 className="text-lg font-medium">בחירת מועד</h3>
-            </div>
-            
-            <div className="grid grid-cols-1 gap-6 items-start">
-              <div>
-                <div className="mb-2">
+            {/* Right column - Calendar */}
+            <div className="order-1 md:order-2 bg-law-light p-4 rounded-lg">
+              <div className="flex items-center justify-center mb-4">
+                <CalendarIcon className="h-5 w-5 ml-2 text-law-navy" />
+                <h3 className="text-lg font-medium text-law-navy">בחירת מועד</h3>
+              </div>
+              
+              <div className="flex flex-col items-center">
+                <div className="mb-6 bg-white p-2 rounded-lg shadow-sm">
                   <Calendar
                     mode="single"
                     selected={selectedDate}
                     onSelect={setSelectedDate}
-                    className="rounded-md mx-auto"
+                    className="rounded-md w-full"
                     disabled={(date) => date < new Date()}
                     locale={he}
                     fixedWeeks
                   />
                 </div>
-                {formErrors.date && <p className="text-red-500 text-xs text-center">נא לבחור תאריך</p>}
-              </div>
-              
-              <div className="flex flex-col justify-center">
-                <Label htmlFor="time" className="text-right block mb-2 flex items-center">
-                  <Clock className="h-4 w-4 ml-1" />
-                  בחירת שעה
-                </Label>
-                <Select onValueChange={setTime} value={time}>
-                  <SelectTrigger className={cn(formErrors.time ? "border-red-500" : "")}>
-                    <SelectValue placeholder="בחר שעה" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {availableTimes.length > 0 ? (
-                      availableTimes.map((timeSlot) => (
-                        <SelectItem key={timeSlot} value={timeSlot}>
-                          {timeSlot}
-                        </SelectItem>
-                      ))
-                    ) : (
-                      <SelectItem value="none" disabled className="text-center py-2">
-                        אין שעות זמינות
-                      </SelectItem>
-                    )}
-                  </SelectContent>
-                </Select>
-                {formErrors.time && <p className="text-red-500 text-xs mt-1">נא לבחור שעה</p>}
+                {formErrors.date && <p className="text-red-500 text-xs text-center mt-1">נא לבחור תאריך</p>}
                 
-                {selectedDate && time && (
-                  <div className="mt-4 p-3 bg-law-light rounded-lg text-center text-law-navy">
-                    <p className="font-medium">נבחר:</p>
-                    <p>{format(selectedDate, 'EEEE, d בMMMM yyyy', { locale: he })}</p>
-                    <p className="font-bold">{time}</p>
-                  </div>
-                )}
+                <div className="w-full mt-4">
+                  <Label htmlFor="time" className="text-right block mb-2 flex items-center">
+                    <Clock className="h-4 w-4 ml-1" />
+                    בחירת שעה
+                  </Label>
+                  <Select onValueChange={setTime} value={time}>
+                    <SelectTrigger className={cn(formErrors.time ? "border-red-500" : "", "w-full")}>
+                      <SelectValue placeholder="בחר שעה" />
+                    </SelectTrigger>
+                    <SelectContent position="popper" className="bg-white max-h-[200px] overflow-y-auto">
+                      {availableTimes.length > 0 ? (
+                        availableTimes.map((timeSlot) => (
+                          <SelectItem key={timeSlot} value={timeSlot}>
+                            {timeSlot}
+                          </SelectItem>
+                        ))
+                      ) : (
+                        <SelectItem value="none" disabled className="text-center py-2">
+                          אין שעות זמינות
+                        </SelectItem>
+                      )}
+                    </SelectContent>
+                  </Select>
+                  {formErrors.time && <p className="text-red-500 text-xs mt-1">נא לבחור שעה</p>}
+                </div>
               </div>
             </div>
           </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="details" className="text-right block">פרטים נוספים</Label>
-            <Textarea 
-              id="details" 
-              value={details} 
-              onChange={(e) => setDetails(e.target.value)} 
-              placeholder="תאר בקצרה את נושא הפגישה"
-              className="min-h-[80px]"
-            />
-          </div>
-          
-          <Button 
-            type="submit" 
-            disabled={isSubmitting}
-            className="w-full bg-law-navy hover:bg-law-navy/90 text-white py-6 mt-6"
-          >
-            {isSubmitting ? (
-              <>
-                <Loader2 className="ml-2 h-5 w-5 animate-spin" />
-                שולח...
-              </>
-            ) : (
-              <>
-                <Send className="ml-2 h-5 w-5" />
-                קבע פגישה
-              </>
-            )}
-          </Button>
         </form>
       </DialogContent>
     </Dialog>

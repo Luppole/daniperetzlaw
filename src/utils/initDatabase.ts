@@ -2,14 +2,18 @@
 import { supabase } from '@/integrations/supabase/client';
 import { ensureArticlesExist } from '@/services/articleService';
 
+// Generic type for RPC function calls
+type RPCResponse<T> = {
+  data: T | null;
+  error: Error | null;
+}
+
 export async function initializeDatabase() {
   try {
     // Initialize the database with the RPC function
-    const { error } = await supabase.rpc<{}, {}>(
-      'init_database',
-      {},
-      { headers: { 'Content-Type': 'application/json' } }
-    );
+    const { error } = await supabase.rpc(
+      'init_database'
+    ) as RPCResponse<unknown>;
     
     if (error) {
       console.error('Error initializing database:', error);

@@ -8,14 +8,18 @@ interface InsertAppointmentResponse { id: string }
 interface GetAppointmentCountsResponse { total: number; pending: number; confirmed: number }
 interface GetBookedSlotsResponse { time: string }
 
+// Generic type for RPC function calls
+type RPCResponse<T> = {
+  data: T | null;
+  error: Error | null;
+}
+
 // Fetch all appointments
 export async function getAllAppointments(): Promise<Appointment[]> {
   try {
-    const { data, error } = await supabase.rpc<GetAllAppointmentsResponse[], {}>(
-      'get_all_appointments',
-      {},
-      { headers: { 'Content-Type': 'application/json' } }
-    );
+    const { data, error } = await supabase.rpc<GetAllAppointmentsResponse[]>(
+      'get_all_appointments'
+    ) as RPCResponse<GetAllAppointmentsResponse[]>;
     
     if (error) throw error;
     return data || [];
@@ -35,15 +39,7 @@ export async function createAppointment(appointmentData: {
   details: string | null;
 }): Promise<{success: boolean; id?: string}> {
   try {
-    const { data, error } = await supabase.rpc<InsertAppointmentResponse, {
-      p_name: string;
-      p_email: string;
-      p_phone: string;
-      p_date: string;
-      p_time: string;
-      p_details: string | null;
-      p_status: string;
-    }>(
+    const { data, error } = await supabase.rpc<InsertAppointmentResponse>(
       'insert_appointment',
       {
         p_name: appointmentData.name,
@@ -53,12 +49,11 @@ export async function createAppointment(appointmentData: {
         p_time: appointmentData.time,
         p_details: appointmentData.details,
         p_status: 'pending'
-      },
-      { headers: { 'Content-Type': 'application/json' } }
-    );
+      }
+    ) as RPCResponse<InsertAppointmentResponse>;
 
     if (error) throw error;
-    return { success: true, id: data ? data.id : undefined };
+    return { success: true, id: data?.id };
   } catch (error) {
     console.error('Error creating appointment:', error);
     return { success: false };
@@ -68,17 +63,13 @@ export async function createAppointment(appointmentData: {
 // Update appointment status
 export async function updateAppointmentStatus(id: string, status: 'pending' | 'confirmed' | 'cancelled'): Promise<boolean> {
   try {
-    const { error } = await supabase.rpc<{}, {
-      p_id: string;
-      p_status: string;
-    }>(
+    const { error } = await supabase.rpc(
       'update_appointment_status',
       {
         p_id: id,
         p_status: status
-      },
-      { headers: { 'Content-Type': 'application/json' } }
-    );
+      }
+    ) as RPCResponse<unknown>;
     
     if (error) throw error;
     return true;
@@ -91,15 +82,12 @@ export async function updateAppointmentStatus(id: string, status: 'pending' | 'c
 // Delete an appointment
 export async function deleteAppointment(id: string): Promise<boolean> {
   try {
-    const { error } = await supabase.rpc<{}, {
-      p_id: string;
-    }>(
+    const { error } = await supabase.rpc(
       'delete_appointment',
       {
         p_id: id
-      },
-      { headers: { 'Content-Type': 'application/json' } }
-    );
+      }
+    ) as RPCResponse<unknown>;
     
     if (error) throw error;
     return true;
@@ -112,11 +100,9 @@ export async function deleteAppointment(id: string): Promise<boolean> {
 // Get appointment counts for dashboard
 export async function getAppointmentCounts(): Promise<{ total: number; pending: number; confirmed: number; }> {
   try {
-    const { data, error } = await supabase.rpc<GetAppointmentCountsResponse, {}>(
-      'get_appointment_counts',
-      {},
-      { headers: { 'Content-Type': 'application/json' } }
-    );
+    const { data, error } = await supabase.rpc<GetAppointmentCountsResponse>(
+      'get_appointment_counts'
+    ) as RPCResponse<GetAppointmentCountsResponse>;
     
     if (error) throw error;
     return data || { total: 0, pending: 0, confirmed: 0 };
@@ -126,18 +112,15 @@ export async function getAppointmentCounts(): Promise<{ total: number; pending: 
   }
 }
 
-// Get available time slots
+// Get booked time slots for a specific date
 export async function getBookedSlots(date: string): Promise<string[]> {
   try {
-    const { data, error } = await supabase.rpc<GetBookedSlotsResponse[], {
-      date_param: string;
-    }>(
+    const { data, error } = await supabase.rpc<GetBookedSlotsResponse[]>(
       'get_booked_slots',
       {
         date_param: date
-      },
-      { headers: { 'Content-Type': 'application/json' } }
-    );
+      }
+    ) as RPCResponse<GetBookedSlotsResponse[]>;
     
     if (error) throw error;
     // Safely handle the data and map it properly
