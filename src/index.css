@@ -153,11 +153,11 @@
   }
   
   .section-title::after {
-    @apply content-[''] absolute -bottom-2 right-0 w-1/4 h-1 bg-law-navy rounded-full transition-all duration-300;
+    content: none; /* Remove static underline */
   }
   
   .section-title:hover::after {
-    @apply w-1/2;
+    @apply content-[''] absolute -bottom-2 right-0 w-full h-1 bg-law-navy rounded-full transition-all duration-300;
   }
 
   .section-subtitle {
@@ -283,7 +283,7 @@
   transition: 0s;
 }
 
-/* Refined underline hover effect - Less pronounced */
+/* Refined underline hover effect */
 .nav-link {
   position: relative;
 }
@@ -291,22 +291,22 @@
 .nav-link::after {
   content: '';
   position: absolute;
-  width: 30%;
+  width: 100%;
   transform: scaleX(0);
-  height: 1px; /* Thinner line */
-  bottom: -1px; /* Closer to text */
+  height: 1px;
+  bottom: -1px;
   left: 0;
   background-color: #1E2756;
   transform-origin: bottom right;
-  transition: transform 0.25s ease-out; /* Faster transition */
+  transition: transform 0.25s ease-out;
 }
 
 .nav-link:hover::after {
-  transform: scaleX(1); /* Only expand to 70% width */
+  transform: scaleX(1);
   transform-origin: bottom left;
 }
 
-/* Refined link hover effect - More subtle */
+/* Refined link hover effect */
 .hover-link {
   position: relative;
   display: inline-block;
@@ -316,16 +316,15 @@
   content: '';
   position: absolute;
   width: 0;
-  height: 1px; /* Thinner line */
-  bottom: -1px; /* Closer to text */
+  height: 1px;
+  bottom: -1px;
   right: 0;
   background-color: currentColor;
-  opacity: 0.4; /* Semi-transparent */
-  transition: width 0.2s ease; /* Faster */
+  transition: width 0.3s ease;
 }
 
 .hover-link:hover::after {
-  width: 40%; /* Only expand to 40% - much more subtle */
+  width: 100%;
 }
 
 /* Micro-interactions */

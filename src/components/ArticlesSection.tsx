@@ -43,12 +43,12 @@ export function ArticlesSection() {
     <section id="articles" className="section-wrapper bg-law-light py-16">
       <div className="container mx-auto" ref={ref}>
         <div className={`text-center mb-16 transition-all duration-700 transform ${inView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-          <h2 className="section-title text-3xl md:text-4xl font-bold text-law-navy mb-4 relative inline-block">
+          <h2 className="section-title text-3xl md:text-4xl font-bold font-rubik text-law-navy mb-4 relative inline-block">
             מאמרים משפטיים
             <span className="absolute bottom-0 left-0 w-full h-1 bg-law-navy transform scale-x-0 transition-transform duration-1000" 
                   style={{ transform: inView ? 'scaleX(1)' : 'scaleX(0)', transitionDelay: '300ms' }}></span>
           </h2>
-          <p className="section-subtitle text-lg text-law-gray transition-opacity duration-700 delay-200" 
+          <p className="section-subtitle text-lg text-law-gray transition-opacity duration-700 delay-200 font-heebo" 
              style={{ opacity: inView ? 1 : 0, transitionDelay: '400ms' }}>
             ידע וחדשות מעולם המשפט
           </p>
@@ -67,9 +67,9 @@ export function ArticlesSection() {
               <CardHeader>
                 <div className="flex items-center mb-3 text-law-gray">
                   <Calendar className="h-4 w-4 ml-2 transition-transform duration-300 group-hover:scale-110" />
-                  <span className="text-sm">{article.date}</span>
+                  <span className="text-sm font-heebo">{article.date}</span>
                 </div>
-                <CardTitle className="text-xl font-serif text-law-dark line-clamp-2 group">
+                <CardTitle className="text-xl font-rubik font-bold text-law-navy line-clamp-2 group">
                   <a 
                     href={article.link}
                     onClick={(e) => {
@@ -77,21 +77,21 @@ export function ArticlesSection() {
                       navigate(article.link);
                       window.scrollTo(0, 0);
                     }}
-                    className="text-law-navy hover:text-law-navy/80 transition-colors duration-300"
+                    className="hover:text-law-navy/80 transition-colors duration-300"
                   >
                     {article.title}
                   </a>
                 </CardTitle>
               </CardHeader>
               <CardContent className="flex-grow">
-                <CardDescription className="text-law-gray line-clamp-4">
+                <CardDescription className="text-law-gray line-clamp-4 font-heebo">
                   {article.summary}
                 </CardDescription>
               </CardContent>
               <CardFooter>
                 <Button 
                   variant="ghost" 
-                  className="text-law-navy hover:bg-law-navy/10 p-0 group transition-all duration-300"
+                  className="text-law-navy hover:bg-law-navy/10 p-0 group transition-all duration-300 font-heebo"
                   onClick={() => {
                     navigate(article.link);
                     window.scrollTo(0, 0);
@@ -109,7 +109,7 @@ export function ArticlesSection() {
              style={{ transitionDelay: '800ms' }}>
           <Button 
             variant="outline" 
-            className="border-law-navy text-law-navy hover:bg-law-navy hover:text-white transition-all duration-300 transform hover:scale-105"
+            className="border-law-navy text-law-navy hover:bg-law-navy hover:text-white transition-all duration-300 transform hover:scale-105 font-heebo"
             onClick={() => {
               navigate('/articles');
               window.scrollTo(0, 0);

@@ -9,9 +9,11 @@ import { FaqSection } from '@/components/FaqSection';
 import { ContactSection } from '@/components/ContactSection';
 import { Footer } from '@/components/Footer';
 import { ArrowUp } from 'lucide-react';
+import { useLocation } from 'react-router-dom';
 
 const Index = () => {
   const [showScrollTop, setShowScrollTop] = useState(false);
+  const location = useLocation();
 
   useEffect(() => {
     // Intersection Observer for animate-on-scroll elements
@@ -57,11 +59,26 @@ const Index = () => {
     // Initialize preloading
     preloadImages();
 
+    // Handle hash navigation for smooth scrolling
+    const handleHashNavigation = () => {
+      const hash = location.hash;
+      if (hash) {
+        setTimeout(() => {
+          const element = document.querySelector(hash);
+          if (element) {
+            element.scrollIntoView({ behavior: 'smooth' });
+          }
+        }, 100);
+      }
+    };
+
+    handleHashNavigation();
+
     return () => {
       observer.disconnect();
       window.removeEventListener('scroll', handleScroll);
     };
-  }, []);
+  }, [location]);
 
   const scrollToTop = () => {
     window.scrollTo({

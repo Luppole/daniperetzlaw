@@ -82,6 +82,14 @@ export function Navbar() {
     if (isMenuOpen) setIsMenuOpen(false);
   };
 
+  const scrollToHero = () => {
+    if (isHomePage) {
+      document.getElementById('hero')?.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      navigate('/#hero');
+    }
+  };
+
   return (
     <header className={cn(
       'fixed w-full z-50 transition-all duration-300 backdrop-blur-sm',
@@ -89,7 +97,7 @@ export function Navbar() {
     )}>
       <div className="container mx-auto px-4 flex justify-between items-center">
         <div 
-          onClick={() => navigate('/')}
+          onClick={scrollToHero}
           className="flex items-center cursor-pointer hover:opacity-90 transition-all duration-300"
         >
           <div className="bg-law-navy p-2 rounded-md transform transition-transform hover:scale-105">
@@ -122,7 +130,7 @@ export function Navbar() {
               >
                 {link.title}
                 {isActive && (
-                  <span className="absolute bottom-0 left-0 w-1/2 h-0.5 bg-law-navy transform origin-right scale-x-100 transition-transform" />
+                  <span className="absolute bottom-0 left-1/2 w-1/2 h-0.5 bg-law-navy transform -translate-x-1/2 transition-transform" />
                 )}
               </button>
             );
