@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { CheckCircle, Loader } from 'lucide-react';
+import { CheckCircle, Loader, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -199,7 +199,7 @@ export function ContactForm() {
           <Button 
             type="submit"
             disabled={isSubmitting}
-            className="w-full bg-law-blue hover:bg-law-blue/90 text-white py-6 transition-all duration-300 transform hover:translate-y-[-2px] hover:shadow-md relative overflow-hidden"
+            className="w-full bg-law-navy hover:bg-law-navy/90 text-white py-6 transition-all duration-300 transform hover:translate-y-[-2px] hover:shadow-md relative group"
           >
             {isSubmitting ? (
               <>
@@ -207,11 +207,15 @@ export function ContactForm() {
                 שולח הודעה...
               </>
             ) : (
-              'שלח הודעה'
+              <>
+                <Send className="h-5 w-5 mr-2" />
+                שלח הודעה
+              </>
             )}
-            <span className="absolute inset-0 overflow-hidden rounded-md" style={{ zIndex: -1 }}>
-              <span className="absolute -inset-1 opacity-0 group-active:opacity-20 bg-white transition-opacity duration-300" />
-            </span>
+            <span 
+              className="absolute inset-0 bg-white opacity-0 group-hover:opacity-10 transition-opacity duration-300 pointer-events-none" 
+              aria-hidden="true"
+            />
           </Button>
         </form>
       )}
