@@ -1,14 +1,25 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Award, BookOpen, Scale, Users } from 'lucide-react';
+import { getAllArticles } from '@/services/articleService';
 
 export function AboutSection() {
+  const [articleCount, setArticleCount] = React.useState(0);
+
+  React.useEffect(() => {
+    const fetchArticleCount = async () => {
+      const articles = await getAllArticles();
+      setArticleCount(articles.length);
+    };
+
+    fetchArticleCount();
+  }, []);
+
   const stats = [
-    { icon: <Users className="h-8 w-8 text-law-blue" />, value: '300+', label: 'לקוחות מרוצים' },
-    { icon: <Award className="h-8 w-8 text-law-blue" />, value: '15+', label: 'שנות ניסיון' },
+    { icon: <Users className="h-8 w-8 text-law-blue" />, value: '100+', label: 'לקוחות מרוצים' },
+    { icon: <Award className="h-8 w-8 text-law-blue" />, value: '6+', label: 'שנות ניסיון' },
     { icon: <Scale className="h-8 w-8 text-law-blue" />, value: '90%', label: 'תיקים שהסתיימו בהצלחה' },
-    { icon: <BookOpen className="h-8 w-8 text-law-blue" />, value: '50+', label: 'מאמרים משפטיים' },
+    { icon: <BookOpen className="h-8 w-8 text-law-blue" />, value: articleCount.toString(), label: 'מאמרים משפטיים' },
   ];
 
   return (
@@ -23,7 +34,7 @@ export function AboutSection() {
           <div className="glass-card p-8">
             <h3 className="text-2xl font-bold text-law-dark mb-4">עו"ד דני פרץ</h3>
             <p className="text-law-gray mb-4">
-              עו"ד דני פרץ הוא עורך דין עצמאי בעל ניסיון של למעלה מ-15 שנים בתחום המשפט האזרחי והמסחרי. 
+              עו"ד דני פרץ הוא עורך דין עצמאי בעל ניסיון של למעלה מ-6 שנים בתחום המשפט האזרחי והמסחרי. 
               הוא הוכר כאחד מעורכי הדין המובילים בתחומו והוביל מספר תיקים משמעותיים שיצרו תקדימים משפטיים.
             </p>
             <p className="text-law-gray mb-6">
