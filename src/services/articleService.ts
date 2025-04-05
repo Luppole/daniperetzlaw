@@ -25,7 +25,6 @@ export interface Comment {
 // Fetch a single article by ID
 export async function getArticleById(id: string): Promise<Article | null> {
   try {
-    // Use generic type parameter and 'from' method to avoid type errors
     const { data, error } = await supabase
       .from('articles')
       .select('*')
@@ -33,7 +32,7 @@ export async function getArticleById(id: string): Promise<Article | null> {
       .single();
     
     if (error) throw error;
-    return data as unknown as Article;
+    return data as Article;
   } catch (error) {
     console.error('Error fetching article:', error);
     return null;
@@ -43,14 +42,13 @@ export async function getArticleById(id: string): Promise<Article | null> {
 // Fetch all articles
 export async function getAllArticles(): Promise<Article[]> {
   try {
-    // Use generic type parameter and 'from' method to avoid type errors
     const { data, error } = await supabase
       .from('articles')
       .select('*')
       .order('created_at', { ascending: false });
     
     if (error) throw error;
-    return data as unknown as Article[];
+    return data as Article[];
   } catch (error) {
     console.error('Error fetching articles:', error);
     return [];
@@ -82,10 +80,9 @@ export async function toggleArticleLike(articleId: string, userId: string): Prom
       .select('*')
       .eq('article_id', articleId)
       .eq('user_id', userId)
-      .single();
+      .maybeSingle();
 
-    if (checkError && checkError.code !== 'PGRST116') {
-      // Error other than "no rows returned"
+    if (checkError) {
       throw checkError;
     }
 
@@ -141,7 +138,7 @@ export async function getArticleComments(articleId: string): Promise<Comment[]> 
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    return data as unknown as Comment[];
+    return data as Comment[];
   } catch (error) {
     console.error('Error fetching comments:', error);
     return [];
@@ -158,14 +155,14 @@ export async function addComment(articleId: string, userId: string, content: str
       .single();
 
     if (error) throw error;
-    return data as unknown as Comment;
+    return data as Comment;
   } catch (error) {
     console.error('Error adding comment:', error);
     return null;
   }
 }
 
-// Insert sample articles into Supabase if they don't exist
+// Ensure articles exist in the database
 export async function ensureArticlesExist(): Promise<void> {
   try {
     // Check if articles already exist
@@ -184,7 +181,7 @@ export async function ensureArticlesExist(): Promise<void> {
       return;
     }
     
-    console.log('No articles found, articles should have been created by SQL migration');
+    console.log('No articles found. Articles should be created via SQL migration.');
   } catch (error) {
     console.error('Error ensuring articles exist:', error);
   }
