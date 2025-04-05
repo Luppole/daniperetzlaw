@@ -75,17 +75,17 @@ const Article = () => {
 
   // Improve the content with better spacing and fewer images
   const enhancedContent = article.content
-    .replace(/<h2>/g, '<h2 class="text-2xl font-bold text-law-navy mt-14 mb-8">')
-    .replace(/<h3>/g, '<h3 class="text-xl font-semibold text-law-navy mt-12 mb-6">')
-    .replace(/<p>/g, '<p class="text-gray-700 leading-relaxed mb-8 text-lg">')
-    .replace(/<ul>/g, '<ul class="list-disc list-inside mb-8 ml-6 space-y-3 text-gray-700">')
-    .replace(/<li>/g, '<li class="mb-3 leading-relaxed">')
-    // Add an image only after every fifth h2 tag instead of after every third
+    .replace(/<h2>/g, '<h2 class="text-2xl font-bold text-law-navy mt-16 mb-10">')
+    .replace(/<h3>/g, '<h3 class="text-xl font-semibold text-law-navy mt-14 mb-8">')
+    .replace(/<p>/g, '<p class="text-gray-700 leading-relaxed mb-10 text-lg">')
+    .replace(/<ul>/g, '<ul class="list-disc list-inside mb-10 ml-6 space-y-4 text-gray-700">')
+    .replace(/<li>/g, '<li class="mb-4 leading-relaxed">')
+    // Add an image only after every tenth h2 tag instead of after every fifth
     .replace(
-      /(<\/h2>)(?:(?!<\/h2>).)*?(<\/h2>)(?:(?!<\/h2>).)*?(<\/h2>)(?:(?!<\/h2>).)*?(<\/h2>)(?:(?!<\/h2>).)*?(<\/h2>)/g, 
-      (match, p1, p2, p3, p4, p5) => 
-        p1 + p2 + p3 + p4 + p5 + 
-        '<div class="my-16 mx-auto w-3/4 max-w-2xl">' +
+      /(<\/h2>)(?:(?!<\/h2>).)*?(<\/h2>)(?:(?!<\/h2>).)*?(<\/h2>)(?:(?!<\/h2>).)*?(<\/h2>)(?:(?!<\/h2>).)*?(<\/h2>)(?:(?!<\/h2>).)*?(<\/h2>)(?:(?!<\/h2>).)*?(<\/h2>)(?:(?!<\/h2>).)*?(<\/h2>)(?:(?!<\/h2>).)*?(<\/h2>)(?:(?!<\/h2>).)*?(<\/h2>)/g, 
+      (match, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10) => 
+        p1 + p2 + p3 + p4 + p5 + p6 + p7 + p8 + p9 + p10 + 
+        '<div class="my-20 mx-auto w-3/4 max-w-2xl">' +
         '<img src="https://images.unsplash.com/photo-1589829085413-56de8ae18c73?q=80&w=2912&auto=format&fit=crop" ' +
         'class="w-full h-auto object-cover rounded-lg shadow-md" alt="Legal concept image" />' +
         '<p class="text-sm text-center text-gray-500 mt-3 italic">תמונה להמחשה בלבד</p>' +
@@ -120,9 +120,9 @@ const Article = () => {
           
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-16">
             <div className="lg:col-span-2 animate-fade-in">
-              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-law-navy mb-10 leading-tight">{article.title}</h1>
+              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-law-navy mb-12 leading-tight">{article.title}</h1>
               
-              <div className="flex flex-wrap items-center mb-12 text-law-gray text-sm">
+              <div className="flex flex-wrap items-center mb-16 text-law-gray text-sm">
                 <div className="flex items-center ml-6 mb-2">
                   <Calendar className="h-4 w-4 ml-1" />
                   <span>{article.date}</span>
@@ -135,7 +135,7 @@ const Article = () => {
                 </div>
               </div>
               
-              <div className="mb-16 overflow-hidden rounded-xl shadow-md max-h-[350px]">
+              <div className="mb-20 overflow-hidden rounded-xl shadow-md max-h-[400px]">
                 <img 
                   src={article.image_url} 
                   alt={article.title}
@@ -143,23 +143,23 @@ const Article = () => {
                 />
               </div>
               
-              <div className="bg-law-light p-10 rounded-lg mb-16 border-r-4 border-law-navy">
+              <div className="bg-law-light p-12 rounded-lg mb-20 border-r-4 border-law-navy">
                 <p className="text-xl font-medium text-law-navy leading-relaxed">{article.summary}</p>
               </div>
               
               <div 
                 className="prose prose-lg max-w-none prose-headings:text-law-navy prose-headings:font-bold 
-                          prose-p:text-gray-700 prose-p:leading-relaxed prose-p:mb-10 prose-ul:text-gray-700 
-                          prose-li:mb-4 prose-a:text-law-navy prose-a:font-medium prose-a:no-underline 
+                          prose-p:text-gray-700 prose-p:leading-relaxed prose-p:mb-12 prose-ul:text-gray-700 
+                          prose-li:mb-5 prose-a:text-law-navy prose-a:font-medium prose-a:no-underline 
                           hover:prose-a:underline"
                 dangerouslySetInnerHTML={{ __html: enhancedContent }}
               />
               
-              <div className="mt-20 pt-10 border-t border-gray-200">
+              <div className="mt-24 pt-10 border-t border-gray-200">
                 <LikeButton articleId={article.id} />
               </div>
               
-              <div className="mt-14 pt-8 border-t border-gray-200">
+              <div className="mt-16 pt-10 border-t border-gray-200">
                 <h4 className="text-lg font-bold mb-6 text-law-navy">שתף את המאמר</h4>
                 <div className="flex gap-4">
                   <Button variant="outline" size="sm" className="flex items-center">
@@ -179,7 +179,7 @@ const Article = () => {
               
               <CommentSection articleId={article.id} />
               
-              <div className="mt-20 grid grid-cols-2 gap-6">
+              <div className="mt-24 grid grid-cols-2 gap-8">
                 <Button 
                   variant="outline" 
                   className="flex items-center justify-center py-6"
