@@ -50,6 +50,7 @@ export function AppointmentModal({ trigger }: AppointmentModalProps) {
       
       try {
         const bookedSlots = await getBookedSlots(formattedDate);
+        console.log('Booked slots:', bookedSlots);
         
         // Generate all possible time slots (adjust as needed)
         const allTimeSlots = generateTimeSlots();
@@ -119,7 +120,9 @@ export function AppointmentModal({ trigger }: AppointmentModalProps) {
         details,
       };
 
+      console.log('Submitting appointment data:', appointmentData);
       const result = await createAppointment(appointmentData);
+      console.log('Result from createAppointment:', result);
 
       if (result.success) {
         toast({
@@ -158,13 +161,13 @@ export function AppointmentModal({ trigger }: AppointmentModalProps) {
       <DialogTrigger asChild>
         {trigger}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[600px] p-6 overflow-hidden rounded-xl shadow-xl">
+      <DialogContent className="sm:max-w-[550px] p-6 overflow-hidden rounded-xl shadow-xl">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-law-navy text-center mb-4">קביעת פגישה</DialogTitle>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 gap-4">
             {/* Personal Information */}
             <div className="space-y-2">
               <Label htmlFor="name" className="text-right block">שם מלא</Label>
@@ -192,7 +195,7 @@ export function AppointmentModal({ trigger }: AppointmentModalProps) {
               {formErrors.phone && <p className="text-red-500 text-xs">שדה חובה</p>}
             </div>
             
-            <div className="space-y-2 sm:col-span-2">
+            <div className="space-y-2">
               <Label htmlFor="email" className="text-right block">אימייל</Label>
               <Input 
                 type="email" 
@@ -213,9 +216,9 @@ export function AppointmentModal({ trigger }: AppointmentModalProps) {
               <h3 className="text-lg font-medium">בחירת מועד</h3>
             </div>
             
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 items-start">
+            <div className="grid grid-cols-1 gap-6 items-start">
               <div>
-                <div className="bg-gray-50 p-2 rounded-lg mb-2">
+                <div className="mb-2">
                   <Calendar
                     mode="single"
                     selected={selectedDate}

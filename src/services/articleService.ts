@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 
 // Article type definition
@@ -170,7 +171,9 @@ export const addArticle = createArticle;
 // Get comments for an article
 export async function getArticleComments(articleId: string): Promise<Comment[]> {
   try {
-    const { data, error } = await supabase.rpc<Comment[]>(
+    const { data, error } = await supabase.rpc<Comment[], {
+      article_id_param: string;
+    }>(
       'get_article_comments', 
       { article_id_param: articleId },
       { headers: { 'Content-Type': 'application/json' } }
@@ -187,7 +190,11 @@ export async function getArticleComments(articleId: string): Promise<Comment[]> 
 // Add a comment to an article
 export async function addComment(articleId: string, userId: string, content: string): Promise<boolean> {
   try {
-    const { error } = await supabase.rpc(
+    const { error } = await supabase.rpc<{}, {
+      p_article_id: string;
+      p_user_id: string;
+      p_content: string;
+    }>(
       'add_comment', 
       {
         p_article_id: articleId,
@@ -208,7 +215,9 @@ export async function addComment(articleId: string, userId: string, content: str
 // Get like count for an article
 export async function getArticleLikeCount(articleId: string): Promise<number> {
   try {
-    const { data, error } = await supabase.rpc<number>(
+    const { data, error } = await supabase.rpc<number, {
+      article_id_param: string;
+    }>(
       'get_article_likes_count', 
       { article_id_param: articleId },
       { headers: { 'Content-Type': 'application/json' } }
