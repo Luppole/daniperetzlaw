@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Card, CardContent } from '@/components/ui/card';
 import { ArrowRight, Loader2, Save } from 'lucide-react';
-import { Article, getArticleById, addArticle, updateArticle } from '@/services/articleService';
+import { Article, getArticleById, createArticle, updateArticle } from '@/services/articleService';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
@@ -89,16 +89,21 @@ export function ArticleForm() {
 
     setIsSaving(true);
     try {
+      // Ensure all required fields are present for the articleData
       const articleData = {
-        ...values,
+        title: values.title,
+        summary: values.summary,
+        content: values.content,
+        category: values.category,
         author: user.user_metadata?.full_name || user.email?.split('@')[0] || 'כותב לא ידוע',
+        image_url: values.image_url || '',
       };
 
       if (isEditing && id) {
         await updateArticle(id, articleData);
         toast.success('המאמר עודכן בהצלחה');
       } else {
-        await addArticle(articleData);
+        await createArticle(articleData);
         toast.success('המאמר נוסף בהצלחה');
       }
       

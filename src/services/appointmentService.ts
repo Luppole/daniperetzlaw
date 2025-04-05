@@ -37,7 +37,7 @@ export async function createAppointment(appointmentData: {
     });
 
     if (error) throw error;
-    return { success: true, id: data?.id };
+    return { success: true, id: data?.id || undefined };
   } catch (error) {
     console.error('Error creating appointment:', error);
     return { success: false };

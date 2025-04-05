@@ -85,16 +85,13 @@ export async function createArticle(articleData: {
   try {
     // Add the date field
     const currentDate = new Date().toISOString().split('T')[0];
-
-    const { error } = await supabase.from('articles').insert({
-      title: articleData.title,
-      summary: articleData.summary,
-      content: articleData.content,
-      category: articleData.category,
-      author: articleData.author,
-      image_url: articleData.image_url,
+    
+    const fullArticleData = {
+      ...articleData,
       date: currentDate
-    });
+    };
+
+    const { error } = await supabase.from('articles').insert(fullArticleData);
 
     if (error) throw error;
     return true;
