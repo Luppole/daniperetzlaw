@@ -7,27 +7,16 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { UserMenu } from '@/components/UserMenu';
 import { useAuth } from '@/contexts/AuthContext';
 
-interface NavbarProps {
-  activeSection?: string;
-}
-
-export function Navbar({ activeSection: externalActiveSection }: NavbarProps = {}) {
+export function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [activeLink, setActiveLink] = useState(externalActiveSection || 'hero');
+  const [activeLink, setActiveLink] = useState('hero');
   
   // Check if we're on the homepage
   const isHomePage = location.pathname === '/';
-  
-  useEffect(() => {
-    // Update activeLink when externalActiveSection changes
-    if (externalActiveSection) {
-      setActiveLink(externalActiveSection);
-    }
-  }, [externalActiveSection]);
   
   useEffect(() => {
     const handleScroll = () => {
@@ -35,8 +24,7 @@ export function Navbar({ activeSection: externalActiveSection }: NavbarProps = {
       setIsScrolled(window.scrollY > 50);
       
       // Only update active section based on scroll position if on homepage
-      // and no external activeSection is provided
-      if (isHomePage && !externalActiveSection) {
+      if (isHomePage) {
         const sections = document.querySelectorAll('section[id]');
         const scrollPosition = window.pageYOffset + 100;
         
@@ -56,7 +44,7 @@ export function Navbar({ activeSection: externalActiveSection }: NavbarProps = {
     return () => {
       window.removeEventListener('scroll', handleScroll);
     };
-  }, [isHomePage, externalActiveSection]);
+  }, [isHomePage]);
 
   const toggleMenu = () => {
     setIsMenuOpen(!isMenuOpen);

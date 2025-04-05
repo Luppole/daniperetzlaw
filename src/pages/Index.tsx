@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Navbar } from '@/components/Navbar';
 import { HeroSection } from '@/components/HeroSection';
 import { AboutSection } from '@/components/AboutSection';
@@ -13,12 +13,10 @@ import { useLocation } from 'react-router-dom';
 
 const Index = () => {
   const [showScrollTop, setShowScrollTop] = useState(false);
-  const [activeSection, setActiveSection] = useState('hero');
   const location = useLocation();
-  const pageRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Intersection Observer for animate-on-scroll elements with better threshold
+    // Intersection Observer for animate-on-scroll elements
     const observer = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -29,7 +27,7 @@ const Index = () => {
           }
         });
       },
-      { threshold: 0.15, rootMargin: '0px 0px -10% 0px' }
+      { threshold: 0.1, rootMargin: '0px 0px -10% 0px' }
     );
 
     const animatedElements = document.querySelectorAll('.animate-on-scroll');
@@ -37,27 +35,9 @@ const Index = () => {
       observer.observe(element);
     });
 
-    // Section observer for tracking active section
-    const sectionObserver = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting && entry.target.id) {
-            setActiveSection(entry.target.id);
-          }
-        });
-      },
-      { threshold: 0.3 }
-    );
-
-    // Observe all sections
-    const sections = document.querySelectorAll('section[id]');
-    sections.forEach((section) => {
-      sectionObserver.observe(section);
-    });
-
-    // Scroll to top button handler with smoother threshold
+    // Scroll to top button handler
     const handleScroll = () => {
-      setShowScrollTop(window.scrollY > 300);
+      setShowScrollTop(window.scrollY > 500);
     };
 
     window.addEventListener('scroll', handleScroll);
@@ -73,13 +53,8 @@ const Index = () => {
       });
     };
     
-    // Add page loaded class for animations with a slight delay for better effect
-    setTimeout(() => {
-      document.body.classList.add('page-loaded');
-      if (pageRef.current) {
-        pageRef.current.classList.add('fade-in');
-      }
-    }, 100);
+    // Add page loaded class for animations
+    document.body.classList.add('page-loaded');
     
     // Initialize preloading
     preloadImages();
@@ -99,27 +74,9 @@ const Index = () => {
 
     handleHashNavigation();
 
-    // Add parallax effect to background elements on scroll
-    const handleParallax = () => {
-      const scrollY = window.scrollY;
-      const parallaxElements = document.querySelectorAll('.parallax');
-      
-      parallaxElements.forEach((element) => {
-        if (element instanceof HTMLElement) {
-          const speed = element.dataset.speed || '0.1';
-          const yPos = scrollY * parseFloat(speed);
-          element.style.transform = `translateY(${yPos}px)`;
-        }
-      });
-    };
-
-    window.addEventListener('scroll', handleParallax);
-
     return () => {
       observer.disconnect();
-      sectionObserver.disconnect();
       window.removeEventListener('scroll', handleScroll);
-      window.removeEventListener('scroll', handleParallax);
     };
   }, [location]);
 
@@ -131,16 +88,8 @@ const Index = () => {
   };
 
   return (
-    <div ref={pageRef} className="min-h-screen overflow-x-hidden opacity-0 transition-opacity duration-700">
-      {/* Dynamic background elements */}
-      <div className="fixed inset-0 pointer-events-none">
-        <div className="absolute top-0 right-0 w-1/3 h-1/3 bg-law-navy/5 rounded-bl-full opacity-30 parallax" data-speed="-0.05"></div>
-        <div className="absolute bottom-0 left-0 w-1/2 h-1/2 bg-law-light/50 rounded-tr-full opacity-30 parallax" data-speed="0.08"></div>
-        <div className="absolute top-1/3 left-1/4 w-16 h-16 bg-law-navy/10 rounded-full blur-xl parallax" data-speed="0.12"></div>
-        <div className="absolute bottom-1/4 right-1/3 w-24 h-24 bg-law-navy/10 rounded-full blur-xl parallax" data-speed="-0.1"></div>
-      </div>
-      
-      <Navbar activeSection={activeSection} />
+    <div className="min-h-screen overflow-x-hidden">
+      <Navbar />
       <HeroSection />
       <AboutSection />
       <ExpertiseSection />
@@ -149,15 +98,15 @@ const Index = () => {
       <ContactSection />
       <Footer />
       
-      {/* Scroll to top button with enhanced styling */}
+      {/* Scroll to top button */}
       <button
         onClick={scrollToTop}
-        className={`fixed bottom-6 left-6 bg-law-navy text-white p-3 rounded-full shadow-lg transition-all duration-500 z-50 ${
-          showScrollTop ? 'opacity-90 transform translate-y-0 hover:opacity-100 hover:bg-law-navy/90 hover:scale-110' : 'opacity-0 transform translate-y-10 pointer-events-none'
+        className={`fixed bottom-6 left-6 bg-law-navy text-white p-3 rounded-full shadow-lg transition-all duration-300 ${
+          showScrollTop ? 'opacity-80 transform translate-y-0 hover:opacity-100' : 'opacity-0 transform translate-y-10 pointer-events-none'
         }`}
         aria-label="Scroll to top"
       >
-        <ArrowUp size={22} />
+        <ArrowUp size={20} />
       </button>
     </div>
   );
