@@ -172,10 +172,11 @@ export const addArticle = createArticle;
 // Get comments for an article
 export async function getArticleComments(articleId: string): Promise<Comment[]> {
   try {
-    const { data, error } = await supabase
-      .rpc('get_article_comments', { article_id_param: articleId }, {
-        headers: { 'Content-Type': 'application/json' }
-      });
+    const { data, error } = await supabase.rpc(
+      'get_article_comments', 
+      { article_id_param: articleId },
+      { headers: { 'Content-Type': 'application/json' } }
+    ) as { data: Comment[] | null; error: any };
 
     if (error) throw error;
     return data as Comment[] || [];
@@ -188,13 +189,15 @@ export async function getArticleComments(articleId: string): Promise<Comment[]> 
 // Add a comment to an article
 export async function addComment(articleId: string, userId: string, content: string): Promise<boolean> {
   try {
-    const { error } = await supabase.rpc('add_comment', {
-      p_article_id: articleId,
-      p_user_id: userId,
-      p_content: content
-    }, {
-      headers: { 'Content-Type': 'application/json' }
-    });
+    const { error } = await supabase.rpc(
+      'add_comment', 
+      {
+        p_article_id: articleId,
+        p_user_id: userId,
+        p_content: content
+      },
+      { headers: { 'Content-Type': 'application/json' } }
+    ) as { data: any; error: any };
 
     if (error) throw error;
     return true;

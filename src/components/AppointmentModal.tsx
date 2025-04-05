@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import {
   Dialog,
@@ -8,7 +9,7 @@ import {
   DialogTrigger,
   DialogFooter,
 } from "@/components/ui/dialog"
-import { Calendar as CalendarIcon } from "lucide-react"
+import { Calendar as CalendarIcon, Loader2, Clock, Mail, Phone, User, FileText } from "lucide-react"
 import { Calendar } from "@/components/ui/calendar"
 import { format } from 'date-fns';
 import { Button } from "@/components/ui/button"
@@ -18,7 +19,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/hooks/use-toast";
 import { createAppointment, getBookedSlots } from '@/services/appointmentService';
-import { Loader2 } from 'lucide-react';
+import { cn } from "@/lib/utils";
 
 interface AppointmentModalProps {
   trigger: React.ReactNode;
@@ -67,8 +68,8 @@ export function AppointmentModal({ trigger }: AppointmentModalProps) {
 
     if (!selectedDate) {
       toast({
-        title: 'Error',
-        description: 'Please select a date.',
+        title: 'שגיאה',
+        description: 'נא לבחור תאריך.',
         variant: 'destructive',
       });
       return;
@@ -76,8 +77,8 @@ export function AppointmentModal({ trigger }: AppointmentModalProps) {
 
     if (!name || !email || !phone || !time) {
       toast({
-        title: 'Error',
-        description: 'Please fill in all required fields.',
+        title: 'שגיאה',
+        description: 'נא למלא את כל השדות הנדרשים.',
         variant: 'destructive',
       });
       return;
@@ -100,8 +101,8 @@ export function AppointmentModal({ trigger }: AppointmentModalProps) {
 
       if (result.success) {
         toast({
-          title: 'Success',
-          description: 'Appointment created successfully!',
+          title: 'הצלחה',
+          description: 'הפגישה נקבעה בהצלחה!',
         });
         setOpen(false);
         setName('');
@@ -112,16 +113,16 @@ export function AppointmentModal({ trigger }: AppointmentModalProps) {
         setSelectedDate(undefined);
       } else {
         toast({
-          title: 'Error',
-          description: 'Failed to create appointment. Please try again.',
+          title: 'שגיאה',
+          description: 'לא ניתן לקבוע פגישה. נא לנסות שוב.',
           variant: 'destructive',
         });
       }
     } catch (error) {
       console.error('Appointment creation error:', error);
       toast({
-        title: 'Error',
-        description: 'An unexpected error occurred. Please try again later.',
+        title: 'שגיאה',
+        description: 'אירעה שגיאה לא צפויה. נא לנסות שוב מאוחר יותר.',
         variant: 'destructive',
       });
     } finally {
@@ -134,67 +135,126 @@ export function AppointmentModal({ trigger }: AppointmentModalProps) {
       <DialogTrigger asChild>
         {trigger}
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>קביעת פגישה</DialogTitle>
-          <DialogDescription>
-            מלא את הפרטים שלך כדי לקבוע פגישה.
-          </DialogDescription>
-        </DialogHeader>
-        <form onSubmit={handleSubmit} className="grid gap-4 py-4">
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="name" className="text-right">שם</Label>
-            <Input id="name" value={name} onChange={(e) => setName(e.target.value)} className="col-span-3" />
+      <DialogContent className="sm:max-w-[650px] p-0 overflow-hidden">
+        <div className="flex flex-col md:flex-row h-full">
+          {/* Left side - Calendar */}
+          <div className="bg-law-navy text-white p-6 flex flex-col justify-center items-center md:w-1/2">
+            <h3 className="text-xl font-bold mb-4">בחר תאריך ושעה</h3>
+            <div className="bg-white/10 p-4 rounded-lg backdrop-blur-sm mb-4 w-full">
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                onSelect={setSelectedDate}
+                className="rounded-md border bg-white text-black"
+                disabled={(date) => date < new Date()}
+              />
+            </div>
+            
+            {selectedDate && (
+              <div className="bg-white/10 p-4 rounded-lg backdrop-blur-sm w-full">
+                <h4 className="font-medium mb-2 text-center">שעות זמינות</h4>
+                <Select onValueChange={setTime} value={time}>
+                  <SelectTrigger className="w-full bg-white/20 text-white border-white/30">
+                    <SelectValue placeholder="בחר שעה" />
+                  </SelectTrigger>
+                  <SelectContent className="max-h-[200px]">
+                    {availableTimes.length > 0 ? (
+                      availableTimes.map((timeSlot) => (
+                        <SelectItem key={timeSlot} value={timeSlot}>
+                          {timeSlot}
+                        </SelectItem>
+                      ))
+                    ) : (
+                      <SelectItem value="none" disabled>אין שעות זמינות</SelectItem>
+                    )}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
           </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="email" className="text-right">אימייל</Label>
-            <Input type="email" id="email" value={email} onChange={(e) => setEmail(e.target.value)} className="col-span-3" />
+          
+          {/* Right side - Form */}
+          <div className="p-6 md:w-1/2">
+            <DialogHeader>
+              <DialogTitle className="text-2xl">קביעת פגישה</DialogTitle>
+              <DialogDescription>
+                מלא את הפרטים שלך כדי לקבוע פגישה עם עורך דין.
+              </DialogDescription>
+            </DialogHeader>
+            
+            <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="name" className="text-right flex items-center gap-2">
+                  <User className="h-4 w-4" /> שם מלא
+                </Label>
+                <Input 
+                  id="name" 
+                  value={name} 
+                  onChange={(e) => setName(e.target.value)} 
+                  placeholder="ישראל ישראלי"
+                  className="border-gray-300"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="email" className="text-right flex items-center gap-2">
+                  <Mail className="h-4 w-4" /> אימייל
+                </Label>
+                <Input 
+                  type="email" 
+                  id="email" 
+                  value={email} 
+                  onChange={(e) => setEmail(e.target.value)} 
+                  placeholder="your-email@example.com"
+                  className="border-gray-300"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="phone" className="text-right flex items-center gap-2">
+                  <Phone className="h-4 w-4" /> טלפון
+                </Label>
+                <Input 
+                  type="tel" 
+                  id="phone" 
+                  value={phone} 
+                  onChange={(e) => setPhone(e.target.value)} 
+                  placeholder="052-1234567"
+                  className="border-gray-300"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="details" className="text-right flex items-center gap-2">
+                  <FileText className="h-4 w-4" /> פרטים נוספים
+                </Label>
+                <Textarea 
+                  id="details" 
+                  value={details} 
+                  onChange={(e) => setDetails(e.target.value)} 
+                  placeholder="תאר בקצרה את נושא הפגישה"
+                  className="border-gray-300 min-h-[100px]"
+                />
+              </div>
+              
+              <DialogFooter className="pt-4">
+                <Button 
+                  type="submit" 
+                  disabled={isSubmitting}
+                  className="w-full bg-law-navy hover:bg-law-navy/90"
+                >
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      שולח...
+                    </>
+                  ) : 'קבע פגישה'}
+                </Button>
+              </DialogFooter>
+            </form>
           </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="phone" className="text-right">טלפון</Label>
-            <Input type="tel" id="phone" value={phone} onChange={(e) => setPhone(e.target.value)} className="col-span-3" />
-          </div>
-          <div className="grid grid-cols-4 items-start gap-4">
-            <Label htmlFor="date" className="text-right">תאריך</Label>
-            <Calendar
-              id="date"
-              mode="single"
-              selected={selectedDate}
-              onSelect={setSelectedDate}
-              className="col-span-3 rounded-md border"
-            />
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="time" className="text-right">שעה</Label>
-            <Select onValueChange={setTime}>
-              <SelectTrigger className="col-span-3">
-                <SelectValue placeholder="בחר שעה" />
-              </SelectTrigger>
-              <SelectContent>
-                {availableTimes.map((time) => (
-                  <SelectItem key={time} value={time}>
-                    {time}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="details" className="text-right">פרטים נוספים</Label>
-            <Textarea id="details" value={details} onChange={(e) => setDetails(e.target.value)} className="col-span-3" />
-          </div>
-          <DialogFooter>
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  שולח...
-                </>
-              ) : 'קבע פגישה'}
-            </Button>
-          </DialogFooter>
-        </form>
+        </div>
       </DialogContent>
     </Dialog>
-  )
+  );
 }
