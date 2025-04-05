@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
@@ -15,10 +16,10 @@ export function HeroSection() {
   };
 
   return (
-    <section id="hero" className="relative min-h-screen flex items-center">
+    <section id="hero" className="relative min-h-screen flex items-center pb-20">
       <div className="absolute inset-0 bg-law-navy/5 pattern-grid-lg opacity-30"></div>
       
-      <div className="container mx-auto px-4 pt-20 grid md:grid-cols-2 gap-8 items-center relative z-10">
+      <div className="container mx-auto px-4 pt-24 grid md:grid-cols-2 gap-8 items-center relative z-10">
         <div className="order-2 md:order-1">
           <div className="flex items-center mb-4 animate-slide-in-left">
             <div className="bg-law-navy p-3 rounded-lg">
@@ -30,7 +31,7 @@ export function HeroSection() {
             </div>
           </div>
           
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-law-navy mb-4 animate-slide-up">
+          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-law-navy mb-6 animate-slide-up">
             פתרונות משפטיים <br />
             <span className="relative">
               מקצועיים ואישיים
@@ -38,7 +39,7 @@ export function HeroSection() {
             </span>
           </h1>
           
-          <p className="text-lg text-law-gray mb-8 max-w-xl animate-slide-up" style={{ animationDelay: '0.2s' }}>
+          <p className="text-lg text-law-gray mb-10 max-w-xl animate-slide-up" style={{ animationDelay: '0.2s' }}>
             מתמחה במשפחה, חדלות פרעון ומקרקעין - מספק ליווי משפטי מקיף ומקצועי לאנשים פרטיים ולעסקים.
           </p>
           
@@ -66,7 +67,7 @@ export function HeroSection() {
             <img 
               src="/lovable-uploads/41432968-0b99-4cba-9e29-f6fdea6a4272.png" 
               alt="עו״ד דני פרץ" 
-              className="rounded-lg shadow-xl max-w-full h-auto max-h-[500px] object-cover relative z-10 transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl"
+              className="rounded-lg shadow-xl max-w-full h-auto max-h-[450px] object-cover relative z-10 transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl"
             />
             <div className="absolute -bottom-4 -right-4 w-20 h-20 bg-law-navy rounded-full flex items-center justify-center text-white font-bold text-sm z-20 animate-float">
               <span className="text-center">15+ שנות<br />ניסיון</span>

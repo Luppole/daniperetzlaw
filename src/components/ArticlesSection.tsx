@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Calendar, ArrowLeft } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -31,10 +32,10 @@ export function ArticlesSection() {
   }, []);
 
   return (
-    <section id="articles" className="section-wrapper bg-law-light py-16">
+    <section id="articles" className="section-wrapper bg-law-light py-20">
       <div className="container mx-auto" ref={ref}>
-        <div className={`text-center mb-16 transition-all duration-700 transform ${inView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-          <h2 className="section-title text-3xl md:text-4xl font-bold font-rubik text-law-navy mb-4 relative inline-block">
+        <div className={`text-center mb-20 transition-all duration-700 transform ${inView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+          <h2 className="section-title text-3xl md:text-4xl font-bold font-rubik text-law-navy mb-6 relative inline-block">
             מאמרים משפטיים
           </h2>
           <p className="section-subtitle text-lg text-law-gray transition-opacity duration-700 delay-200 font-heebo" 
@@ -48,7 +49,7 @@ export function ArticlesSection() {
             <Loader2 className="h-12 w-12 animate-spin text-law-navy" />
           </div>
         ) : (
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-10">
             {articles.map((article, index) => (
               <Card 
                 key={article.id} 
@@ -58,15 +59,15 @@ export function ArticlesSection() {
                   transitionDelay: `${index * 0.1}s`
                 }}
               >
-                <div className="h-48 overflow-hidden rounded-t-lg">
+                <div className="h-52 overflow-hidden rounded-t-lg">
                   <img 
                     src={article.image_url} 
                     alt={article.title}
                     className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
                   />
                 </div>
-                <CardHeader>
-                  <div className="flex items-center justify-between mb-3">
+                <CardHeader className="pt-6 pb-4">
+                  <div className="flex items-center justify-between mb-4">
                     <div className="flex items-center text-law-gray">
                       <Calendar className="h-4 w-4 ml-2 transition-transform duration-300 group-hover:scale-110" />
                       <span className="text-sm font-heebo">{article.date}</span>
@@ -87,12 +88,12 @@ export function ArticlesSection() {
                     </a>
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="flex-grow">
-                  <CardDescription className="text-law-gray line-clamp-4 font-heebo">
+                <CardContent className="flex-grow pt-2 pb-4">
+                  <CardDescription className="text-law-gray line-clamp-4 font-heebo text-base">
                     {article.summary}
                   </CardDescription>
                 </CardContent>
-                <CardFooter>
+                <CardFooter className="pt-2 pb-6">
                   <Button 
                     variant="ghost" 
                     className="text-law-navy hover:bg-law-navy/10 p-0 group transition-all duration-300 font-heebo"
@@ -110,11 +111,11 @@ export function ArticlesSection() {
           </div>
         )}
         
-        <div className={`text-center mt-12 transition-all duration-700 delay-500 transform ${inView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
+        <div className={`text-center mt-16 transition-all duration-700 delay-500 transform ${inView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
              style={{ transitionDelay: '800ms' }}>
           <Button 
             variant="outline" 
-            className="border-law-navy text-law-navy hover:bg-law-navy hover:text-white transition-all duration-300 transform hover:scale-105 font-heebo"
+            className="border-law-navy text-law-navy hover:bg-law-navy hover:text-white transition-all duration-300 transform hover:scale-105 font-heebo py-6 px-8"
             onClick={() => {
               navigate('/articles');
               window.scrollTo(0, 0);
