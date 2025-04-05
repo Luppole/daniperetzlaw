@@ -2,44 +2,53 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
+import { Loader2 } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
 
 type AuthContextType = {
   user: User | null;
   session: Session | null;
-  loading: boolean;
+  isLoading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, fullName: string) => Promise<void>;
+  signUp: (email: string, password: string, metadata?: { full_name?: string, avatar_url?: string }) => Promise<void>;
   signOut: () => Promise<void>;
 };
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const AuthContext = createContext<AuthContextType>({
+  user: null,
+  session: null,
+  isLoading: true,
+  signIn: async () => {},
+  signUp: async () => {},
+  signOut: async () => {},
+});
 
-export function AuthProvider({ children }: { children: ReactNode }) {
+export const useAuth = () => useContext(AuthContext);
+
+type AuthProviderProps = {
+  children: ReactNode;
+};
+
+export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // First set up the auth state listener
+    // Set up auth state listener first
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, currentSession) => {
-        setSession(currentSession);
-        setUser(currentSession?.user ?? null);
-        
-        if (event === 'SIGNED_IN') {
-          toast.success('התחברת בהצלחה');
-        } else if (event === 'SIGNED_OUT') {
-          toast.info('התנתקת מהמערכת');
-        }
+      (event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        setIsLoading(false);
       }
     );
 
-    // Then fetch the current session
-    supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
-      setSession(currentSession);
-      setUser(currentSession?.user ?? null);
-      setLoading(false);
+    // Then check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      setIsLoading(false);
     });
 
     return () => {
@@ -49,34 +58,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signIn = async (email: string, password: string) => {
     try {
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
-      
-      if (error) {
-        throw error;
-      }
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (error) throw error;
     } catch (error: any) {
-      toast.error(error.message || 'שגיאה בהתחברות');
+      toast.error(error.message || 'שגיאה בכניסה');
       throw error;
     }
   };
 
-  const signUp = async (email: string, password: string, fullName: string) => {
+  const signUp = async (
+    email: string, 
+    password: string, 
+    metadata?: { full_name?: string, avatar_url?: string }
+  ) => {
     try {
       const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          data: {
-            full_name: fullName,
-          },
+          data: metadata || {},
         },
       });
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
       
-      toast.success('נרשמת בהצלחה! בדוק את תיבת הדואר שלך לקישור אימות');
+      toast.success('הרשמה בוצעה בהצלחה! אנא בדוק את המייל שלך לאימות');
     } catch (error: any) {
       toast.error(error.message || 'שגיאה בהרשמה');
       throw error;
@@ -85,27 +95,36 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) {
-        throw error;
-      }
+      await supabase.auth.signOut();
+      toast.success('התנתקת בהצלחה');
     } catch (error: any) {
       toast.error(error.message || 'שגיאה בהתנתקות');
-      throw error;
     }
   };
 
+  const value = {
+    user,
+    session,
+    isLoading,
+    signIn,
+    signUp,
+    signOut,
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-law-light">
+        <div className="text-center">
+          <Loader2 className="h-10 w-10 text-law-navy animate-spin mx-auto mb-4" />
+          <p className="text-law-gray font-medium">טוען...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <AuthContext.Provider value={{ user, session, loading, signIn, signUp, signOut }}>
+    <AuthContext.Provider value={value}>
       {children}
     </AuthContext.Provider>
   );
-}
-
-export function useAuth() {
-  const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
-}
+};

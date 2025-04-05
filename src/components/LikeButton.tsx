@@ -6,6 +6,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Heart, Loader2 } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
+import { Database } from '@/integrations/supabase/types';
 
 type LikeButtonProps = {
   articleId: string;

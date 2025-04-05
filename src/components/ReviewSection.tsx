@@ -75,19 +75,20 @@ export function ReviewSection() {
         throw error;
       }
 
-      setReviews(data as Review[]);
+      const typedData = data as Review[];
+      setReviews(typedData);
       
       // Calculate average rating
-      if (data.length > 0) {
-        const total = data.reduce((sum, review) => sum + review.rating, 0);
-        setAverageRating(Math.round((total / data.length) * 10) / 10);
+      if (typedData.length > 0) {
+        const total = typedData.reduce((sum, review) => sum + review.rating, 0);
+        setAverageRating(Math.round((total / typedData.length) * 10) / 10);
       }
 
       // Check if the current user has already submitted a review
       if (user) {
-        const userReview = data.find(review => review.user_id === user.id);
+        const userReview = typedData.find(review => review.user_id === user.id);
         if (userReview) {
-          setUserReview(userReview as Review);
+          setUserReview(userReview);
           setRating(userReview.rating);
           setNewReview(userReview.content);
         } else {
