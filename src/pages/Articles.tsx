@@ -7,86 +7,36 @@ import { Calendar, ArrowLeft, Search, Filter, Book } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import LikeCount from '@/components/LikeCount';
+import { supabase } from '@/integrations/supabase/client';
+import { getAllArticles, Article as ArticleType, ensureArticlesExist } from '@/services/articleService';
+import { Loader2 } from 'lucide-react';
 
 const Articles = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState('');
+  const [articles, setArticles] = useState<ArticleType[]>([]);
   
-  // Sample articles data with real placeholder images
-  const allArticles = [
-    {
-      id: '1',
-      title: 'חידושים בדיני חוזים: פסיקה אחרונה של בית המשפט העליון',
-      date: '12 מרץ, 2025',
-      author: 'דני פרץ',
-      category: 'דיני חוזים',
-      summary: 'סקירה מקיפה של פסיקת בית המשפט העליון בנושא דיני חוזים בשנה האחרונה והשלכותיה על עסקאות מסחריות.',
-      image: 'https://images.unsplash.com/photo-1589578527966-fdac0f44566c?q=80&w=1287&auto=format&fit=crop'
-    },
-    {
-      id: '2',
-      title: 'יתרונות וחסרונות של הסכם ממון לפני נישואין',
-      date: '5 פברואר, 2025',
-      author: 'דני פרץ',
-      category: 'דיני משפחה',
-      summary: 'מאמר מקיף על היתרונות, החסרונות והשיקולים לעריכת הסכם ממון לפני נישואין, כולל דוגמאות מהפסיקה.',
-      image: 'https://images.unsplash.com/photo-1565619624098-cf4168a7cd9d?q=80&w=1026&auto=format&fit=crop'
-    },
-    {
-      id: '3',
-      title: 'זכויות עובדים בתקופת משבר: מה שחשוב לדעת',
-      date: '18 ינואר, 2025',
-      author: 'דני פרץ',
-      category: 'דיני עבודה',
-      summary: 'סקירה של זכויות עובדים בתקופות משבר, כולל התייחסות למשבר הקורונה והשלכותיו על יחסי עובד-מעביד.',
-      image: 'https://images.unsplash.com/photo-1521791136064-7986c2920216?q=80&w=1169&auto=format&fit=crop'
-    },
-    {
-      id: '4',
-      title: 'חדלות פירעון: מדריך מקיף לחוק החדש',
-      date: '5 ינואר, 2025',
-      author: 'דני פרץ',
-      category: 'חדלות פירעון',
-      summary: 'סקירה מקיפה של חוק חדלות פירעון ושיקום כלכלי החדש והשלכותיו על חייבים, נושים ובעלי עסקים.',
-      image: 'https://images.unsplash.com/photo-1505664194779-8beaceb93744?q=80&w=1170&auto=format&fit=crop'
-    },
-    {
-      id: '5',
-      title: 'צוואות וירושות: טעויות נפוצות וכיצד להימנע מהן',
-      date: '20 דצמבר, 2024',
-      author: 'דני פרץ',
-      category: 'צוואות וירושות',
-      summary: 'מדריך מקיף לטעויות נפוצות בעריכת צוואות וניהול ירושות, עם טיפים מעשיים כיצד להימנע מהן.',
-      image: 'https://images.unsplash.com/photo-1450101499163-c8848c66ca85?q=80&w=1170&auto=format&fit=crop'
-    },
-    {
-      id: '6',
-      title: 'מדריך לרכישת דירה יד שנייה: היבטים משפטיים',
-      date: '10 דצמבר, 2024',
-      author: 'דני פרץ',
-      category: 'מקרקעין',
-      summary: 'מדריך מקיף להיבטים המשפטיים ברכישת דירה יד שנייה, כולל בדיקות שיש לבצע ומכשולים שיש להיזהר מהם.',
-      image: 'https://images.unsplash.com/photo-1560518883-ce09059eeffa?q=80&w=1073&auto=format&fit=crop'
-    }
-  ];
-
-  // Simulate loading
   useEffect(() => {
-    const timer = setTimeout(() => {
+    const fetchArticles = async () => {
+      setIsLoading(true);
+      // Ensure we have some sample articles to display
+      await ensureArticlesExist();
+      
+      // Fetch all articles
+      const articlesData = await getAllArticles();
+      setArticles(articlesData);
       setIsLoading(false);
-    }, 800);
-    return () => clearTimeout(timer);
-  }, []);
-
-  // Scroll to top on page load
-  useEffect(() => {
+    };
+    
+    fetchArticles();
     window.scrollTo(0, 0);
   }, []);
 
   // Filter articles based on search query and category
-  const filteredArticles = allArticles.filter(article => {
+  const filteredArticles = articles.filter(article => {
     const matchesSearch = searchQuery === '' || 
       article.title.includes(searchQuery) ||
       article.summary.includes(searchQuery);
@@ -96,8 +46,8 @@ const Articles = () => {
     return matchesSearch && matchesCategory;
   });
 
-  // Categories for filter
-  const categories = [...new Set(allArticles.map(article => article.category))];
+  // Categories for filter - extract from articles
+  const categories = [...new Set(articles.map(article => article.category))];
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -156,10 +106,8 @@ const Articles = () => {
           
           {/* Articles Grid */}
           {isLoading ? (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {[1, 2, 3, 4, 5, 6].map((item) => (
-                <div key={item} className="border border-gray-200 rounded-lg h-[400px] animate-pulse bg-gray-100"></div>
-              ))}
+            <div className="flex justify-center my-12">
+              <Loader2 className="h-12 w-12 animate-spin text-law-navy" />
             </div>
           ) : filteredArticles.length > 0 ? (
             <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -177,7 +125,7 @@ const Articles = () => {
                       <Book className="text-white h-12 w-12 transform scale-0 group-hover:scale-100 transition-transform duration-300" />
                     </div>
                     <img 
-                      src={article.image}
+                      src={article.image_url}
                       alt={article.title}
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                     />
@@ -211,7 +159,7 @@ const Articles = () => {
                       {article.summary}
                     </CardDescription>
                   </CardContent>
-                  <CardFooter className="pt-4 border-t border-gray-100">
+                  <CardFooter className="pt-4 border-t border-gray-100 flex items-center justify-between">
                     <Button 
                       variant="ghost" 
                       className="text-law-navy hover:bg-law-navy/10 p-0 group transition-all duration-300 font-heebo"
@@ -220,6 +168,7 @@ const Articles = () => {
                       <span className="inline-block transform transition-all duration-300 group-hover:translate-x-[-4px]">המשך קריאה</span>
                       <ArrowLeft className="mr-2 h-4 w-4 transform transition-all duration-300 group-hover:translate-x-[-4px]" />
                     </Button>
+                    <LikeCount articleId={article.id} />
                   </CardFooter>
                 </Card>
               ))}

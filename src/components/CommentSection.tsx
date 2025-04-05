@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -9,7 +8,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { formatDistanceToNow } from 'date-fns';
 import { he } from 'date-fns/locale';
 import { Loader2 } from 'lucide-react';
-import { toast } from '@/components/ui/sonner';
+import { toast } from 'sonner';
 
 type Comment = {
   id: string;
@@ -54,7 +53,6 @@ const CommentSection: React.FC<CommentSectionProps> = ({ articleId }) => {
         throw error;
       }
 
-      // Cast the data with proper type handling for the profiles relation
       const typedComments = data.map(comment => ({
         ...comment,
         profiles: comment.profiles as unknown as { full_name: string | null; avatar_url: string | null; }

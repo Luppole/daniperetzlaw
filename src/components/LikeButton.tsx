@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { ThumbsUp } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from '@/components/ui/sonner';
+import { toast } from 'sonner';
 
 interface LikeButtonProps {
   articleId: string;
