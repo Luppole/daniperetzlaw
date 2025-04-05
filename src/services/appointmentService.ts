@@ -8,21 +8,15 @@ interface InsertAppointmentResponse { id: string }
 interface GetAppointmentCountsResponse { total: number; pending: number; confirmed: number }
 interface GetBookedSlotsResponse { time: string }
 
-// Generic type for RPC function calls with FnName parameter
-type RPCResponse<T, FnName extends string = string> = {
-  data: T | null;
-  error: Error | null;
-}
-
 // Fetch all appointments
 export async function getAllAppointments(): Promise<Appointment[]> {
   try {
-    const { data, error } = await supabase.rpc<GetAllAppointmentsResponse[], string>(
+    const { data, error } = await supabase.rpc(
       'get_all_appointments'
-    ) as RPCResponse<GetAllAppointmentsResponse[]>;
+    );
     
     if (error) throw error;
-    return data || [];
+    return (data as GetAllAppointmentsResponse[]) || [];
   } catch (error) {
     console.error('Error fetching appointments:', error);
     return [];
@@ -41,7 +35,7 @@ export async function createAppointment(appointmentData: {
   try {
     console.log('Creating appointment with data:', appointmentData);
     
-    const { data, error } = await supabase.rpc<InsertAppointmentResponse, string>(
+    const { data, error } = await supabase.rpc(
       'insert_appointment',
       {
         p_name: appointmentData.name,
@@ -52,7 +46,7 @@ export async function createAppointment(appointmentData: {
         p_details: appointmentData.details,
         p_status: 'pending'
       }
-    ) as RPCResponse<InsertAppointmentResponse>;
+    );
 
     if (error) {
       console.error('Supabase error creating appointment:', error);
@@ -60,7 +54,8 @@ export async function createAppointment(appointmentData: {
     }
     
     console.log('Appointment created successfully:', data);
-    return { success: true, id: data?.id };
+    const resultData = data as InsertAppointmentResponse;
+    return { success: true, id: resultData?.id };
   } catch (error) {
     console.error('Error creating appointment:', error);
     return { success: false };
@@ -70,13 +65,13 @@ export async function createAppointment(appointmentData: {
 // Update appointment status
 export async function updateAppointmentStatus(id: string, status: 'pending' | 'confirmed' | 'cancelled'): Promise<boolean> {
   try {
-    const { error } = await supabase.rpc<unknown, string>(
+    const { error } = await supabase.rpc(
       'update_appointment_status',
       {
         p_id: id,
         p_status: status
       }
-    ) as RPCResponse<unknown>;
+    );
     
     if (error) throw error;
     return true;
@@ -89,12 +84,12 @@ export async function updateAppointmentStatus(id: string, status: 'pending' | 'c
 // Delete an appointment
 export async function deleteAppointment(id: string): Promise<boolean> {
   try {
-    const { error } = await supabase.rpc<unknown, string>(
+    const { error } = await supabase.rpc(
       'delete_appointment',
       {
         p_id: id
       }
-    ) as RPCResponse<unknown>;
+    );
     
     if (error) throw error;
     return true;
@@ -107,12 +102,12 @@ export async function deleteAppointment(id: string): Promise<boolean> {
 // Get appointment counts for dashboard
 export async function getAppointmentCounts(): Promise<{ total: number; pending: number; confirmed: number; }> {
   try {
-    const { data, error } = await supabase.rpc<GetAppointmentCountsResponse, string>(
+    const { data, error } = await supabase.rpc(
       'get_appointment_counts'
-    ) as RPCResponse<GetAppointmentCountsResponse>;
+    );
     
     if (error) throw error;
-    return data || { total: 0, pending: 0, confirmed: 0 };
+    return (data as GetAppointmentCountsResponse) || { total: 0, pending: 0, confirmed: 0 };
   } catch (error) {
     console.error('Error getting appointment counts:', error);
     return { total: 0, pending: 0, confirmed: 0 };
@@ -124,12 +119,12 @@ export async function getBookedSlots(date: string): Promise<string[]> {
   try {
     console.log('Fetching booked slots for date:', date);
     
-    const { data, error } = await supabase.rpc<GetBookedSlotsResponse[], string>(
+    const { data, error } = await supabase.rpc(
       'get_booked_slots',
       {
         date_param: date
       }
-    ) as RPCResponse<GetBookedSlotsResponse[]>;
+    );
     
     if (error) {
       console.error('Supabase error fetching booked slots:', error);
@@ -138,7 +133,7 @@ export async function getBookedSlots(date: string): Promise<string[]> {
     
     console.log('Received booked slots data:', data);
     // Safely handle the data and map it properly
-    const bookedSlots = Array.isArray(data) ? data.map(slot => slot.time) : [];
+    const bookedSlots = Array.isArray(data) ? (data as GetBookedSlotsResponse[]).map(slot => slot.time) : [];
     console.log('Mapped booked slots:', bookedSlots);
     return bookedSlots;
   } catch (error) {

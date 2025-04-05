@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 // Article type definition
@@ -171,16 +170,13 @@ export const addArticle = createArticle;
 // Get comments for an article
 export async function getArticleComments(articleId: string): Promise<Comment[]> {
   try {
-    const { data, error } = await supabase.rpc<Comment[], {
-      article_id_param: string;
-    }>(
+    const { data, error } = await supabase.rpc(
       'get_article_comments', 
-      { article_id_param: articleId },
-      { headers: { 'Content-Type': 'application/json' } }
+      { article_id_param: articleId }
     );
 
     if (error) throw error;
-    return data || [];
+    return (data as Comment[]) || [];
   } catch (error) {
     console.error('Error fetching comments:', error);
     return [];
@@ -190,18 +186,13 @@ export async function getArticleComments(articleId: string): Promise<Comment[]> 
 // Add a comment to an article
 export async function addComment(articleId: string, userId: string, content: string): Promise<boolean> {
   try {
-    const { error } = await supabase.rpc<{}, {
-      p_article_id: string;
-      p_user_id: string;
-      p_content: string;
-    }>(
+    const { error } = await supabase.rpc(
       'add_comment', 
       {
         p_article_id: articleId,
         p_user_id: userId,
         p_content: content
-      },
-      { headers: { 'Content-Type': 'application/json' } }
+      }
     );
 
     if (error) throw error;
@@ -215,16 +206,13 @@ export async function addComment(articleId: string, userId: string, content: str
 // Get like count for an article
 export async function getArticleLikeCount(articleId: string): Promise<number> {
   try {
-    const { data, error } = await supabase.rpc<number, {
-      article_id_param: string;
-    }>(
+    const { data, error } = await supabase.rpc(
       'get_article_likes_count', 
-      { article_id_param: articleId },
-      { headers: { 'Content-Type': 'application/json' } }
+      { article_id_param: articleId }
     );
 
     if (error) throw error;
-    return data || 0;
+    return (data as number) || 0;
   } catch (error) {
     console.error('Error getting like count:', error);
     return 0;
