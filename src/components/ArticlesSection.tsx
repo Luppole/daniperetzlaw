@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Calendar, ArrowLeft } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,12 +8,17 @@ import LikeCount from '@/components/LikeCount';
 import { getAllArticles, Article } from '@/services/articleService';
 import { Loader2 } from 'lucide-react';
 
+const LEGAL_IMAGES = [
+  "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?q=80&w=2912&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1589578228447-e1a4e481c6c8?q=80&w=3270&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1505664194779-8beaceb93744?q=80&w=3270&auto=format&fit=crop"
+];
+
 export function ArticlesSection() {
   const navigate = useNavigate();
   const [articles, setArticles] = useState<Article[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
-  // Use intersection observer to trigger animations when elements come into view
   const [ref, inView] = useInView({
     triggerOnce: true,
     threshold: 0.1,
@@ -22,9 +26,19 @@ export function ArticlesSection() {
   
   useEffect(() => {
     const fetchArticles = async () => {
-      // Fetch articles
       const articlesData = await getAllArticles();
-      setArticles(articlesData.slice(0, 3)); // Just display first 3 articles
+      
+      const enhancedArticles = articlesData.slice(0, 3).map((article, index) => {
+        if (!article.image_url || article.image_url.includes('placeholder')) {
+          return {
+            ...article,
+            image_url: LEGAL_IMAGES[index % LEGAL_IMAGES.length]
+          };
+        }
+        return article;
+      });
+      
+      setArticles(enhancedArticles);
       setIsLoading(false);
     };
     

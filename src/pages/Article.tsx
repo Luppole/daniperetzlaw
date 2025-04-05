@@ -10,7 +10,13 @@ import LikeButton from '@/components/LikeButton';
 import CommentSection from '@/components/comments/CommentSection';
 import { Loader2 } from 'lucide-react';
 import { getArticleById, Article as ArticleType, getAllArticles } from '@/services/articleService';
-import { supabase } from '@/integrations/supabase/client';
+
+// Legal-themed placeholder images
+const LEGAL_IMAGES = [
+  "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?q=80&w=2912&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1589578228447-e1a4e481c6c8?q=80&w=3270&auto=format&fit=crop",
+  "https://images.unsplash.com/photo-1505664194779-8beaceb93744?q=80&w=3270&auto=format&fit=crop"
+];
 
 const Article = () => {
   const { id } = useParams();
@@ -27,7 +33,18 @@ const Article = () => {
         setArticle(fetchedArticle);
         
         const allArticles = await getAllArticles();
-        const filtered = allArticles.filter(a => a.id !== id);
+        // Enhance related articles with better images
+        const filtered = allArticles
+          .filter(a => a.id !== id)
+          .map((article, index) => {
+            if (!article.image_url || article.image_url.includes('placeholder')) {
+              return {
+                ...article,
+                image_url: LEGAL_IMAGES[index % LEGAL_IMAGES.length]
+              };
+            }
+            return article;
+          });
         setRelatedArticles(filtered);
       }
       setIsLoading(false);
@@ -41,7 +58,7 @@ const Article = () => {
     return (
       <div className="min-h-screen flex flex-col">
         <Navbar />
-        <div className="flex-grow flex items-center justify-center">
+        <div className="flex-grow flex items-center justify-center pt-24">
           <div className="text-center">
             <Loader2 className="h-10 w-10 animate-spin mx-auto mb-4 text-law-navy" />
             <p className="text-law-gray">טוען את המאמר...</p>
@@ -56,7 +73,7 @@ const Article = () => {
     return (
       <div className="min-h-screen flex flex-col">
         <Navbar />
-        <div className="flex-grow flex items-center justify-center">
+        <div className="flex-grow flex items-center justify-center pt-24">
           <div className="text-center py-20">
             <h1 className="text-3xl font-bold text-law-navy mb-4">המאמר לא נמצא</h1>
             <p className="text-law-gray mb-8">המאמר שחיפשת אינו קיים או שהוסר</p>
@@ -73,21 +90,21 @@ const Article = () => {
     );
   }
 
-  // Improve the content with better spacing and fewer images
+  // Improve the content with better spacing and fewer images - show image only after every 15th paragraph or heading
   const enhancedContent = article.content
-    .replace(/<h2>/g, '<h2 class="text-2xl font-bold text-law-navy mt-16 mb-10">')
-    .replace(/<h3>/g, '<h3 class="text-xl font-semibold text-law-navy mt-14 mb-8">')
-    .replace(/<p>/g, '<p class="text-gray-700 leading-relaxed mb-10 text-lg">')
-    .replace(/<ul>/g, '<ul class="list-disc list-inside mb-10 ml-6 space-y-4 text-gray-700">')
-    .replace(/<li>/g, '<li class="mb-4 leading-relaxed">')
-    // Add an image only after every tenth h2 tag instead of after every fifth
+    .replace(/<h2>/g, '<h2 class="text-2xl font-bold text-law-navy mt-20 mb-12">')
+    .replace(/<h3>/g, '<h3 class="text-xl font-semibold text-law-navy mt-16 mb-10">')
+    .replace(/<p>/g, '<p class="text-gray-700 leading-relaxed mb-12 text-lg">')
+    .replace(/<ul>/g, '<ul class="list-disc list-inside mb-16 ml-8 space-y-6 text-gray-700">')
+    .replace(/<li>/g, '<li class="mb-6 leading-relaxed">')
+    // Add an image only after every fifteenth h2 tag to significantly reduce image frequency
     .replace(
-      /(<\/h2>)(?:(?!<\/h2>).)*?(<\/h2>)(?:(?!<\/h2>).)*?(<\/h2>)(?:(?!<\/h2>).)*?(<\/h2>)(?:(?!<\/h2>).)*?(<\/h2>)(?:(?!<\/h2>).)*?(<\/h2>)(?:(?!<\/h2>).)*?(<\/h2>)(?:(?!<\/h2>).)*?(<\/h2>)(?:(?!<\/h2>).)*?(<\/h2>)(?:(?!<\/h2>).)*?(<\/h2>)/g, 
-      (match, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10) => 
-        p1 + p2 + p3 + p4 + p5 + p6 + p7 + p8 + p9 + p10 + 
-        '<div class="my-20 mx-auto w-3/4 max-w-2xl">' +
-        '<img src="https://images.unsplash.com/photo-1589829085413-56de8ae18c73?q=80&w=2912&auto=format&fit=crop" ' +
-        'class="w-full h-auto object-cover rounded-lg shadow-md" alt="Legal concept image" />' +
+      /(<\/h2>)(?:(?!<\/h2>).)*?(<\/h2>)(?:(?!<\/h2>).)*?(<\/h2>)(?:(?!<\/h2>).)*?(<\/h2>)(?:(?!<\/h2>).)*?(<\/h2>)(?:(?!<\/h2>).)*?(<\/h2>)(?:(?!<\/h2>).)*?(<\/h2>)(?:(?!<\/h2>).)*?(<\/h2>)(?:(?!<\/h2>).)*?(<\/h2>)(?:(?!<\/h2>).)*?(<\/h2>)(?:(?!<\/h2>).)*?(<\/h2>)(?:(?!<\/h2>).)*?(<\/h2>)(?:(?!<\/h2>).)*?(<\/h2>)(?:(?!<\/h2>).)*?(<\/h2>)(?:(?!<\/h2>).)*?(<\/h2>)/g, 
+      (match, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15) => 
+        p1 + p2 + p3 + p4 + p5 + p6 + p7 + p8 + p9 + p10 + p11 + p12 + p13 + p14 + p15 + 
+        '<div class="my-24 mx-auto w-4/5 max-w-3xl">' +
+        '<img src="' + LEGAL_IMAGES[Math.floor(Math.random() * LEGAL_IMAGES.length)] + '" ' +
+        'class="w-full h-auto object-cover rounded-lg shadow-md" alt="תמונה להמחשה בלבד" />' +
         '<p class="text-sm text-center text-gray-500 mt-3 italic">תמונה להמחשה בלבד</p>' +
         '</div>'
     );
@@ -96,7 +113,7 @@ const Article = () => {
     <div className="min-h-screen flex flex-col">
       <Navbar />
       
-      <main className="flex-grow pt-36 pb-24">
+      <main className="flex-grow pt-40 pb-28">
         <div className="container mx-auto px-4 max-w-6xl">
           <div className="mb-8 flex items-center text-sm text-law-gray">
             <Button 
@@ -120,7 +137,7 @@ const Article = () => {
           
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-16">
             <div className="lg:col-span-2 animate-fade-in">
-              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-law-navy mb-12 leading-tight">{article.title}</h1>
+              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-law-navy mb-14 leading-tight">{article.title}</h1>
               
               <div className="flex flex-wrap items-center mb-16 text-law-gray text-sm">
                 <div className="flex items-center ml-6 mb-2">
@@ -135,27 +152,27 @@ const Article = () => {
                 </div>
               </div>
               
-              <div className="mb-20 overflow-hidden rounded-xl shadow-md max-h-[400px]">
+              <div className="mb-20 overflow-hidden rounded-xl shadow-md max-h-[450px]">
                 <img 
-                  src={article.image_url} 
+                  src={article.image_url || LEGAL_IMAGES[0]} 
                   alt={article.title}
                   className="w-full h-auto object-cover transform transition-transform duration-500 hover:scale-105" 
                 />
               </div>
               
-              <div className="bg-law-light p-12 rounded-lg mb-20 border-r-4 border-law-navy">
+              <div className="bg-law-light p-12 rounded-lg mb-24 border-r-4 border-law-navy">
                 <p className="text-xl font-medium text-law-navy leading-relaxed">{article.summary}</p>
               </div>
               
               <div 
                 className="prose prose-lg max-w-none prose-headings:text-law-navy prose-headings:font-bold 
-                          prose-p:text-gray-700 prose-p:leading-relaxed prose-p:mb-12 prose-ul:text-gray-700 
-                          prose-li:mb-5 prose-a:text-law-navy prose-a:font-medium prose-a:no-underline 
+                          prose-p:text-gray-700 prose-p:leading-relaxed prose-p:mb-14 prose-ul:text-gray-700 
+                          prose-li:mb-6 prose-a:text-law-navy prose-a:font-medium prose-a:no-underline 
                           hover:prose-a:underline"
                 dangerouslySetInnerHTML={{ __html: enhancedContent }}
               />
               
-              <div className="mt-24 pt-10 border-t border-gray-200">
+              <div className="mt-28 pt-10 border-t border-gray-200">
                 <LikeButton articleId={article.id} />
               </div>
               
