@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
@@ -70,7 +69,7 @@ export function HeroSection() {
               className="rounded-lg shadow-xl max-w-full h-auto max-h-[450px] object-cover relative z-10 transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl"
             />
             <div className="absolute -bottom-4 -right-4 w-20 h-20 bg-law-navy rounded-full flex items-center justify-center text-white font-bold text-sm z-20 animate-float">
-              <span className="text-center">15+ שנות<br />ניסיון</span>
+              <span className="text-center">6 שנות<br />ניסיון</span>
             </div>
           </div>
         </div>
