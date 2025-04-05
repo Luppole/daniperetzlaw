@@ -8,8 +8,8 @@ interface InsertAppointmentResponse { id: string }
 interface GetAppointmentCountsResponse { total: number; pending: number; confirmed: number }
 interface GetBookedSlotsResponse { time: string }
 
-// Generic type for RPC function calls
-type RPCResponse<T> = {
+// Generic type for RPC function calls with FnName parameter
+type RPCResponse<T, FnName extends string = string> = {
   data: T | null;
   error: Error | null;
 }
@@ -17,7 +17,7 @@ type RPCResponse<T> = {
 // Fetch all appointments
 export async function getAllAppointments(): Promise<Appointment[]> {
   try {
-    const { data, error } = await supabase.rpc<GetAllAppointmentsResponse[]>(
+    const { data, error } = await supabase.rpc<GetAllAppointmentsResponse[], string>(
       'get_all_appointments'
     ) as RPCResponse<GetAllAppointmentsResponse[]>;
     
@@ -39,7 +39,9 @@ export async function createAppointment(appointmentData: {
   details: string | null;
 }): Promise<{success: boolean; id?: string}> {
   try {
-    const { data, error } = await supabase.rpc<InsertAppointmentResponse>(
+    console.log('Creating appointment with data:', appointmentData);
+    
+    const { data, error } = await supabase.rpc<InsertAppointmentResponse, string>(
       'insert_appointment',
       {
         p_name: appointmentData.name,
@@ -52,7 +54,12 @@ export async function createAppointment(appointmentData: {
       }
     ) as RPCResponse<InsertAppointmentResponse>;
 
-    if (error) throw error;
+    if (error) {
+      console.error('Supabase error creating appointment:', error);
+      throw error;
+    }
+    
+    console.log('Appointment created successfully:', data);
     return { success: true, id: data?.id };
   } catch (error) {
     console.error('Error creating appointment:', error);
@@ -63,7 +70,7 @@ export async function createAppointment(appointmentData: {
 // Update appointment status
 export async function updateAppointmentStatus(id: string, status: 'pending' | 'confirmed' | 'cancelled'): Promise<boolean> {
   try {
-    const { error } = await supabase.rpc(
+    const { error } = await supabase.rpc<unknown, string>(
       'update_appointment_status',
       {
         p_id: id,
@@ -82,7 +89,7 @@ export async function updateAppointmentStatus(id: string, status: 'pending' | 'c
 // Delete an appointment
 export async function deleteAppointment(id: string): Promise<boolean> {
   try {
-    const { error } = await supabase.rpc(
+    const { error } = await supabase.rpc<unknown, string>(
       'delete_appointment',
       {
         p_id: id
@@ -100,7 +107,7 @@ export async function deleteAppointment(id: string): Promise<boolean> {
 // Get appointment counts for dashboard
 export async function getAppointmentCounts(): Promise<{ total: number; pending: number; confirmed: number; }> {
   try {
-    const { data, error } = await supabase.rpc<GetAppointmentCountsResponse>(
+    const { data, error } = await supabase.rpc<GetAppointmentCountsResponse, string>(
       'get_appointment_counts'
     ) as RPCResponse<GetAppointmentCountsResponse>;
     
@@ -115,16 +122,25 @@ export async function getAppointmentCounts(): Promise<{ total: number; pending: 
 // Get booked time slots for a specific date
 export async function getBookedSlots(date: string): Promise<string[]> {
   try {
-    const { data, error } = await supabase.rpc<GetBookedSlotsResponse[]>(
+    console.log('Fetching booked slots for date:', date);
+    
+    const { data, error } = await supabase.rpc<GetBookedSlotsResponse[], string>(
       'get_booked_slots',
       {
         date_param: date
       }
     ) as RPCResponse<GetBookedSlotsResponse[]>;
     
-    if (error) throw error;
+    if (error) {
+      console.error('Supabase error fetching booked slots:', error);
+      throw error;
+    }
+    
+    console.log('Received booked slots data:', data);
     // Safely handle the data and map it properly
-    return Array.isArray(data) ? data.map(slot => slot.time) : [];
+    const bookedSlots = Array.isArray(data) ? data.map(slot => slot.time) : [];
+    console.log('Mapped booked slots:', bookedSlots);
+    return bookedSlots;
   } catch (error) {
     console.error('Error getting booked slots:', error);
     return [];
