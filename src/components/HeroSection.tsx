@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
@@ -15,10 +16,14 @@ export function HeroSection() {
   };
 
   return (
-    <section id="hero" className="relative min-h-screen flex items-center pb-20">
+    <section id="hero" className="relative min-h-screen flex items-center pb-20 overflow-hidden">
+      {/* Dynamic background elements */}
       <div className="absolute inset-0 bg-law-navy/5 pattern-grid-lg opacity-30"></div>
+      <div className="absolute inset-0 bg-gradient-to-b from-law-light/50 to-white pointer-events-none"></div>
+      <div className="absolute w-96 h-96 top-1/4 -right-48 bg-law-navy/5 rounded-full filter blur-3xl animate-pulse-light"></div>
+      <div className="absolute w-64 h-64 bottom-1/4 -left-32 bg-law-navy/10 rounded-full filter blur-3xl animate-float"></div>
       
-      <div className="container mx-auto px-4 pt-24 grid md:grid-cols-2 gap-8 items-center relative z-10">
+      <div className="container mx-auto px-4 pt-32 grid md:grid-cols-2 gap-8 items-center relative z-10">
         <div className="order-2 md:order-1">
           <div className="flex items-center mb-4 animate-slide-in-left">
             <div className="bg-law-navy p-3 rounded-lg">
@@ -30,21 +35,21 @@ export function HeroSection() {
             </div>
           </div>
           
-          <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-law-navy mb-6 animate-slide-up">
+          <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-law-navy mb-8 animate-slide-up tracking-tight">
             פתרונות משפטיים <br />
             <span className="relative">
               מקצועיים ואישיים
-              <span className="absolute -bottom-2 right-0 w-1/3 h-1 bg-law-navy"></span>
+              <span className="absolute -bottom-3 right-0 w-1/3 h-1.5 bg-law-navy"></span>
             </span>
           </h1>
           
-          <p className="text-lg text-law-gray mb-10 max-w-xl animate-slide-up" style={{ animationDelay: '0.2s' }}>
+          <p className="text-xl text-law-gray mb-12 max-w-xl animate-slide-up leading-relaxed" style={{ animationDelay: '0.2s' }}>
             מתמחה במשפחה, חדלות פרעון ומקרקעין - מספק ליווי משפטי מקיף ומקצועי לאנשים פרטיים ולעסקים.
           </p>
           
           <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 sm:space-x-reverse animate-slide-up" style={{ animationDelay: '0.3s' }}>
             <Button 
-              className="bg-law-navy hover:bg-law-navy/80 text-white py-6 px-8 rounded-md font-medium transition-all hover:-translate-y-1 hover:shadow-lg"
+              className="bg-law-navy hover:bg-law-navy/80 text-white py-6 px-8 rounded-md font-medium transition-all hover:-translate-y-1 hover:shadow-lg text-lg"
               onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}
             >
               קבע פגישת ייעוץ
@@ -52,7 +57,7 @@ export function HeroSection() {
             </Button>
             <Button 
               variant="outline" 
-              className="border-law-navy text-law-navy py-6 px-8 rounded-md font-medium transition-all hover:bg-law-navy hover:text-white hover:shadow-md"
+              className="border-law-navy text-law-navy py-6 px-8 rounded-md font-medium transition-all hover:bg-law-navy hover:text-white hover:shadow-md text-lg"
               onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}
             >
               צור קשר
@@ -63,6 +68,7 @@ export function HeroSection() {
         <div className="order-1 md:order-2 flex justify-center animate-slide-in-right">
           <div className="relative">
             <div className="absolute -inset-4 bg-law-navy rounded-xl opacity-10 animate-pulse-light"></div>
+            <div className="absolute -inset-1 bg-gradient-to-tr from-law-navy/20 to-transparent rounded-lg blur-md animate-pulse-light" style={{ animationDelay: '1s' }}></div>
             <img 
               src="/lovable-uploads/41432968-0b99-4cba-9e29-f6fdea6a4272.png" 
               alt="עו״ד דני פרץ" 
@@ -78,7 +84,7 @@ export function HeroSection() {
       <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 animate-bounce">
         <button onClick={scrollToAbout} className="text-law-navy hover:text-law-navy/70 transition-colors">
           <div className="flex flex-col items-center">
-            <span className="mb-2">קרא עוד</span>
+            <span className="mb-2 text-lg">קרא עוד</span>
             <div className="w-6 h-10 border-2 border-law-navy rounded-full flex justify-center pt-1">
               <div className="w-1 h-3 bg-law-navy rounded-full"></div>
             </div>
