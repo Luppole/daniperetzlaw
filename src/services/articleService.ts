@@ -25,14 +25,16 @@ export interface Comment {
 // Fetch a single article by ID
 export async function getArticleById(id: string): Promise<Article | null> {
   try {
-    const { data, error } = await supabase
+    // Use a type assertion to overcome the TypeScript constraint
+    // while we wait for the types to be correctly regenerated
+    const result = await supabase
       .from('articles')
       .select('*')
       .eq('id', id)
       .single();
     
-    if (error) throw error;
-    return data as Article;
+    if (result.error) throw result.error;
+    return result.data as unknown as Article;
   } catch (error) {
     console.error('Error fetching article:', error);
     return null;
@@ -42,13 +44,14 @@ export async function getArticleById(id: string): Promise<Article | null> {
 // Fetch all articles
 export async function getAllArticles(): Promise<Article[]> {
   try {
-    const { data, error } = await supabase
+    // Use a type assertion to overcome the TypeScript constraint
+    const result = await supabase
       .from('articles')
       .select('*')
       .order('created_at', { ascending: false });
     
-    if (error) throw error;
-    return data as Article[];
+    if (result.error) throw result.error;
+    return result.data as unknown as Article[];
   } catch (error) {
     console.error('Error fetching articles:', error);
     return [];
@@ -166,18 +169,19 @@ export async function addComment(articleId: string, userId: string, content: str
 export async function ensureArticlesExist(): Promise<void> {
   try {
     // Check if articles already exist
-    const { count, error } = await supabase
+    // Use a type assertion to overcome the TypeScript constraint
+    const result = await supabase
       .from('articles')
       .select('*', { count: 'exact' });
     
-    if (error) {
-      console.error('Error checking articles:', error);
+    if (result.error) {
+      console.error('Error checking articles:', result.error);
       return;
     }
     
     // If we already have articles, we're done
-    if (count && count > 0) {
-      console.log(`Found ${count} existing articles`);
+    if (result.count && result.count > 0) {
+      console.log(`Found ${result.count} existing articles`);
       return;
     }
     
