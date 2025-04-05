@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { CheckCircle, Loader } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -19,6 +18,7 @@ export function ContactForm() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
+  const recipientEmail = 'danip05@gmail.com';
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -49,34 +49,75 @@ export function ContactForm() {
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const sendEmail = async (data: typeof formData) => {
+    try {
+      // Create a mailto URL with the form data
+      const subject = encodeURIComponent(`פנייה מאתר האינטרנט: ${data.subject}`);
+      const body = encodeURIComponent(
+        `שם: ${data.name}\n` +
+        `טלפון: ${data.phone}\n` +
+        `אימייל: ${data.email}\n\n` +
+        `הודעה:\n${data.message}`
+      );
+      
+      // Open the user's email client with the mailto link
+      window.location.href = `mailto:${recipientEmail}?subject=${subject}&body=${body}`;
+      
+      // Record the email sending attempt
+      console.log('Email sent to:', recipientEmail, 'with subject:', data.subject);
+      return true;
+    } catch (error) {
+      console.error('Failed to send email:', error);
+      return false;
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (validateForm()) {
       setIsSubmitting(true);
       
-      // Simulate API call
-      setTimeout(() => {
-        setIsSubmitting(false);
-        setSubmitted(true);
-        toast({
-          title: "הודעה נשלחה בהצלחה",
-          description: "תודה על פנייתך, ניצור איתך קשר בהקדם",
-          variant: "default",
-        });
+      try {
+        const success = await sendEmail(formData);
         
-        // Reset form after delay
-        setTimeout(() => {
-          setFormData({
-            name: '',
-            phone: '',
-            email: '',
-            subject: '',
-            message: ''
+        if (success) {
+          setIsSubmitting(false);
+          setSubmitted(true);
+          toast({
+            title: "הודעה נשלחה בהצלחה",
+            description: "תודה על פנייתך, ניצור איתך קשר בהקדם",
+            variant: "default",
           });
-          setSubmitted(false);
-        }, 3000);
-      }, 1500);
+          
+          // Reset form after delay
+          setTimeout(() => {
+            setFormData({
+              name: '',
+              phone: '',
+              email: '',
+              subject: '',
+              message: ''
+            });
+            setSubmitted(false);
+          }, 3000);
+        } else {
+          setIsSubmitting(false);
+          toast({
+            title: "שגיאה בשליחת ההודעה",
+            description: "אירעה שגיאה בשליחת ההודעה. אנא נסה שוב מאוחר יותר או צור קשר ישירות.",
+            variant: "destructive",
+          });
+        }
+      } catch (error) {
+        setIsSubmitting(false);
+        toast({
+          title: "שגיאה בשליחת ההודעה",
+          description: "אירעה שגיאה בשליחת ההודעה. אנא נסה שוב מאוחר יותר או צור קשר ישירות.",
+          variant: "destructive",
+        });
+        console.error("Error sending message:", error);
+      }
     }
   };
 
