@@ -235,7 +235,7 @@
   transition: 0s;
 }
 
-/* Underline hover effect */
+/* Refined underline hover effect - Less pronounced */
 .nav-link {
   position: relative;
 }
@@ -245,20 +245,20 @@
   position: absolute;
   width: 100%;
   transform: scaleX(0);
-  height: 2px;
-  bottom: -4px;
+  height: 1px; /* Thinner line */
+  bottom: -2px; /* Closer to text */
   left: 0;
   background-color: #1E2756;
   transform-origin: bottom right;
-  transition: transform 0.3s ease-out;
+  transition: transform 0.25s ease-out; /* Faster transition */
 }
 
 .nav-link:hover::after {
-  transform: scaleX(1);
+  transform: scaleX(0.7); /* Only expand to 70% width */
   transform-origin: bottom left;
 }
 
-/* Custom link hover effect */
+/* Refined link hover effect - More subtle */
 .hover-link {
   position: relative;
   display: inline-block;
@@ -268,15 +268,16 @@
   content: '';
   position: absolute;
   width: 0;
-  height: 1px;
-  bottom: -2px;
+  height: 1px; /* Thinner line */
+  bottom: -1px; /* Closer to text */
   right: 0;
   background-color: currentColor;
-  transition: width 0.3s ease;
+  opacity: 0.6; /* Semi-transparent */
+  transition: width 0.2s ease; /* Faster */
 }
 
 .hover-link:hover::after {
-  width: 100%;
+  width: 70%; /* Only expand to 70% */
 }
 
 /* Micro-interactions */
@@ -296,4 +297,31 @@
   -webkit-text-fill-color: transparent;
   background-clip: text;
   text-fill-color: transparent;
+}
+
+/* Map animation */
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+/* Input focus animations */
+.focus-ring {
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.focus-ring:focus {
+  box-shadow: 0 0 0 2px rgba(30, 39, 86, 0.2);
+  border-color: rgba(30, 39, 86, 0.4);
 }
