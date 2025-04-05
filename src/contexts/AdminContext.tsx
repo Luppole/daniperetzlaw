@@ -32,7 +32,7 @@ export const AdminProvider = ({ children }: AdminProviderProps) => {
   useEffect(() => {
     if (!authLoading) {
       // Check if user email is in admin list
-      setIsAdmin(!!user && ADMIN_EMAILS.includes(user.email || ''));
+      setIsAdmin(!!user && user.email && ADMIN_EMAILS.includes(user.email));
       setIsLoading(false);
     }
   }, [user, authLoading]);

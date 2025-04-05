@@ -1,90 +1,71 @@
-
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { FileText, Calendar, MessageSquare, Users } from 'lucide-react';
+import { CalendarDays, FileText, MessageCircle, Users } from 'lucide-react';
+import { getAppointmentCounts } from '@/services/appointmentService';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Link } from 'react-router-dom';
 
 export function AdminDashboard() {
-  const [stats, setStats] = useState({
-    articlesCount: null as number | null,
-    appointmentsCount: null as number | null,
-    commentsCount: null as number | null,
-    usersCount: null as number | null,
-  });
+  const [appointmentStats, setAppointmentStats] = useState({ total: 0, pending: 0, confirmed: 0 });
+  const [articlesCount, setArticlesCount] = useState(0);
+  const [commentsCount, setCommentsCount] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    const fetchStats = async () => {
+    const fetchData = async () => {
       setIsLoading(true);
       try {
-        // Get articles count
-        const { count: articlesCount, error: articlesError } = await supabase
+        // Fetch appointment stats
+        const apptCounts = await getAppointmentCounts();
+        setAppointmentStats(apptCounts);
+        
+        // Fetch article count
+        const { count: articlesCountData } = await supabase
           .from('articles')
-          .select('*', { count: 'exact', head: true });
-
-        // Get appointments count
-        const { count: appointmentsCount, error: appointmentsError } = await supabase
-          .from('appointments')
-          .select('*', { count: 'exact', head: true });
-
-        // Get comments count
-        const { count: commentsCount, error: commentsError } = await supabase
+          .select('*', { count: 'exact' });
+        setArticlesCount(articlesCountData || 0);
+        
+        // Fetch comments count
+        const { count: commentsCountData } = await supabase
           .from('comments')
-          .select('*', { count: 'exact', head: true });
-
-        // Get users count
-        const { count: usersCount, error: usersError } = await supabase
-          .from('profiles')
-          .select('*', { count: 'exact', head: true });
-
-        if (articlesError) console.error('Error fetching articles count:', articlesError);
-        if (appointmentsError) console.error('Error fetching appointments count:', appointmentsError);
-        if (commentsError) console.error('Error fetching comments count:', commentsError);
-        if (usersError) console.error('Error fetching users count:', usersError);
-
-        setStats({
-          articlesCount,
-          appointmentsCount,
-          commentsCount,
-          usersCount,
-        });
+          .select('*', { count: 'exact' });
+        setCommentsCount(commentsCountData || 0);
       } catch (error) {
-        console.error('Error fetching stats:', error);
+        console.error('Error fetching dashboard data:', error);
       } finally {
         setIsLoading(false);
       }
     };
-
-    fetchStats();
+    
+    fetchData();
   }, []);
 
   const statCards = [
     {
       title: 'מאמרים',
-      value: stats.articlesCount,
+      value: articlesCount,
       icon: FileText,
       color: 'bg-blue-50 text-blue-600',
       link: '/admin/articles',
     },
     {
       title: 'פגישות',
-      value: stats.appointmentsCount,
-      icon: Calendar,
+      value: appointmentStats.total,
+      icon: CalendarDays,
       color: 'bg-green-50 text-green-600',
       link: '/admin/appointments',
     },
     {
       title: 'תגובות',
-      value: stats.commentsCount,
-      icon: MessageSquare,
+      value: commentsCount,
+      icon: MessageCircle,
       color: 'bg-amber-50 text-amber-600',
       link: '/admin/comments',
     },
     {
       title: 'משתמשים',
-      value: stats.usersCount,
+      value: null,
       icon: Users,
       color: 'bg-purple-50 text-purple-600',
       link: '#',

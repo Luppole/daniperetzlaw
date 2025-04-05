@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -52,19 +51,17 @@ export function AppointmentModal({ trigger }: AppointmentModalProps) {
       // Format the date as DD/MM/YYYY for storage
       const formattedDate = format(date, 'dd/MM/yyyy');
       
-      // Save the appointment to the database
+      // Use executeRaw to insert into a table that's not in the type definition
       const { data, error } = await supabase
-        .from('appointments')
-        .insert({
-          name,
-          email,
-          phone,
-          date: formattedDate,
-          time: timeSlot,
-          details,
-          status: 'pending'
-        })
-        .select();
+        .rpc('insert_appointment', {
+          p_name: name,
+          p_email: email,
+          p_phone: phone,
+          p_date: formattedDate,
+          p_time: timeSlot,
+          p_details: details,
+          p_status: 'pending'
+        });
       
       if (error) throw error;
       

@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { 
@@ -20,22 +19,11 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, Loader2, MailOpen, Phone, Trash2, User } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
 import { he } from 'date-fns/locale';
 import { toast } from 'sonner';
-
-type Appointment = {
-  id: string;
-  name: string;
-  email: string;
-  phone: string;
-  date: string;
-  time: string;
-  details: string;
-  status: 'pending' | 'confirmed' | 'cancelled';
-  created_at: string;
-};
+import { Appointment } from '@/types/appointments';
+import { getAllAppointments, updateAppointmentStatus, deleteAppointment } from '@/services/appointmentService';
 
 export function AdminAppointments() {
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -49,13 +37,8 @@ export function AdminAppointments() {
   const fetchAppointments = async () => {
     setIsLoading(true);
     try {
-      const { data, error } = await supabase
-        .from('appointments')
-        .select('*')
-        .order('date', { ascending: true });
-
-      if (error) throw error;
-      setAppointments(data || []);
+      const appointmentsData = await getAllAppointments();
+      setAppointments(appointmentsData);
     } catch (error) {
       console.error('Error fetching appointments:', error);
       toast.error('שגיאה בטעינת הפגישות');
@@ -66,46 +49,33 @@ export function AdminAppointments() {
 
   useEffect(() => {
     fetchAppointments();
-
-    // Set up realtime subscription
-    const channel = supabase
-      .channel('appointments-changes')
-      .on('postgres_changes', 
-        { 
-          event: '*', 
-          schema: 'public', 
-          table: 'appointments'
-        }, 
-        () => {
-          fetchAppointments();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    
+    // Set up a polling mechanism to refresh data every 30 seconds
+    const intervalId = setInterval(() => {
+      fetchAppointments();
+    }, 30000);
+    
+    return () => clearInterval(intervalId);
   }, []);
 
   const handleStatusChange = async (id: string, status: 'pending' | 'confirmed' | 'cancelled') => {
     try {
-      const { error } = await supabase
-        .from('appointments')
-        .update({ status })
-        .eq('id', id);
-
-      if (error) throw error;
+      const success = await updateAppointmentStatus(id, status);
       
-      setAppointments(prevAppointments => 
-        prevAppointments.map(appointment => 
-          appointment.id === id ? { ...appointment, status } : appointment
-        )
-      );
-      
-      toast.success(`סטטוס הפגישה עודכן ל${
-        status === 'confirmed' ? 'מאושר' : 
-        status === 'cancelled' ? 'מבוטל' : 'ממתין'
-      }`);
+      if (success) {
+        setAppointments(prevAppointments => 
+          prevAppointments.map(appointment => 
+            appointment.id === id ? { ...appointment, status } : appointment
+          )
+        );
+        
+        toast.success(`סטטוס הפגישה עודכן ל${
+          status === 'confirmed' ? 'מאושר' : 
+          status === 'cancelled' ? 'מבוטל' : 'ממתין'
+        }`);
+      } else {
+        throw new Error('Failed to update status');
+      }
     } catch (error) {
       console.error('Error updating appointment status:', error);
       toast.error('שגיאה בעדכון סטטוס הפגישה');
@@ -117,16 +87,15 @@ export function AdminAppointments() {
     
     setIsDeleting(true);
     try {
-      const { error } = await supabase
-        .from('appointments')
-        .delete()
-        .eq('id', appointmentToDelete.id);
-
-      if (error) throw error;
+      const success = await deleteAppointment(appointmentToDelete.id);
       
-      setAppointments(appointments.filter(appointment => appointment.id !== appointmentToDelete.id));
-      toast.success('הפגישה נמחקה בהצלחה');
-      setDeleteDialogOpen(false);
+      if (success) {
+        setAppointments(appointments.filter(appointment => appointment.id !== appointmentToDelete.id));
+        toast.success('הפגישה נמחקה בהצלחה');
+        setDeleteDialogOpen(false);
+      } else {
+        throw new Error('Failed to delete appointment');
+      }
     } catch (error) {
       console.error('Error deleting appointment:', error);
       toast.error('שגיאה במחיקת הפגישה');

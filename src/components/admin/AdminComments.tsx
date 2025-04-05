@@ -44,24 +44,32 @@ export function AdminComments() {
   const fetchComments = async () => {
     setIsLoading(true);
     try {
-      // Fetch comments with article titles
-      const { data, error } = await supabase
+      // Get comments first
+      const { data: commentsData, error: commentsError } = await supabase
         .from('comments')
-        .select(`
-          id,
-          content,
-          user_id,
-          created_at,
-          article_id,
-          articles(title)
-        `)
+        .select('id, content, user_id, created_at, article_id')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-
-      // Fetch user details for each comment
+      if (commentsError) throw commentsError;
+      
+      // Get article titles separately
+      const articleIds = [...new Set(commentsData?.map(c => c.article_id) || [])];
+      const { data: articlesData, error: articlesError } = await supabase
+        .from('articles')
+        .select('id, title')
+        .in('id', articleIds);
+      
+      if (articlesError) throw articlesError;
+      
+      // Create a map of article id to title
+      const articleTitleMap = new Map();
+      articlesData?.forEach(article => {
+        articleTitleMap.set(article.id, article.title);
+      });
+      
+      // Get user details for each comment
       const commentsWithUserNames = await Promise.all(
-        (data || []).map(async (comment) => {
+        (commentsData || []).map(async (comment) => {
           const { data: profileData } = await supabase
             .from('profiles')
             .select('full_name')
@@ -74,7 +82,7 @@ export function AdminComments() {
             user_name: profileData?.full_name || 'משתמש אנונימי',
             created_at: comment.created_at,
             article_id: comment.article_id,
-            article_title: comment.articles?.title || 'מאמר לא מזוהה',
+            article_title: articleTitleMap.get(comment.article_id) || 'מאמר לא מזוהה',
           };
         })
       );

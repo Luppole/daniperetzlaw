@@ -67,6 +67,7 @@ export async function addArticle(articleData: Partial<Article>): Promise<Article
         category: articleData.category,
         author: articleData.author,
         image_url: articleData.image_url,
+        date: new Date().toISOString().split('T')[0] // Add the required date field
       })
       .select()
       .single();
