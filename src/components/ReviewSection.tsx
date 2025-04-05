@@ -1,73 +1,59 @@
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Star, Loader2, Send, Trash2, UserCircle, Edit } from 'lucide-react';
-import { toast } from '@/components/ui/sonner';
+import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
+import { StarIcon } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 import { formatDistanceToNow } from 'date-fns';
 import { he } from 'date-fns/locale';
+import { Loader2 } from 'lucide-react';
+import { toast } from '@/components/ui/sonner';
 
 type Review = {
   id: string;
   content: string;
   rating: number;
-  created_at: string;
   user_id: string;
-  profiles: {
+  created_at: string;
+  profiles?: {
     full_name: string | null;
     avatar_url: string | null;
   };
 };
 
-export function ReviewSection() {
-  const { user } = useAuth();
-  const navigate = useNavigate();
+const ReviewSection: React.FC = () => {
   const [reviews, setReviews] = useState<Review[]>([]);
   const [newReview, setNewReview] = useState('');
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [isSending, setIsSending] = useState(false);
-  const [isDeleting, setIsDeleting] = useState<string | null>(null);
-  const [userReview, setUserReview] = useState<Review | null>(null);
-  const [isEditing, setIsEditing] = useState(false);
-  const [averageRating, setAverageRating] = useState(0);
+  const [userHasReviewed, setUserHasReviewed] = useState(false);
+  const { user } = useAuth();
 
   useEffect(() => {
     fetchReviews();
-    
-    // Set up a subscription to listen for changes in reviews
-    const channel = supabase
-      .channel('schema-db-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'reviews',
-        },
-        () => {
-          fetchReviews();
-        }
-      )
-      .subscribe();
+  }, []);
 
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user]);
+  useEffect(() => {
+    if (user) {
+      checkUserReview();
+    } else {
+      setUserHasReviewed(false);
+    }
+  }, [user, reviews]);
 
   const fetchReviews = async () => {
+    setIsLoading(true);
     try {
       const { data, error } = await supabase
         .from('reviews')
         .select(`
           *,
-          profiles:profiles(full_name, avatar_url)
+          profiles:user_id(full_name, avatar_url)
         `)
         .order('created_at', { ascending: false });
 
@@ -75,99 +61,73 @@ export function ReviewSection() {
         throw error;
       }
 
-      const typedData = data as Review[];
-      setReviews(typedData);
-      
-      // Calculate average rating
-      if (typedData.length > 0) {
-        const total = typedData.reduce((sum, review) => sum + review.rating, 0);
-        setAverageRating(Math.round((total / typedData.length) * 10) / 10);
-      }
+      // Cast the data with proper type handling for the profiles relation
+      const typedReviews = data.map(review => ({
+        ...review,
+        profiles: review.profiles as unknown as { full_name: string | null; avatar_url: string | null; }
+      })) as Review[];
 
-      // Check if the current user has already submitted a review
-      if (user) {
-        const userReview = typedData.find(review => review.user_id === user.id);
-        if (userReview) {
-          setUserReview(userReview);
-          setRating(userReview.rating);
-          setNewReview(userReview.content);
-        } else {
-          setUserReview(null);
-          setRating(0);
-          setNewReview('');
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching reviews:', error);
-      toast.error('שגיאה בטעינת הביקורות');
+      setReviews(typedReviews);
+    } catch (error: any) {
+      console.error('Error fetching reviews:', error.message);
+      toast.error('אירעה שגיאה בטעינת חוות הדעת');
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleSubmitReview = async () => {
+  const checkUserReview = () => {
+    if (!user) return;
+    const hasReviewed = reviews.some(review => review.user_id === user.id);
+    setUserHasReviewed(hasReviewed);
+  };
+
+  const handleUpdateRating = (value: number) => {
+    setRating(value);
+  };
+
+  const handleSubmitReview = async (e: React.FormEvent) => {
+    e.preventDefault();
     if (!user) {
-      toast.error('עליך להתחבר כדי להוסיף ביקורת');
-      navigate('/auth');
+      toast.error('עליך להתחבר כדי לפרסם חוות דעת');
       return;
     }
-
-    if (rating === 0) {
-      toast.error('יש לבחור דירוג');
-      return;
-    }
-
     if (!newReview.trim()) {
-      toast.error('יש להוסיף תוכן לביקורת');
+      toast.error('אנא כתוב חוות דעת');
+      return;
+    }
+    if (rating === 0) {
+      toast.error('אנא דרג בין 1-5 כוכבים');
       return;
     }
 
-    setIsSending(true);
+    setIsSubmitting(true);
     try {
-      if (userReview && isEditing) {
-        // Update existing review
-        const { error } = await supabase
-          .from('reviews')
-          .update({
-            content: newReview.trim(),
-            rating,
-          })
-          .eq('id', userReview.id);
+      const { error } = await supabase
+        .from('reviews')
+        .insert({
+          content: newReview.trim(),
+          rating: rating,
+          user_id: user.id
+        });
 
-        if (error) {
-          throw error;
-        }
+      if (error) throw error;
 
-        toast.success('הביקורת עודכנה בהצלחה');
-        setIsEditing(false);
-      } else {
-        // Create new review
-        const { error } = await supabase
-          .from('reviews')
-          .insert({
-            content: newReview.trim(),
-            rating,
-            user_id: user.id,
-          });
-
-        if (error) {
-          throw error;
-        }
-
-        toast.success('הביקורת נשלחה בהצלחה');
-      }
-    } catch (error) {
-      console.error('Error submitting review:', error);
-      toast.error('שגיאה בשליחת הביקורת');
+      toast.success('חוות הדעת נוספה בהצלחה');
+      setNewReview('');
+      setRating(0);
+      fetchReviews();
+    } catch (error: any) {
+      console.error('Error adding review:', error.message);
+      toast.error('אירעה שגיאה בהוספת חוות הדעת');
     } finally {
-      setIsSending(false);
+      setIsSubmitting(false);
     }
   };
 
   const handleDeleteReview = async (reviewId: string) => {
     if (!user) return;
 
-    setIsDeleting(reviewId);
     try {
       const { error } = await supabase
         .from('reviews')
@@ -175,261 +135,148 @@ export function ReviewSection() {
         .eq('id', reviewId)
         .eq('user_id', user.id);
 
-      if (error) {
-        throw error;
-      }
+      if (error) throw error;
 
-      setUserReview(null);
-      setRating(0);
-      setNewReview('');
-      setIsEditing(false);
-      toast.success('הביקורת נמחקה בהצלחה');
-    } catch (error) {
-      console.error('Error deleting review:', error);
-      toast.error('שגיאה במחיקת הביקורת');
-    } finally {
-      setIsDeleting(null);
+      toast.success('חוות הדעת נמחקה בהצלחה');
+      fetchReviews();
+      setUserHasReviewed(false);
+    } catch (error: any) {
+      console.error('Error deleting review:', error.message);
+      toast.error('אירעה שגיאה במחיקת חוות הדעת');
     }
   };
 
-  const handleEditClick = () => {
-    if (userReview) {
-      setIsEditing(true);
-      setRating(userReview.rating);
-      setNewReview(userReview.content);
-    }
-  };
-
-  const handleCancelEdit = () => {
-    setIsEditing(false);
-    if (userReview) {
-      setRating(userReview.rating);
-      setNewReview(userReview.content);
-    } else {
-      setRating(0);
-      setNewReview('');
-    }
-  };
-
-  const formatReviewDate = (dateString: string) => {
-    try {
-      return formatDistanceToNow(new Date(dateString), {
-        addSuffix: true,
-        locale: he,
-      });
-    } catch (error) {
-      return 'תאריך לא ידוע';
-    }
-  };
-
-  const getUserInitials = (name: string | null) => {
-    if (!name) return '??';
-    
-    const parts = name.trim().split(' ');
-    if (parts.length >= 2) {
-      return `${parts[0][0]}${parts[parts.length - 1][0]}`.toUpperCase();
-    }
-    return name.substring(0, 2).toUpperCase();
+  const StarRating = ({ value, onChange, onHover }: { value: number, onChange?: (value: number) => void, onHover?: (value: number) => void }) => {
+    return (
+      <div className="flex gap-1">
+        {[1, 2, 3, 4, 5].map((star) => (
+          <button
+            key={star}
+            type="button"
+            onClick={() => onChange && onChange(star)}
+            onMouseEnter={() => onHover && onHover(star)}
+            onMouseLeave={() => onHover && onHover(0)}
+            className="focus:outline-none"
+          >
+            <StarIcon
+              className={`h-6 w-6 ${
+                star <= (hoverRating || value) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'
+              }`}
+            />
+          </button>
+        ))}
+      </div>
+    );
   };
 
   return (
-    <div className="w-full">
-      <h2 className="text-3xl font-bold text-law-navy mb-2">ביקורות לקוחות</h2>
-      
-      <div className="mb-8 flex items-center text-lg text-law-navy">
-        <div className="flex mr-2">
-          {[1, 2, 3, 4, 5].map((star) => (
-            <Star
-              key={star}
-              className={`h-5 w-5 ${star <= Math.round(averageRating) ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'}`}
-            />
-          ))}
-        </div>
-        <span className="font-bold ml-2">{averageRating}</span>
-        <span className="text-gray-500 mr-1">({reviews.length} ביקורות)</span>
-      </div>
-      
-      {/* Add/edit review form */}
-      {(!userReview || isEditing) && (
-        <div className="bg-gray-50 p-6 rounded-lg mb-8">
-          <h3 className="text-xl font-bold text-law-navy mb-4">
-            {isEditing ? 'ערוך את הביקורת שלך' : 'הוסף ביקורת'}
-          </h3>
-          
-          <div className="mb-4">
-            <p className="mb-2 font-medium">דירוג:</p>
-            <div className="flex space-x-1 space-x-reverse">
-              {[1, 2, 3, 4, 5].map((star) => (
-                <button
-                  key={star}
-                  type="button"
-                  className="focus:outline-none"
-                  onMouseEnter={() => setHoverRating(star)}
-                  onMouseLeave={() => setHoverRating(0)}
-                  onClick={() => setRating(star)}
-                >
-                  <Star
-                    className={`h-8 w-8 transition-colors ${
-                      star <= (hoverRating || rating)
-                        ? 'fill-yellow-400 text-yellow-400'
-                        : 'text-gray-300'
-                    }`}
-                  />
-                </button>
-              ))}
-            </div>
-          </div>
-          
-          <div className="mb-4">
-            <label htmlFor="review-content" className="block mb-2 font-medium">
-              הביקורת שלך:
-            </label>
-            <Textarea
-              id="review-content"
-              placeholder="שתף את החוויה שלך..."
-              className="resize-none"
-              rows={4}
-              value={newReview}
-              onChange={(e) => setNewReview(e.target.value)}
-              disabled={isSending}
-            />
-          </div>
-          
-          <div className="flex justify-end space-x-2 space-x-reverse">
-            {isEditing && (
-              <Button
-                variant="outline"
-                onClick={handleCancelEdit}
-                disabled={isSending}
-              >
-                ביטול
-              </Button>
-            )}
-            <Button
-              className="bg-law-navy hover:bg-law-navy/90"
-              onClick={handleSubmitReview}
-              disabled={isSending || rating === 0 || !newReview.trim()}
-            >
-              {isSending ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  שולח...
-                </>
-              ) : (
-                <>
-                  <Send className="mr-2 h-4 w-4" />
-                  {isEditing ? 'עדכן ביקורת' : 'שלח ביקורת'}
-                </>
-              )}
-            </Button>
-          </div>
-        </div>
-      )}
+    <div className="mt-12 mb-8">
+      <h2 className="text-2xl font-bold mb-4 text-law-navy">חוות דעת</h2>
 
-      {/* User's existing review (when not editing) */}
-      {userReview && !isEditing && (
-        <div className="bg-blue-50 border border-blue-100 p-6 rounded-lg mb-8">
-          <div className="flex justify-between items-start mb-4">
-            <h3 className="text-xl font-bold text-law-navy">הביקורת שלך</h3>
-            <div className="flex space-x-2 space-x-reverse">
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-8 text-law-navy border-law-navy hover:bg-law-navy/10"
-                onClick={handleEditClick}
+      {user && !userHasReviewed && (
+        <Card className="mb-6">
+          <CardHeader className="pb-2">
+            <h3 className="text-lg font-semibold">השאר חוות דעת</h3>
+          </CardHeader>
+          <form onSubmit={handleSubmitReview}>
+            <CardContent className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium mb-2">דירוג</label>
+                <StarRating
+                  value={rating}
+                  onChange={handleUpdateRating}
+                  onHover={setHoverRating}
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium mb-2">חוות דעת</label>
+                <Textarea
+                  placeholder="כתוב את חוות דעתך כאן..."
+                  value={newReview}
+                  onChange={(e) => setNewReview(e.target.value)}
+                  className="min-h-[100px]"
+                />
+              </div>
+            </CardContent>
+            <CardFooter>
+              <Button 
+                type="submit" 
+                className="bg-law-navy hover:bg-law-navy/90"
+                disabled={isSubmitting}
               >
-                <Edit className="h-4 w-4 ml-1" />
-                ערוך
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className="h-8 text-red-500 border-red-200 hover:bg-red-50"
-                onClick={() => handleDeleteReview(userReview.id)}
-                disabled={isDeleting === userReview.id}
-              >
-                {isDeleting === userReview.id ? (
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                ) : (
+                {isSubmitting ? (
                   <>
-                    <Trash2 className="h-4 w-4 ml-1" />
-                    מחק
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    שולח...
                   </>
-                )}
+                ) : 'פרסם חוות דעת'}
               </Button>
-            </div>
-          </div>
-          
-          <div className="flex space-x-1 space-x-reverse mb-4">
-            {[1, 2, 3, 4, 5].map((star) => (
-              <Star
-                key={star}
-                className={`h-5 w-5 ${
-                  star <= userReview.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'
-                }`}
-              />
-            ))}
-          </div>
-          
-          <p className="text-gray-700 whitespace-pre-wrap">{userReview.content}</p>
-          <p className="text-xs text-gray-500 mt-2">
-            {formatReviewDate(userReview.created_at)}
-          </p>
-        </div>
+            </CardFooter>
+          </form>
+        </Card>
       )}
 
-      {/* Reviews list */}
-      <div className="space-y-6">
-        <h3 className="text-xl font-bold text-law-navy mb-4">כל הביקורות</h3>
-        
-        {isLoading ? (
-          <div className="flex justify-center py-8">
-            <Loader2 className="h-8 w-8 animate-spin text-law-navy" />
-          </div>
-        ) : reviews.length === 0 ? (
-          <div className="text-center text-gray-500 py-8">
-            אין ביקורות עדיין. היה הראשון להוסיף ביקורת!
-          </div>
-        ) : (
-          reviews
-            .filter(review => !user || review.user_id !== user.id) // Filter out user's own review
-            .map((review) => (
-              <div key={review.id} className="bg-gray-50 p-4 rounded-lg">
-                <div className="flex items-start space-x-4 space-x-reverse">
-                  <Avatar className="h-10 w-10 border-2 border-law-navy">
-                    <AvatarImage src={review.profiles.avatar_url || undefined} />
-                    <AvatarFallback className="bg-law-navy text-white">
-                      {getUserInitials(review.profiles.full_name)}
-                    </AvatarFallback>
+      {isLoading ? (
+        <div className="flex justify-center my-6">
+          <Loader2 className="h-8 w-8 animate-spin text-law-navy" />
+        </div>
+      ) : reviews.length > 0 ? (
+        <div className="space-y-4">
+          {reviews.map((review) => (
+            <Card key={review.id} className="overflow-hidden">
+              <CardContent className="pt-6">
+                <div className="flex items-start gap-4">
+                  <Avatar className="h-10 w-10 border">
+                    <AvatarImage src={review.profiles?.avatar_url || undefined} alt={review.profiles?.full_name || 'משתמש'} />
+                    <AvatarFallback>{review.profiles?.full_name?.[0] || 'U'}</AvatarFallback>
                   </Avatar>
                   <div className="flex-1">
-                    <div className="flex justify-between items-start">
+                    <div className="flex justify-between items-center mb-2">
                       <div>
-                        <div className="font-semibold text-law-navy">
-                          {review.profiles.full_name || 'משתמש'}
-                        </div>
-                        <div className="flex space-x-1 space-x-reverse mt-1">
-                          {[1, 2, 3, 4, 5].map((star) => (
-                            <Star
-                              key={star}
-                              className={`h-4 w-4 ${
-                                star <= review.rating ? 'fill-yellow-400 text-yellow-400' : 'text-gray-300'
-                              }`}
-                            />
-                          ))}
-                        </div>
-                        <div className="text-xs text-gray-500 mt-1">
-                          {formatReviewDate(review.created_at)}
+                        <p className="font-medium">{review.profiles?.full_name || 'משתמש אנונימי'}</p>
+                        <div className="flex items-center gap-2">
+                          <StarRating value={review.rating} />
+                          <span className="text-sm text-muted-foreground">
+                            {formatDistanceToNow(new Date(review.created_at), { addSuffix: true, locale: he })}
+                          </span>
                         </div>
                       </div>
+                      {user && user.id === review.user_id && (
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="text-red-500 hover:text-red-700"
+                          onClick={() => handleDeleteReview(review.id)}
+                        >
+                          מחק
+                        </Button>
+                      )}
                     </div>
-                    <p className="mt-2 text-gray-700 whitespace-pre-wrap">{review.content}</p>
+                    <p className="text-gray-700 mt-2">{review.content}</p>
                   </div>
                 </div>
-              </div>
-            ))
-        )}
-      </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      ) : (
+        <p className="text-center text-muted-foreground my-6">אין חוות דעת עדיין. היה הראשון לכתוב חוות דעת!</p>
+      )}
+
+      {!user && (
+        <div className="text-center my-6 bg-gray-50 p-4 rounded-lg">
+          <p className="text-muted-foreground">יש להתחבר כדי להוסיף חוות דעת</p>
+          <Button 
+            variant="outline" 
+            className="mt-2 border-law-navy text-law-navy hover:bg-law-navy/10"
+            onClick={() => window.location.href = '/auth'}
+          >
+            התחברות / הרשמה
+          </Button>
+        </div>
+      )}
     </div>
   );
-}
+};
+
+export default ReviewSection;

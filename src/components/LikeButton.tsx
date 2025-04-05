@@ -1,92 +1,76 @@
 
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { ThumbsUp } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
-import { Button } from '@/components/ui/button';
-import { Heart, Loader2 } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
-import { Database } from '@/integrations/supabase/types';
 
-type LikeButtonProps = {
+interface LikeButtonProps {
   articleId: string;
-};
+}
 
-export function LikeButton({ articleId }: LikeButtonProps) {
-  const { user } = useAuth();
-  const navigate = useNavigate();
-  const [liked, setLiked] = useState(false);
+const LikeButton: React.FC<LikeButtonProps> = ({ articleId }) => {
+  const [isLiked, setIsLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
-  const [isLoading, setIsLoading] = useState(true);
-  const [isProcessing, setIsProcessing] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const { user } = useAuth();
 
   useEffect(() => {
-    fetchLikes();
-    
-    // Set up a subscription to listen for changes in likes
-    const channel = supabase
-      .channel('schema-db-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'likes',
-          filter: `article_id=eq.${articleId}`,
-        },
-        () => {
-          fetchLikes();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    getLikeStatus();
+    getLikeCount();
   }, [articleId, user]);
 
-  const fetchLikes = async () => {
+  const getLikeStatus = async () => {
+    if (!user) {
+      setIsLiked(false);
+      return;
+    }
+
     try {
-      // Get total count of likes for this article
-      const { count, error: countError } = await supabase
+      const { data, error } = await supabase
         .from('likes')
-        .select('*', { count: 'exact', head: true })
-        .eq('article_id', articleId);
-      
-      if (countError) throw countError;
-      setLikeCount(count || 0);
-      
-      // Check if current user has liked the article
-      if (user) {
-        const { data, error } = await supabase
-          .from('likes')
-          .select('*')
-          .eq('article_id', articleId)
-          .eq('user_id', user.id)
-          .maybeSingle();
-        
-        if (error) throw error;
-        setLiked(!!data);
-      } else {
-        setLiked(false);
+        .select('*')
+        .eq('article_id', articleId)
+        .eq('user_id', user.id)
+        .maybeSingle();
+
+      if (error) {
+        throw error;
       }
-    } catch (error) {
-      console.error('Error fetching likes:', error);
-    } finally {
-      setIsLoading(false);
+
+      setIsLiked(!!data);
+    } catch (error: any) {
+      console.error('Error checking like status:', error.message);
+    }
+  };
+
+  const getLikeCount = async () => {
+    try {
+      const { count, error } = await supabase
+        .from('likes')
+        .select('*', { count: 'exact' })
+        .eq('article_id', articleId);
+
+      if (error) {
+        throw error;
+      }
+
+      setLikeCount(count || 0);
+    } catch (error: any) {
+      console.error('Error getting like count:', error.message);
     }
   };
 
   const handleLikeToggle = async () => {
     if (!user) {
       toast.error('עליך להתחבר כדי לתת לייק');
-      navigate('/auth');
       return;
     }
 
-    setIsProcessing(true);
+    setIsLoading(true);
     try {
-      if (liked) {
+      if (isLiked) {
         // Remove like
         const { error } = await supabase
           .from('likes')
@@ -95,48 +79,52 @@ export function LikeButton({ articleId }: LikeButtonProps) {
           .eq('user_id', user.id);
 
         if (error) throw error;
+        
+        setIsLiked(false);
+        setLikeCount(prev => Math.max(0, prev - 1));
       } else {
         // Add like
         const { error } = await supabase
           .from('likes')
           .insert({
             article_id: articleId,
-            user_id: user.id,
+            user_id: user.id
           });
 
         if (error) throw error;
+        
+        setIsLiked(true);
+        setLikeCount(prev => prev + 1);
       }
-    } catch (error) {
-      console.error('Error toggling like:', error);
-      toast.error('שגיאה בעדכון הלייק');
+    } catch (error: any) {
+      console.error('Error toggling like:', error.message);
+      toast.error('אירעה שגיאה בעת עדכון הלייק');
     } finally {
-      setIsProcessing(false);
+      setIsLoading(false);
     }
   };
 
-  if (isLoading) {
-    return (
-      <Button variant="outline" size="sm" disabled className="min-w-[80px]">
-        <Loader2 className="h-4 w-4 animate-spin ml-2" />
-        טוען...
-      </Button>
-    );
-  }
-
   return (
-    <Button
-      variant={liked ? "default" : "outline"}
-      size="sm"
-      className={liked ? "bg-red-500 hover:bg-red-600 border-red-500" : "text-red-500 border-red-200 hover:bg-red-50"}
-      onClick={handleLikeToggle}
-      disabled={isProcessing}
-    >
-      {isProcessing ? (
-        <Loader2 className="h-4 w-4 animate-spin ml-2" />
-      ) : (
-        <Heart className={`h-4 w-4 ml-2 ${liked ? "fill-white" : "fill-red-500"}`} />
-      )}
-      {likeCount > 0 && likeCount}
-    </Button>
+    <div className="flex items-center gap-2">
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={handleLikeToggle}
+        disabled={isLoading}
+        className={`flex items-center gap-1 ${
+          isLiked
+            ? 'bg-blue-50 text-blue-600 border-blue-200'
+            : 'text-gray-500'
+        }`}
+      >
+        <ThumbsUp
+          className={`h-4 w-4 ${isLiked ? 'fill-blue-600' : ''}`}
+        />
+        <span>{isLiked ? 'אהבתי' : 'אהבתי'}</span>
+      </Button>
+      <span className="text-sm text-gray-500">{likeCount}</span>
+    </div>
   );
-}
+};
+
+export default LikeButton;

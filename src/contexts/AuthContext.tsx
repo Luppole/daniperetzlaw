@@ -10,7 +10,7 @@ type AuthContextType = {
   session: Session | null;
   isLoading: boolean;
   signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, metadata?: { full_name?: string, avatar_url?: string }) => Promise<void>;
+  signUp: (email: string, password: string, fullName?: string) => Promise<void>;
   signOut: () => Promise<void>;
 };
 
@@ -73,14 +73,17 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const signUp = async (
     email: string, 
     password: string, 
-    metadata?: { full_name?: string, avatar_url?: string }
+    fullName?: string
   ) => {
     try {
+      // Key fix: Use proper object structure for metadata
       const { error } = await supabase.auth.signUp({
         email,
         password,
         options: {
-          data: metadata || {},
+          data: {
+            full_name: fullName || '',
+          }
         },
       });
 
@@ -88,6 +91,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       
       toast.success('הרשמה בוצעה בהצלחה! אנא בדוק את המייל שלך לאימות');
     } catch (error: any) {
+      console.error('Signup error:', error);
       toast.error(error.message || 'שגיאה בהרשמה');
       throw error;
     }
