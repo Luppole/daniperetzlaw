@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Building, Home, FileText, GavelSquare, HandHeart, Users } from 'lucide-react';
+import { Building, Home, FileText, Scale, HandHeart, Users } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 
@@ -25,7 +25,7 @@ export function ExpertiseSection() {
       link: '#'
     },
     {
-      icon: <GavelSquare className="h-12 w-12 text-law-blue mb-4" />,
+      icon: <Scale className="h-12 w-12 text-law-blue mb-4" />,
       title: 'ליטיגציה',
       description: 'ייצוג בבתי משפט אזרחיים, מסחריים ומנהליים',
       link: '#'
