@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Navbar } from '@/components/Navbar';
@@ -75,6 +76,12 @@ const Article = () => {
     );
   }
 
+  // Enhanced content with placeholder images for better styling
+  const enhancedContent = article.content.replace(
+    /<\/h2>/g, 
+    '</h2><img src="https://images.unsplash.com/photo-1589829085413-56de8ae18c73?q=80&w=2912&auto=format&fit=crop" class="w-full h-64 object-cover my-6 rounded-lg shadow-md" alt="Legal concept image" />'
+  );
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -121,8 +128,8 @@ const Article = () => {
                 </div>
               </div>
               
-              {/* Article Image */}
-              <div className="mb-8 overflow-hidden rounded-lg shadow-md">
+              {/* Article Image - Smaller size */}
+              <div className="mb-8 overflow-hidden rounded-lg shadow-md max-h-[400px]">
                 <img 
                   src={article.image_url} 
                   alt={article.title}
@@ -135,11 +142,20 @@ const Article = () => {
                 <p className="text-lg font-medium text-law-navy">{article.summary}</p>
               </div>
               
-              {/* Article Content */}
+              {/* Article Content - Enhanced with styling */}
               <div 
-                className="prose prose-lg max-w-none"
-                dangerouslySetInnerHTML={{ __html: article.content }}
+                className="prose prose-lg max-w-none prose-headings:text-law-navy prose-headings:font-bold prose-headings:mt-8 prose-headings:mb-4 prose-p:text-gray-700 prose-p:leading-relaxed prose-p:mb-6 prose-ul:text-gray-700 prose-li:mb-2"
+                dangerouslySetInnerHTML={{ __html: enhancedContent }}
               />
+              
+              {/* Additional image at the end */}
+              <div className="my-10 rounded-lg overflow-hidden shadow-lg">
+                <img 
+                  src="https://images.unsplash.com/photo-1589216532372-1c2a367900d9?q=80&w=3087&auto=format&fit=crop" 
+                  alt="Legal concept" 
+                  className="w-full h-auto"
+                />
+              </div>
               
               {/* Like Button */}
               <div className="mt-8">

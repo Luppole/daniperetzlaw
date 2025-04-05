@@ -20,6 +20,7 @@ export interface Comment {
   user_id: string;
   content: string;
   created_at: string;
+  user_name?: string; // Added user_name field
 }
 
 // Fetch a single article by ID
@@ -134,14 +135,25 @@ export async function hasUserLikedArticle(articleId: string, userId: string): Pr
 // Get comments for an article
 export async function getArticleComments(articleId: string): Promise<Comment[]> {
   try {
+    // Get comments and join with profiles to get user names
     const { data, error } = await supabase
       .from('comments')
-      .select('*')
+      .select(`
+        *,
+        profiles:user_id (
+          full_name
+        )
+      `)
       .eq('article_id', articleId)
       .order('created_at', { ascending: false });
 
     if (error) throw error;
-    return data as Comment[];
+    
+    // Transform the data to include user_name
+    return (data as any[]).map(comment => ({
+      ...comment,
+      user_name: comment.profiles?.full_name || 'משתמש אנונימי'
+    })) as Comment[];
   } catch (error) {
     console.error('Error fetching comments:', error);
     return [];
@@ -158,7 +170,18 @@ export async function addComment(articleId: string, userId: string, content: str
       .single();
 
     if (error) throw error;
-    return data as Comment;
+    
+    // Get the user's name from profiles
+    const { data: profileData } = await supabase
+      .from('profiles')
+      .select('full_name')
+      .eq('id', userId)
+      .single();
+      
+    return {
+      ...(data as unknown as Comment),
+      user_name: profileData?.full_name || 'משתמש אנונימי'
+    };
   } catch (error) {
     console.error('Error adding comment:', error);
     return null;
