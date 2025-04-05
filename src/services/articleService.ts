@@ -137,15 +137,10 @@ export async function getArticleComments(articleId: string): Promise<Comment[]> 
   try {
     console.log('Fetching comments for article ID:', articleId);
     
-    // Direct join with profiles table using select() and proper type handling
+    // First, get the comments
     const { data, error } = await supabase
       .from('comments')
-      .select(`
-        *,
-        profiles:user_id (
-          full_name
-        )
-      `)
+      .select('*')
       .eq('article_id', articleId)
       .order('created_at', { ascending: false });
 
@@ -154,15 +149,38 @@ export async function getArticleComments(articleId: string): Promise<Comment[]> 
       throw error;
     }
     
-    // Transform the data to include user_name with proper type checking
-    return (data || []).map(comment => {
-      // Safely access profiles data with proper type checking
-      const profiles = comment.profiles as { full_name: string | null } | null;
-      return {
-        ...comment,
-        user_name: profiles?.full_name || 'משתמש אנונימי'
-      };
-    }) as Comment[];
+    if (!data || data.length === 0) {
+      return [];
+    }
+
+    // Get a list of user IDs from the comments
+    const userIds = data.map(comment => comment.user_id);
+    
+    // Then fetch the profiles separately
+    const { data: profilesData, error: profilesError } = await supabase
+      .from('profiles')
+      .select('id, full_name')
+      .in('id', userIds);
+      
+    if (profilesError) {
+      console.error('Error fetching profiles:', profilesError);
+    }
+    
+    // Create a map of user_id to full_name for quick lookups
+    const profileMap = new Map();
+    if (profilesData) {
+      profilesData.forEach(profile => {
+        profileMap.set(profile.id, profile.full_name);
+      });
+    }
+    
+    // Map comments with user names from the profile map
+    const commentsWithUserNames = data.map(comment => ({
+      ...comment,
+      user_name: profileMap.get(comment.user_id) || 'משתמש אנונימי'
+    }));
+    
+    return commentsWithUserNames as Comment[];
   } catch (error) {
     console.error('Error fetching comments:', error);
     return [];
