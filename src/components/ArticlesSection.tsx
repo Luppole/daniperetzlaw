@@ -1,12 +1,19 @@
 
-import React from 'react';
+import React, { useRef } from 'react';
 import { Calendar, ArrowLeft } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
+import { useInView } from 'react-intersection-observer';
 
 export function ArticlesSection() {
   const navigate = useNavigate();
+  
+  // Use intersection observer to trigger animations when elements come into view
+  const [ref, inView] = useInView({
+    triggerOnce: true,
+    threshold: 0.1,
+  });
   
   const articles = [
     {
@@ -33,27 +40,47 @@ export function ArticlesSection() {
   ];
 
   return (
-    <section id="articles" className="section-wrapper bg-law-light">
-      <div className="container mx-auto">
-        <div className="text-center mb-16">
-          <h2 className="section-title">מאמרים משפטיים</h2>
-          <p className="section-subtitle">ידע וחדשות מעולם המשפט</p>
+    <section id="articles" className="section-wrapper bg-law-light py-16">
+      <div className="container mx-auto" ref={ref}>
+        <div className={`text-center mb-16 transition-all duration-700 transform ${inView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
+          <h2 className="section-title text-3xl md:text-4xl font-bold text-law-navy mb-4 relative inline-block">
+            מאמרים משפטיים
+            <span className="absolute bottom-0 left-0 w-full h-1 bg-law-navy transform scale-x-0 transition-transform duration-1000" 
+                  style={{ transform: inView ? 'scaleX(1)' : 'scaleX(0)', transitionDelay: '300ms' }}></span>
+          </h2>
+          <p className="section-subtitle text-lg text-law-gray transition-opacity duration-700 delay-200" 
+             style={{ opacity: inView ? 1 : 0, transitionDelay: '400ms' }}>
+            ידע וחדשות מעולם המשפט
+          </p>
         </div>
         
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
           {articles.map((article, index) => (
             <Card 
               key={article.id} 
-              className="border border-gray-200 hover:shadow-lg transition-shadow flex flex-col h-full transform transition-transform hover:translate-y-[-5px] animate-on-scroll"
-              style={{ animationDelay: `${index * 0.15}s` }}
+              className={`border border-gray-200 hover:shadow-lg transition-all duration-500 flex flex-col h-full transform hover:translate-y-[-5px] hover:border-law-navy/30 ${inView ? 'animate-fade-in' : 'opacity-0'}`}
+              style={{ 
+                animationDelay: `${(index * 0.15) + 0.5}s`,
+                transitionDelay: `${index * 0.1}s`
+              }}
             >
               <CardHeader>
                 <div className="flex items-center mb-3 text-law-gray">
-                  <Calendar className="h-4 w-4 ml-2" />
+                  <Calendar className="h-4 w-4 ml-2 transition-transform duration-300 group-hover:scale-110" />
                   <span className="text-sm">{article.date}</span>
                 </div>
-                <CardTitle className="text-xl font-serif text-law-dark line-clamp-2">
-                  {article.title}
+                <CardTitle className="text-xl font-serif text-law-dark line-clamp-2 group">
+                  <a 
+                    href={article.link}
+                    onClick={(e) => {
+                      e.preventDefault();
+                      navigate(article.link);
+                      window.scrollTo(0, 0);
+                    }}
+                    className="text-law-navy hover:text-law-navy/80 transition-colors duration-300"
+                  >
+                    {article.title}
+                  </a>
                 </CardTitle>
               </CardHeader>
               <CardContent className="flex-grow">
@@ -64,22 +91,29 @@ export function ArticlesSection() {
               <CardFooter>
                 <Button 
                   variant="ghost" 
-                  className="text-law-navy hover:bg-law-navy/10 p-0 group"
-                  onClick={() => navigate(article.link)}
+                  className="text-law-navy hover:bg-law-navy/10 p-0 group transition-all duration-300"
+                  onClick={() => {
+                    navigate(article.link);
+                    window.scrollTo(0, 0);
+                  }}
                 >
-                  <span className="group-hover:mr-1 transition-all">המשך קריאה</span>
-                  <ArrowLeft className="mr-2 h-4 w-4 group-hover:mr-3 transition-all" />
+                  <span className="inline-block transform transition-all duration-300 group-hover:translate-x-[-4px]">המשך קריאה</span>
+                  <ArrowLeft className="mr-2 h-4 w-4 group-hover:mr-3 transform transition-all duration-300 group-hover:translate-x-[-4px]" />
                 </Button>
               </CardFooter>
             </Card>
           ))}
         </div>
         
-        <div className="text-center mt-12">
+        <div className={`text-center mt-12 transition-all duration-700 delay-500 transform ${inView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
+             style={{ transitionDelay: '800ms' }}>
           <Button 
             variant="outline" 
             className="border-law-navy text-law-navy hover:bg-law-navy hover:text-white transition-all duration-300 transform hover:scale-105"
-            onClick={() => navigate('/articles')}
+            onClick={() => {
+              navigate('/articles');
+              window.scrollTo(0, 0);
+            }}
           >
             לכל המאמרים
           </Button>

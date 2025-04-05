@@ -1,16 +1,18 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
-import { Calendar, ArrowLeft, Search } from 'lucide-react';
+import { Calendar, ArrowLeft, Search, Filter, Book } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 
 const Articles = () => {
   const navigate = useNavigate();
-  const [searchQuery, setSearchQuery] = React.useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [selectedCategory, setSelectedCategory] = useState('');
   
   // Sample articles data (in real app, this would come from an API/database)
   const allArticles = [
@@ -70,13 +72,29 @@ const Articles = () => {
     }
   ];
 
-  // Filter articles based on search query
-  const filteredArticles = allArticles.filter(article => 
-    searchQuery === '' || 
-    article.title.includes(searchQuery) ||
-    article.category.includes(searchQuery) ||
-    article.summary.includes(searchQuery)
-  );
+  // Simulate loading
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setIsLoading(false);
+    }, 800);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Scroll to top on page load
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
+  // Filter articles based on search query and category
+  const filteredArticles = allArticles.filter(article => {
+    const matchesSearch = searchQuery === '' || 
+      article.title.includes(searchQuery) ||
+      article.summary.includes(searchQuery);
+    
+    const matchesCategory = selectedCategory === '' || article.category === selectedCategory;
+    
+    return matchesSearch && matchesCategory;
+  });
 
   // Categories for filter
   const categories = [...new Set(allArticles.map(article => article.category))];
@@ -89,37 +107,45 @@ const Articles = () => {
         <div className="container mx-auto px-4">
           {/* Header */}
           <div className="text-center mb-12 animate-fade-in">
-            <h1 className="text-4xl md:text-5xl font-bold text-law-navy mb-4">מאמרים משפטיים</h1>
-            <p className="text-lg text-law-gray max-w-2xl mx-auto">מידע מקצועי עדכני וניתוח משפטי מעמיק בנושאים שונים מעולם המשפט</p>
+            <h1 className="text-4xl md:text-5xl font-bold text-law-navy mb-4 relative inline-block">
+              מאמרים משפטיים
+              <span className="absolute bottom-0 left-0 w-full h-1 bg-law-navy transform origin-right scale-x-0 transition-transform duration-700 animate-[scale-in_0.7s_ease-out_forwards]" style={{ animationDelay: '0.3s' }}></span>
+            </h1>
+            <p className="text-lg text-law-gray max-w-2xl mx-auto opacity-0 animate-[fade-in_0.5s_ease-out_forwards]" style={{ animationDelay: '0.5s' }}>
+              מידע מקצועי עדכני וניתוח משפטי מעמיק בנושאים שונים מעולם המשפט
+            </p>
           </div>
           
           {/* Search and Filter */}
-          <div className="bg-white shadow-md rounded-lg p-6 mb-12 animate-fade-in" style={{ animationDelay: '0.1s' }}>
+          <div className="bg-white shadow-md rounded-lg p-6 mb-12 opacity-0 animate-[fade-in_0.5s_ease-out_forwards] transform translate-y-4 transition-all duration-500" style={{ animationDelay: '0.6s' }}>
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="relative flex-grow">
-                <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-law-gray" size={18} />
-                <Input 
-                  type="search"
-                  placeholder="חיפוש מאמרים..."
-                  className="pr-10 w-full"
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
+                <Search className="absolute right-3 top-1/2 transform -translate-y-1/2 text-law-gray transition-all duration-300 group-hover:text-law-navy" size={18} />
+                <div className="group">
+                  <Input 
+                    type="search"
+                    placeholder="חיפוש מאמרים..."
+                    className="pr-10 w-full focus:ring-2 focus:ring-law-navy/30 transition-all duration-300"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                  />
+                </div>
               </div>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex flex-wrap gap-2 items-center">
+                <Filter size={18} className="ml-2 text-law-gray" />
                 <Button 
-                  variant={searchQuery === '' ? "default" : "outline"}
-                  className={searchQuery === '' ? "bg-law-navy text-white" : "border-law-navy text-law-navy"}
-                  onClick={() => setSearchQuery('')}
+                  variant={selectedCategory === '' ? "default" : "outline"}
+                  className={selectedCategory === '' ? "bg-law-navy text-white transition-all duration-300 hover:bg-law-navy/90" : "border-law-navy text-law-navy transition-all duration-300 hover:bg-law-navy/10"}
+                  onClick={() => setSelectedCategory('')}
                 >
                   הכל
                 </Button>
                 {categories.map(category => (
                   <Button 
                     key={category}
-                    variant={searchQuery === category ? "default" : "outline"}
-                    className={searchQuery === category ? "bg-law-navy text-white" : "border-law-navy text-law-navy"}
-                    onClick={() => setSearchQuery(category)}
+                    variant={selectedCategory === category ? "default" : "outline"}
+                    className={selectedCategory === category ? "bg-law-navy text-white transition-all duration-300 hover:bg-law-navy/90" : "border-law-navy text-law-navy transition-all duration-300 hover:bg-law-navy/10"}
+                    onClick={() => setSelectedCategory(category)}
                   >
                     {category}
                   </Button>
@@ -129,24 +155,36 @@ const Articles = () => {
           </div>
           
           {/* Articles Grid */}
-          {filteredArticles.length > 0 ? (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 animate-fade-in" style={{ animationDelay: '0.2s' }}>
+          {isLoading ? (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {[1, 2, 3, 4, 5, 6].map((item) => (
+                <div key={item} className="border border-gray-200 rounded-lg h-[400px] animate-pulse bg-gray-100"></div>
+              ))}
+            </div>
+          ) : filteredArticles.length > 0 ? (
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
               {filteredArticles.map((article, index) => (
                 <Card 
                   key={article.id} 
-                  className="border border-gray-200 hover:shadow-lg transition-shadow flex flex-col h-full transform transition-transform hover:-translate-y-2 animate-on-scroll"
-                  style={{ animationDelay: `${index * 0.1}s` }}
+                  className="border border-gray-200 hover:shadow-xl transition-all duration-500 flex flex-col h-full transform opacity-0 translate-y-4 hover:-translate-y-2 hover:border-law-navy/30"
+                  style={{ 
+                    animation: 'fade-in 0.5s ease-out forwards, slide-up 0.5s ease-out forwards',
+                    animationDelay: `${0.7 + index * 0.1}s` 
+                  }}
                 >
-                  <div className="h-48 overflow-hidden rounded-t-lg">
+                  <div className="h-48 overflow-hidden rounded-t-lg relative group">
+                    <div className="absolute inset-0 bg-law-navy/30 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 flex items-center justify-center">
+                      <Book className="text-white h-12 w-12 transform scale-0 group-hover:scale-100 transition-transform duration-300" />
+                    </div>
                     <img 
                       src={article.image}
                       alt={article.title}
-                      className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+                      className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                     />
                   </div>
                   <CardHeader>
                     <div className="flex items-center justify-between mb-3">
-                      <span className="text-sm text-white bg-law-navy px-3 py-1 rounded-full">
+                      <span className="text-sm text-white bg-law-navy px-3 py-1 rounded-full transform transition-all duration-300 hover:translate-x-1">
                         {article.category}
                       </span>
                       <div className="flex items-center text-law-gray text-sm">
@@ -154,7 +192,7 @@ const Articles = () => {
                         <span>{article.date}</span>
                       </div>
                     </div>
-                    <CardTitle className="text-xl font-serif text-law-navy line-clamp-2 hover:text-law-navy/80 transition-colors">
+                    <CardTitle className="text-xl font-serif text-law-navy line-clamp-2 transition-colors duration-300">
                       <a 
                         href={`/article/${article.id}`}
                         onClick={(e) => {
@@ -162,6 +200,7 @@ const Articles = () => {
                           navigate(`/article/${article.id}`);
                           window.scrollTo(0, 0);
                         }}
+                        className="hover:text-law-navy/80 focus:outline-none focus:text-law-navy/70"
                       >
                         {article.title}
                       </a>
@@ -175,23 +214,26 @@ const Articles = () => {
                   <CardFooter className="pt-4 border-t border-gray-100">
                     <Button 
                       variant="ghost" 
-                      className="text-law-navy hover:bg-law-navy/10 p-0 group"
+                      className="text-law-navy hover:bg-law-navy/10 p-0 group transition-all duration-300"
                       onClick={() => navigate(`/article/${article.id}`)}
                     >
-                      <span className="group-hover:mr-1 transition-all">המשך קריאה</span>
-                      <ArrowLeft className="mr-2 h-4 w-4 group-hover:mr-3 transition-all" />
+                      <span className="inline-block transform transition-all duration-300 group-hover:translate-x-[-4px]">המשך קריאה</span>
+                      <ArrowLeft className="mr-2 h-4 w-4 transform transition-all duration-300 group-hover:translate-x-[-4px]" />
                     </Button>
                   </CardFooter>
                 </Card>
               ))}
             </div>
           ) : (
-            <div className="text-center py-16 bg-law-light rounded-lg animate-fade-in" style={{ animationDelay: '0.2s' }}>
+            <div className="text-center py-16 bg-law-light rounded-lg opacity-0 animate-fade-in" style={{ animationDelay: '0.8s' }}>
               <h3 className="text-2xl font-bold text-law-navy mb-4">לא נמצאו תוצאות</h3>
               <p className="text-law-gray mb-6">לא נמצאו מאמרים התואמים את החיפוש שלך</p>
               <Button 
-                onClick={() => setSearchQuery('')} 
-                className="bg-law-navy hover:bg-law-navy/90"
+                onClick={() => {
+                  setSearchQuery('');
+                  setSelectedCategory('');
+                }} 
+                className="bg-law-navy hover:bg-law-navy/90 transition-all duration-300 transform hover:scale-105"
               >
                 הצג את כל המאמרים
               </Button>
@@ -199,13 +241,13 @@ const Articles = () => {
           )}
           
           {/* Call to Action */}
-          <div className="bg-law-navy text-white rounded-lg p-8 mt-16 shadow-lg flex flex-col md:flex-row items-center justify-between animate-fade-in" style={{ animationDelay: '0.3s' }}>
+          <div className="bg-law-navy text-white rounded-lg p-8 mt-16 shadow-lg flex flex-col md:flex-row items-center justify-between opacity-0 animate-[fade-in_0.7s_ease-out_forwards] transform translate-y-4" style={{ animationDelay: '1s' }}>
             <div className="mb-6 md:mb-0 text-center md:text-right">
               <h3 className="text-2xl font-bold mb-2">מעוניין בייעוץ משפטי?</h3>
               <p className="text-law-silver max-w-xl">צור קשר עוד היום לקביעת פגישת ייעוץ עם עו"ד דני פרץ בנושאים משפטיים מגוונים</p>
             </div>
             <Button 
-              className="bg-white text-law-navy hover:bg-law-silver hover:text-law-navy transform transition-transform hover:scale-105"
+              className="bg-white text-law-navy hover:bg-law-silver hover:text-law-navy transform transition-all duration-300 hover:scale-105 hover:shadow-xl"
               onClick={() => navigate('/#contact')}
             >
               צור קשר עכשיו
