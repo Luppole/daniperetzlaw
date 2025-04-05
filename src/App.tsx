@@ -6,11 +6,13 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Loader } from "lucide-react";
+import { AuthProvider } from "@/contexts/AuthContext";
 
 // Lazy load pages for better performance
 const Index = lazy(() => import("./pages/Index"));
 const Article = lazy(() => import("./pages/Article"));
 const Articles = lazy(() => import("./pages/Articles"));
+const Auth = lazy(() => import("./pages/Auth"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 // Loading fallback component
@@ -38,20 +40,23 @@ const App = () => {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <TooltipProvider>
-          <Suspense fallback={<LoadingFallback />}>
-            <Routes>
-              <Route path="/" element={<Index />} />
-              <Route path="/articles" element={<Articles />} />
-              <Route path="/article/:id" element={<Article />} />
-              <Route path="/404" element={<NotFound />} />
-              {/* Redirect unknown paths to 404 */}
-              <Route path="*" element={<Navigate to="/404" replace />} />
-            </Routes>
-          </Suspense>
-          <Toaster />
-          <Sonner />
-        </TooltipProvider>
+        <AuthProvider>
+          <TooltipProvider>
+            <Suspense fallback={<LoadingFallback />}>
+              <Routes>
+                <Route path="/" element={<Index />} />
+                <Route path="/articles" element={<Articles />} />
+                <Route path="/article/:id" element={<Article />} />
+                <Route path="/auth" element={<Auth />} />
+                <Route path="/404" element={<NotFound />} />
+                {/* Redirect unknown paths to 404 */}
+                <Route path="*" element={<Navigate to="/404" replace />} />
+              </Routes>
+            </Suspense>
+            <Toaster />
+            <Sonner />
+          </TooltipProvider>
+        </AuthProvider>
       </BrowserRouter>
     </QueryClientProvider>
   );

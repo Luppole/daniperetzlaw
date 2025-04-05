@@ -4,10 +4,13 @@ import { Menu, X, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { useNavigate, useLocation } from 'react-router-dom';
+import { UserMenu } from '@/components/UserMenu';
+import { useAuth } from '@/contexts/AuthContext';
 
 export function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
   const [activeLink, setActiveLink] = useState('hero');
@@ -50,9 +53,7 @@ export function Navbar() {
   const navLinks = [
     { title: 'ראשי', href: '/#hero' },
     { title: 'אודות', href: '/#about' },
-    { title: 'תחומי התמחות', href: '/#expertise' },
     { title: 'מאמרים', href: '/articles' },
-    { title: 'שאלות נפוצות', href: '/#faq' },
     { title: 'צור קשר', href: '/#contact' },
   ];
 
@@ -140,23 +141,29 @@ export function Navbar() {
               </button>
             );
           })}
-          <Button 
-            className="mr-4 bg-law-navy hover:bg-law-navy/90 text-white transition-all duration-300 transform hover:-translate-y-1 shadow-md hover:shadow-lg btn-pulse flex items-center"
-            onClick={handleAppointmentClick}
-          >
-            <Calendar className="h-4 w-4 ml-2" />
-            קבע פגישה
-          </Button>
+          <div className="flex items-center space-x-4 space-x-reverse mr-4">
+            <UserMenu />
+            <Button 
+              className="bg-law-navy hover:bg-law-navy/90 text-white transition-all duration-300 transform hover:-translate-y-1 shadow-md hover:shadow-lg btn-pulse flex items-center"
+              onClick={handleAppointmentClick}
+            >
+              <Calendar className="h-4 w-4 ml-2" />
+              קבע פגישה
+            </Button>
+          </div>
         </nav>
         
         {/* Mobile Menu Button */}
-        <button 
-          className="md:hidden text-law-navy p-2 rounded-md hover:bg-gray-100 transition-colors duration-300"
-          onClick={toggleMenu}
-          aria-label={isMenuOpen ? 'סגור תפריט' : 'פתח תפריט'}
-        >
-          {isMenuOpen ? <X size={24} className="animate-fade-in" /> : <Menu size={24} className="animate-fade-in" />}
-        </button>
+        <div className="md:hidden flex items-center space-x-4 space-x-reverse">
+          <UserMenu />
+          <button 
+            className="text-law-navy p-2 rounded-md hover:bg-gray-100 transition-colors duration-300"
+            onClick={toggleMenu}
+            aria-label={isMenuOpen ? 'סגור תפריט' : 'פתח תפריט'}
+          >
+            {isMenuOpen ? <X size={24} className="animate-fade-in" /> : <Menu size={24} className="animate-fade-in" />}
+          </button>
+        </div>
       </div>
       
       {/* Mobile Navigation */}
