@@ -63,11 +63,12 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// Custom colors for the law firm website
-				'law-dark': '#1A1F2C',
-				'law-blue': '#33C3F0',
-				'law-gray': '#8E9196',
+				// Updated colors for the law firm website based on the brand image
+				'law-navy': '#1E2756', // Deep navy blue from the logo
+				'law-silver': '#D0D0D6', // Silver accent color
+				'law-white': '#FFFFFF', 
 				'law-light': '#F1F0FB',
+				'law-gray': '#8E9196',
 			},
 			fontFamily: {
 				heebo: ['Heebo', 'system-ui', 'sans-serif'],
@@ -110,6 +111,18 @@ export default {
 				'pulse-light': {
 					'0%, 100%': { opacity: '1' },
 					'50%': { opacity: '0.7' }
+				},
+				'slide-in-right': {
+					'0%': { transform: 'translateX(20px)', opacity: '0' },
+					'100%': { transform: 'translateX(0)', opacity: '1' }
+				},
+				'slide-in-left': {
+					'0%': { transform: 'translateX(-20px)', opacity: '0' },
+					'100%': { transform: 'translateX(0)', opacity: '1' }
+				},
+				'scale-in': {
+					'0%': { transform: 'scale(0.95)', opacity: '0' },
+					'100%': { transform: 'scale(1)', opacity: '1' }
 				}
 			},
 			animation: {
@@ -118,7 +131,10 @@ export default {
 				'fade-in': 'fade-in 0.5s ease-out',
 				'slide-up': 'slide-up 0.5s ease-out',
 				'float': 'float 3s ease-in-out infinite',
-				'pulse-light': 'pulse-light 2s ease-in-out infinite'
+				'pulse-light': 'pulse-light 2s ease-in-out infinite',
+				'slide-in-right': 'slide-in-right 0.4s ease-out',
+				'slide-in-left': 'slide-in-left 0.4s ease-out',
+				'scale-in': 'scale-in 0.4s ease-out'
 			}
 		}
 	},
