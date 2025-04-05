@@ -2,18 +2,21 @@
 import { supabase } from '@/integrations/supabase/client';
 import { Appointment } from '@/types/appointments';
 
+// Define types for RPC functions
+type RPCParams = Record<string, any> | null;
+type RPCOptions = { headers?: Record<string, string> };
+
 // Fetch all appointments
 export async function getAllAppointments(): Promise<Appointment[]> {
   try {
-    // Use rpc to get all appointments
-    const { data, error } = await supabase.rpc(
+    const { data, error } = await supabase.rpc<Appointment[]>(
       'get_all_appointments',
-      {},
-      { headers: { 'Content-Type': 'application/json' } }
+      {} as RPCParams,
+      { headers: { 'Content-Type': 'application/json' } } as RPCOptions
     );
     
     if (error) throw error;
-    return data as Appointment[] || [];
+    return data || [];
   } catch (error) {
     console.error('Error fetching appointments:', error);
     return [];
@@ -30,7 +33,7 @@ export async function createAppointment(appointmentData: {
   details: string | null;
 }): Promise<{success: boolean; id?: string}> {
   try {
-    const { data, error } = await supabase.rpc(
+    const { data, error } = await supabase.rpc<{ id: string }>(
       'insert_appointment',
       {
         p_name: appointmentData.name,
@@ -40,8 +43,8 @@ export async function createAppointment(appointmentData: {
         p_time: appointmentData.time,
         p_details: appointmentData.details,
         p_status: 'pending'
-      },
-      { headers: { 'Content-Type': 'application/json' } }
+      } as RPCParams,
+      { headers: { 'Content-Type': 'application/json' } } as RPCOptions
     );
 
     if (error) throw error;
@@ -60,8 +63,8 @@ export async function updateAppointmentStatus(id: string, status: 'pending' | 'c
       {
         p_id: id,
         p_status: status
-      },
-      { headers: { 'Content-Type': 'application/json' } }
+      } as RPCParams,
+      { headers: { 'Content-Type': 'application/json' } } as RPCOptions
     );
     
     if (error) throw error;
@@ -79,8 +82,8 @@ export async function deleteAppointment(id: string): Promise<boolean> {
       'delete_appointment',
       {
         p_id: id
-      },
-      { headers: { 'Content-Type': 'application/json' } }
+      } as RPCParams,
+      { headers: { 'Content-Type': 'application/json' } } as RPCOptions
     );
     
     if (error) throw error;
@@ -94,14 +97,14 @@ export async function deleteAppointment(id: string): Promise<boolean> {
 // Get appointment counts for dashboard
 export async function getAppointmentCounts(): Promise<{ total: number; pending: number; confirmed: number; }> {
   try {
-    const { data, error } = await supabase.rpc(
+    const { data, error } = await supabase.rpc<{ total: number; pending: number; confirmed: number; }>(
       'get_appointment_counts',
-      {},
-      { headers: { 'Content-Type': 'application/json' } }
+      {} as RPCParams,
+      { headers: { 'Content-Type': 'application/json' } } as RPCOptions
     );
     
     if (error) throw error;
-    return data as { total: number; pending: number; confirmed: number; } || { total: 0, pending: 0, confirmed: 0 };
+    return data || { total: 0, pending: 0, confirmed: 0 };
   } catch (error) {
     console.error('Error getting appointment counts:', error);
     return { total: 0, pending: 0, confirmed: 0 };
@@ -111,16 +114,16 @@ export async function getAppointmentCounts(): Promise<{ total: number; pending: 
 // Get available time slots
 export async function getBookedSlots(date: string): Promise<string[]> {
   try {
-    const { data, error } = await supabase.rpc(
+    const { data, error } = await supabase.rpc<{time: string}[]>(
       'get_booked_slots',
       {
         date_param: date
-      },
-      { headers: { 'Content-Type': 'application/json' } }
+      } as RPCParams,
+      { headers: { 'Content-Type': 'application/json' } } as RPCOptions
     );
     
     if (error) throw error;
-    return (data as {time: string}[] || []).map(slot => slot.time);
+    return (data || []).map(slot => slot.time);
   } catch (error) {
     console.error('Error getting booked slots:', error);
     return [];
