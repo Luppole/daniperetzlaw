@@ -8,7 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Check, Calendar as CalendarIcon } from "lucide-react";
 import { addDays, format, startOfDay, isBefore, isToday } from "date-fns";
-import { heIL } from "date-fns/locale";
+import { he } from "date-fns/locale";
 import { toast } from "sonner";
 
 type AppointmentModalProps = {
@@ -82,7 +82,7 @@ export function AppointmentModal({ trigger }: AppointmentModalProps) {
 
   const formatDateHebrew = (date: Date | undefined) => {
     if (!date) return "";
-    return format(date, "EEEE, dd בMMMM yyyy", { locale: heIL });
+    return format(date, "EEEE, dd בMMMM yyyy", { locale: he });
   };
 
   return (

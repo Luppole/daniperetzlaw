@@ -9,11 +9,7 @@ import { Loader } from "lucide-react";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { initializeDatabase } from "@/utils/initDatabase";
 import React, { useEffect } from "react";
-import { registerLocale } from "date-fns";
-import { heIL } from "date-fns/locale";
-
-// Register Hebrew locale for date-fns
-registerLocale("he", heIL);
+import { he } from "date-fns/locale";
 
 // Lazy load pages for better performance
 const Index = lazy(() => import("./pages/Index"));
