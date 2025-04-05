@@ -1,4 +1,3 @@
-
 import { supabase } from '@/integrations/supabase/client';
 
 // Article type definition
@@ -83,7 +82,6 @@ export async function createArticle(articleData: {
   image_url: string;
 }): Promise<boolean> {
   try {
-    // Add the date field
     const currentDate = new Date().toISOString().split('T')[0];
     
     const fullArticleData = {
@@ -176,7 +174,7 @@ export async function getArticleComments(articleId: string): Promise<Comment[]> 
       'get_article_comments', 
       { article_id_param: articleId },
       { headers: { 'Content-Type': 'application/json' } }
-    ) as { data: Comment[] | null; error: any };
+    );
 
     if (error) throw error;
     return data as Comment[] || [];
@@ -197,7 +195,7 @@ export async function addComment(articleId: string, userId: string, content: str
         p_content: content
       },
       { headers: { 'Content-Type': 'application/json' } }
-    ) as { data: any; error: any };
+    );
 
     if (error) throw error;
     return true;
@@ -210,10 +208,11 @@ export async function addComment(articleId: string, userId: string, content: str
 // Get like count for an article
 export async function getArticleLikeCount(articleId: string): Promise<number> {
   try {
-    const { data, error } = await supabase
-      .rpc('get_article_likes_count', { article_id_param: articleId }, {
-        headers: { 'Content-Type': 'application/json' }
-      });
+    const { data, error } = await supabase.rpc(
+      'get_article_likes_count', 
+      { article_id_param: articleId },
+      { headers: { 'Content-Type': 'application/json' } }
+    );
 
     if (error) throw error;
     return data as number || 0;
@@ -234,7 +233,6 @@ export async function hasUserLikedArticle(articleId: string, userId: string): Pr
       .single();
 
     if (error && error.code !== 'PGRST116') {
-      // PGRST116 is the error code for "no rows returned"
       throw error;
     }
 
@@ -258,7 +256,6 @@ export async function toggleArticleLike(articleId: string, userId: string): Prom
     if (checkError && checkError.code !== 'PGRST116') throw checkError;
 
     if (existingLike) {
-      // Unlike - remove the like
       const { error: unlikeError } = await supabase
         .from('likes')
         .delete()
@@ -266,7 +263,6 @@ export async function toggleArticleLike(articleId: string, userId: string): Prom
 
       if (unlikeError) throw unlikeError;
     } else {
-      // Like - add a new like
       const { error: likeError } = await supabase
         .from('likes')
         .insert({

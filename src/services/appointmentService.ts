@@ -7,7 +7,9 @@ export async function getAllAppointments(): Promise<Appointment[]> {
   try {
     // Use rpc to get all appointments
     const { data, error } = await supabase.rpc(
-      'get_all_appointments'
+      'get_all_appointments',
+      {},
+      { headers: { 'Content-Type': 'application/json' } }
     );
     
     if (error) throw error;
@@ -38,11 +40,12 @@ export async function createAppointment(appointmentData: {
         p_time: appointmentData.time,
         p_details: appointmentData.details,
         p_status: 'pending'
-      }
+      },
+      { headers: { 'Content-Type': 'application/json' } }
     );
 
     if (error) throw error;
-    return { success: true, id: data?.id };
+    return { success: true, id: data?.id || undefined };
   } catch (error) {
     console.error('Error creating appointment:', error);
     return { success: false };
@@ -57,7 +60,8 @@ export async function updateAppointmentStatus(id: string, status: 'pending' | 'c
       {
         p_id: id,
         p_status: status
-      }
+      },
+      { headers: { 'Content-Type': 'application/json' } }
     );
     
     if (error) throw error;
@@ -75,7 +79,8 @@ export async function deleteAppointment(id: string): Promise<boolean> {
       'delete_appointment',
       {
         p_id: id
-      }
+      },
+      { headers: { 'Content-Type': 'application/json' } }
     );
     
     if (error) throw error;
@@ -90,7 +95,9 @@ export async function deleteAppointment(id: string): Promise<boolean> {
 export async function getAppointmentCounts(): Promise<{ total: number; pending: number; confirmed: number; }> {
   try {
     const { data, error } = await supabase.rpc(
-      'get_appointment_counts'
+      'get_appointment_counts',
+      {},
+      { headers: { 'Content-Type': 'application/json' } }
     );
     
     if (error) throw error;
@@ -108,7 +115,8 @@ export async function getBookedSlots(date: string): Promise<string[]> {
       'get_booked_slots',
       {
         date_param: date
-      }
+      },
+      { headers: { 'Content-Type': 'application/json' } }
     );
     
     if (error) throw error;
