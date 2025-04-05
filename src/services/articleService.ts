@@ -137,7 +137,7 @@ export async function getArticleComments(articleId: string): Promise<Comment[]> 
   try {
     console.log('Fetching comments for article ID:', articleId);
     
-    // Direct join with profiles table
+    // Direct join with profiles table using select() and proper type handling
     const { data, error } = await supabase
       .from('comments')
       .select(`
@@ -154,11 +154,15 @@ export async function getArticleComments(articleId: string): Promise<Comment[]> 
       throw error;
     }
     
-    // Transform the data to include user_name
-    return (data || []).map(comment => ({
-      ...comment,
-      user_name: comment.profiles?.full_name || 'משתמש אנונימי'
-    })) as Comment[];
+    // Transform the data to include user_name with proper type checking
+    return (data || []).map(comment => {
+      // Safely access profiles data with proper type checking
+      const profiles = comment.profiles as { full_name: string | null } | null;
+      return {
+        ...comment,
+        user_name: profiles?.full_name || 'משתמש אנונימי'
+      };
+    }) as Comment[];
   } catch (error) {
     console.error('Error fetching comments:', error);
     return [];
@@ -190,7 +194,7 @@ export async function addComment(articleId: string, userId: string, content: str
       return null;
     }
     
-    // Get the user's name from profiles
+    // Get the user's name from profiles with proper error handling
     const { data: profileData, error: profileError } = await supabase
       .from('profiles')
       .select('full_name')
