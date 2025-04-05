@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Calendar, ArrowLeft } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,10 +9,14 @@ import LikeCount from '@/components/LikeCount';
 import { getAllArticles, Article } from '@/services/articleService';
 import { Loader2 } from 'lucide-react';
 
+// Legal-themed high-quality images
 const LEGAL_IMAGES = [
-  "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?q=80&w=2912&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1589578228447-e1a4e481c6c8?q=80&w=3270&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1505664194779-8beaceb93744?q=80&w=3270&auto=format&fit=crop"
+  "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?q=80&w=2912&auto=format&fit=crop", // Legal books
+  "https://images.unsplash.com/photo-1575505586569-646b2ca898fc?q=80&w=3105&auto=format&fit=crop", // Wooden gavel and law books
+  "https://images.unsplash.com/photo-1479142506502-19b3a3b7ff33?q=80&w=2970&auto=format&fit=crop", // Statue of justice
+  "https://images.unsplash.com/photo-1542978709-19c95dc3bc7e?q=80&w=3024&auto=format&fit=crop", // Modern law office
+  "https://images.unsplash.com/photo-1423592707957-3b212afa6733?q=80&w=3098&auto=format&fit=crop", // Law and justice concept
+  "https://images.unsplash.com/photo-1505664194779-8beaceb93744?q=80&w=3270&auto=format&fit=crop", // Legal document signing
 ];
 
 export function ArticlesSection() {

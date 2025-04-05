@@ -11,11 +11,14 @@ import CommentSection from '@/components/comments/CommentSection';
 import { Loader2 } from 'lucide-react';
 import { getArticleById, Article as ArticleType, getAllArticles } from '@/services/articleService';
 
-// Legal-themed placeholder images
+// Legal-themed high-quality images
 const LEGAL_IMAGES = [
-  "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?q=80&w=2912&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1589578228447-e1a4e481c6c8?q=80&w=3270&auto=format&fit=crop",
-  "https://images.unsplash.com/photo-1505664194779-8beaceb93744?q=80&w=3270&auto=format&fit=crop"
+  "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?q=80&w=2912&auto=format&fit=crop", // Legal books
+  "https://images.unsplash.com/photo-1575505586569-646b2ca898fc?q=80&w=3105&auto=format&fit=crop", // Wooden gavel and law books
+  "https://images.unsplash.com/photo-1479142506502-19b3a3b7ff33?q=80&w=2970&auto=format&fit=crop", // Statue of justice
+  "https://images.unsplash.com/photo-1542978709-19c95dc3bc7e?q=80&w=3024&auto=format&fit=crop", // Modern law office
+  "https://images.unsplash.com/photo-1423592707957-3b212afa6733?q=80&w=3098&auto=format&fit=crop", // Law and justice concept
+  "https://images.unsplash.com/photo-1505664194779-8beaceb93744?q=80&w=3270&auto=format&fit=crop", // Legal document signing
 ];
 
 const Article = () => {
@@ -90,19 +93,19 @@ const Article = () => {
     );
   }
 
-  // Improve the content with better spacing and fewer images - show image only after every 15th paragraph or heading
+  // Significantly improve the content with better spacing and far fewer images - only after every 25th paragraph or heading
   const enhancedContent = article.content
     .replace(/<h2>/g, '<h2 class="text-2xl font-bold text-law-navy mt-20 mb-12">')
     .replace(/<h3>/g, '<h3 class="text-xl font-semibold text-law-navy mt-16 mb-10">')
     .replace(/<p>/g, '<p class="text-gray-700 leading-relaxed mb-12 text-lg">')
     .replace(/<ul>/g, '<ul class="list-disc list-inside mb-16 ml-8 space-y-6 text-gray-700">')
     .replace(/<li>/g, '<li class="mb-6 leading-relaxed">')
-    // Add an image only after every fifteenth h2 tag to significantly reduce image frequency
+    // Add just one image after a significant amount of content
     .replace(
-      /(<\/h2>)(?:(?!<\/h2>).)*?(<\/h2>)(?:(?!<\/h2>).)*?(<\/h2>)(?:(?!<\/h2>).)*?(<\/h2>)(?:(?!<\/h2>).)*?(<\/h2>)(?:(?!<\/h2>).)*?(<\/h2>)(?:(?!<\/h2>).)*?(<\/h2>)(?:(?!<\/h2>).)*?(<\/h2>)(?:(?!<\/h2>).)*?(<\/h2>)(?:(?!<\/h2>).)*?(<\/h2>)(?:(?!<\/h2>).)*?(<\/h2>)(?:(?!<\/h2>).)*?(<\/h2>)(?:(?!<\/h2>).)*?(<\/h2>)(?:(?!<\/h2>).)*?(<\/h2>)(?:(?!<\/h2>).)*?(<\/h2>)/g, 
-      (match, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15) => 
-        p1 + p2 + p3 + p4 + p5 + p6 + p7 + p8 + p9 + p10 + p11 + p12 + p13 + p14 + p15 + 
-        '<div class="my-24 mx-auto w-4/5 max-w-3xl">' +
+      /(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)/g, 
+      (match, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, p20, p21, p22, p23, p24, p25) => 
+        p1 + p2 + p3 + p4 + p5 + p6 + p7 + p8 + p9 + p10 + p11 + p12 + p13 + p14 + p15 + p16 + p17 + p18 + p19 + p20 + p21 + p22 + p23 + p24 + p25 + 
+        '<div class="my-28 mx-auto w-4/5 max-w-3xl">' +
         '<img src="' + LEGAL_IMAGES[Math.floor(Math.random() * LEGAL_IMAGES.length)] + '" ' +
         'class="w-full h-auto object-cover rounded-lg shadow-md" alt="תמונה להמחשה בלבד" />' +
         '<p class="text-sm text-center text-gray-500 mt-3 italic">תמונה להמחשה בלבד</p>' +
@@ -113,7 +116,7 @@ const Article = () => {
     <div className="min-h-screen flex flex-col">
       <Navbar />
       
-      <main className="flex-grow pt-40 pb-28">
+      <main className="flex-grow pt-28 pb-28">
         <div className="container mx-auto px-4 max-w-6xl">
           <div className="mb-8 flex items-center text-sm text-law-gray">
             <Button 

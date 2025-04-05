@@ -18,7 +18,9 @@ export function Map({ address, className = "w-full h-64" }: MapProps) {
   const [error, setError] = useState<string | null>(null);
   const [coordinates, setCoordinates] = useState<[number, number] | null>(null);
 
-  // This would ideally come from an environment variable
+  // Default coordinates for Israel (Beer Sheva)
+  const DEFAULT_COORDINATES: [number, number] = [34.7913, 31.2518];
+
   const handleTokenInput = (e: React.ChangeEvent<HTMLInputElement>) => {
     const token = e.target.value;
     setMapboxToken(token);
@@ -51,7 +53,8 @@ export function Map({ address, className = "w-full h-64" }: MapProps) {
     } catch (error) {
       console.error('Geocoding error:', error);
       setError('Could not find address on map');
-      return [35.2137, 32.6001]; // Default to Afula, Israel
+      setCoordinates(DEFAULT_COORDINATES);
+      return DEFAULT_COORDINATES;
     }
   };
 
@@ -124,6 +127,7 @@ export function Map({ address, className = "w-full h-64" }: MapProps) {
           placeholder="הכנס Mapbox token" 
           className="p-2 border border-gray-300 rounded w-full mb-2 text-center focus:ring-2 focus:ring-law-blue/20 focus:border-law-blue/40 transition-all"
           onChange={handleTokenInput}
+          value={mapboxToken}
         />
         <a 
           href={googleMapsUrl} 

@@ -13,6 +13,9 @@ export function LocationMap({ address }: LocationMapProps) {
       <div className="h-[300px] w-full overflow-hidden rounded-lg">
         <Map address={address} />
       </div>
+      <div className="mt-4 text-center text-law-gray text-sm">
+        <p>רח' שד' בן גוריון 1, מגדל בסר 2, קומה 15, באר שבע</p>
+      </div>
     </div>
   );
 }
