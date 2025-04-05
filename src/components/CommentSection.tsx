@@ -1,26 +1,12 @@
+
 import React, { useState, useEffect } from 'react';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
-import { useAuth } from '@/contexts/AuthContext';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { formatDistanceToNow } from 'date-fns';
-import { he } from 'date-fns/locale';
+import { getArticleComments, addComment, Comment } from '@/services/articleService';
 import { Loader2 } from 'lucide-react';
-import { toast } from 'sonner';
-
-type Comment = {
-  id: string;
-  content: string;
-  user_id: string;
-  article_id: string;
-  created_at: string;
-  profiles?: {
-    full_name: string | null;
-    avatar_url: string | null;
-  };
-};
 
 interface CommentSectionProps {
   articleId: string;
@@ -29,188 +15,182 @@ interface CommentSectionProps {
 const CommentSection: React.FC<CommentSectionProps> = ({ articleId }) => {
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const { user } = useAuth();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  const { toast } = useToast();
 
+  // Check authentication status
   useEffect(() => {
-    fetchComments();
-  }, [articleId]);
-
-  const fetchComments = async () => {
-    setIsLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from('comments')
-        .select(`
-          *,
-          profiles:user_id(full_name, avatar_url)
-        `)
-        .eq('article_id', articleId)
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        throw error;
+    const checkAuth = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (data?.session?.user) {
+        setUser(data.session.user);
       }
+    };
 
-      const typedComments = data.map(comment => ({
-        ...comment,
-        profiles: comment.profiles as unknown as { full_name: string | null; avatar_url: string | null; }
-      })) as Comment[];
+    checkAuth();
 
-      setComments(typedComments);
-    } catch (error: any) {
-      console.error('Error fetching comments:', error.message);
-      toast.error('אירעה שגיאה בטעינת התגובות');
-    } finally {
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setUser(session?.user || null);
+      }
+    );
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  // Fetch comments
+  useEffect(() => {
+    const fetchComments = async () => {
+      setIsLoading(true);
+      const fetchedComments = await getArticleComments(articleId);
+      setComments(fetchedComments);
       setIsLoading(false);
-    }
-  };
+    };
+
+    fetchComments();
+
+    // Set up realtime subscription for comments
+    const channel = supabase
+      .channel('comments-changes')
+      .on('postgres_changes', 
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'comments',
+          filter: `article_id=eq.${articleId}`
+        }, 
+        () => {
+          fetchComments();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [articleId]);
 
   const handleSubmitComment = async (e: React.FormEvent) => {
     e.preventDefault();
+    
     if (!user) {
-      toast.error('עליך להתחבר כדי להגיב');
+      toast({
+        title: 'התחברות נדרשת',
+        description: 'יש להתחבר כדי להוסיף תגובה',
+        variant: 'destructive'
+      });
       return;
     }
+
     if (!newComment.trim()) {
-      toast.error('אנא הזן תגובה');
+      toast({
+        title: 'שגיאה',
+        description: 'לא ניתן לשלוח תגובה ריקה',
+        variant: 'destructive'
+      });
       return;
     }
 
     setIsSubmitting(true);
+    
     try {
-      const { error } = await supabase
-        .from('comments')
-        .insert({
-          article_id: articleId,
-          content: newComment.trim(),
-          user_id: user.id,
+      const result = await addComment(articleId, user.id, newComment);
+      
+      if (result) {
+        setNewComment('');
+        toast({
+          title: 'התגובה נוספה בהצלחה',
+          variant: 'default'
         });
-
-      if (error) throw error;
-
-      toast.success('התגובה נוספה בהצלחה');
-      setNewComment('');
-      fetchComments();
-    } catch (error: any) {
-      console.error('Error adding comment:', error.message);
-      toast.error('אירעה שגיאה בהוספת התגובה');
+      } else {
+        throw new Error('Failed to add comment');
+      }
+    } catch (error) {
+      toast({
+        title: 'שגיאה',
+        description: 'אירעה שגיאה בהוספת התגובה',
+        variant: 'destructive'
+      });
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleDeleteComment = async (commentId: string) => {
-    if (!user) return;
-
-    try {
-      const { error } = await supabase
-        .from('comments')
-        .delete()
-        .eq('id', commentId)
-        .eq('user_id', user.id);
-
-      if (error) throw error;
-
-      toast.success('התגובה נמחקה בהצלחה');
-      fetchComments();
-    } catch (error: any) {
-      console.error('Error deleting comment:', error.message);
-      toast.error('אירעה שגיאה במחיקת התגובה');
-    }
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    return date.toLocaleDateString('he-IL', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   };
 
   return (
-    <div className="mt-8">
-      <h2 className="text-2xl font-bold mb-4 text-law-navy">תגובות</h2>
-
-      {user && (
-        <Card className="mb-6">
-          <CardHeader className="pb-2">
-            <h3 className="text-lg font-semibold">הוסף תגובה</h3>
-          </CardHeader>
-          <form onSubmit={handleSubmitComment}>
-            <CardContent>
-              <Textarea
-                placeholder="כתוב את התגובה שלך כאן..."
-                value={newComment}
-                onChange={(e) => setNewComment(e.target.value)}
-                className="min-h-[100px]"
-              />
-            </CardContent>
-            <CardFooter>
-              <Button 
-                type="submit" 
-                className="bg-law-navy hover:bg-law-navy/90"
-                disabled={isSubmitting}
-              >
-                {isSubmitting ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    שולח...
-                  </>
-                ) : 'שלח תגובה'}
-              </Button>
-            </CardFooter>
-          </form>
-        </Card>
-      )}
-
+    <div className="mt-12 pt-6 border-t border-gray-200">
+      <h3 className="text-xl font-bold mb-6 text-law-navy">תגובות</h3>
+      
+      {/* Comment Form */}
+      <form onSubmit={handleSubmitComment} className="mb-8">
+        <Textarea
+          placeholder={user ? "הוסף את התגובה שלך..." : "יש להתחבר כדי להוסיף תגובה"}
+          className="mb-3 min-h-[100px] font-heebo"
+          value={newComment}
+          onChange={(e) => setNewComment(e.target.value)}
+          disabled={!user || isSubmitting}
+        />
+        <div className="flex justify-end">
+          <Button 
+            type="submit" 
+            className="bg-law-navy hover:bg-law-navy/90 font-heebo"
+            disabled={!user || isSubmitting}
+          >
+            {isSubmitting ? (
+              <>
+                <Loader2 className="ml-2 h-4 w-4 animate-spin" />
+                שולח...
+              </>
+            ) : 'שלח תגובה'}
+          </Button>
+        </div>
+      </form>
+      
+      {/* Comments List */}
       {isLoading ? (
-        <div className="flex justify-center my-6">
+        <div className="flex justify-center py-8">
           <Loader2 className="h-8 w-8 animate-spin text-law-navy" />
         </div>
       ) : comments.length > 0 ? (
-        <div className="space-y-4">
+        <div className="space-y-6">
           {comments.map((comment) => (
-            <Card key={comment.id} className="overflow-hidden">
-              <CardContent className="pt-6">
-                <div className="flex items-start gap-4">
-                  <Avatar className="h-10 w-10 border">
-                    <AvatarImage src={comment.profiles?.avatar_url || undefined} alt={comment.profiles?.full_name || 'משתמש'} />
-                    <AvatarFallback>{comment.profiles?.full_name?.[0] || 'U'}</AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1">
-                    <div className="flex justify-between items-center mb-2">
-                      <div>
-                        <p className="font-medium">{comment.profiles?.full_name || 'משתמש אנונימי'}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {formatDistanceToNow(new Date(comment.created_at), { addSuffix: true, locale: he })}
-                        </p>
-                      </div>
-                      {user && user.id === comment.user_id && (
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="text-red-500 hover:text-red-700"
-                          onClick={() => handleDeleteComment(comment.id)}
-                        >
-                          מחק
-                        </Button>
-                      )}
-                    </div>
-                    <p className="text-gray-700">{comment.content}</p>
+            <div key={comment.id} className="bg-gray-50 p-4 rounded-lg">
+              <div className="flex items-start gap-3">
+                <Avatar className="h-10 w-10 border border-gray-200">
+                  <AvatarImage src="" alt="" />
+                  <AvatarFallback className="bg-law-navy text-white">
+                    {comment.user_id.substring(0, 2).toUpperCase()}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="flex-1">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="font-medium text-law-navy">משתמש</span>
+                    <span className="text-sm text-gray-500">{formatDate(comment.created_at)}</span>
                   </div>
+                  <p className="text-gray-700 font-heebo">{comment.content}</p>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           ))}
         </div>
       ) : (
-        <p className="text-center text-muted-foreground my-6">אין תגובות עדיין. היה הראשון להגיב!</p>
-      )}
-
-      {!user && (
-        <div className="text-center my-6 bg-gray-50 p-4 rounded-lg">
-          <p className="text-muted-foreground">יש להתחבר כדי להוסיף תגובה</p>
-          <Button 
-            variant="outline" 
-            className="mt-2 border-law-navy text-law-navy hover:bg-law-navy/10"
-            onClick={() => window.location.href = '/auth'}
-          >
-            התחברות / הרשמה
-          </Button>
+        <div className="text-center py-8 bg-gray-50 rounded-lg">
+          <p className="text-gray-500 font-heebo">אין תגובות עדיין. היה הראשון להגיב!</p>
         </div>
       )}
     </div>

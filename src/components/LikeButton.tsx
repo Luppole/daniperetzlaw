@@ -1,128 +1,136 @@
 
 import React, { useState, useEffect } from 'react';
-import { Button } from '@/components/ui/button';
 import { ThumbsUp } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
+import { Button } from '@/components/ui/button';
+import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { getArticleLikeCount, toggleArticleLike, hasUserLikedArticle } from '@/services/articleService';
 
 interface LikeButtonProps {
   articleId: string;
 }
 
 const LikeButton: React.FC<LikeButtonProps> = ({ articleId }) => {
-  const [isLiked, setIsLiked] = useState(false);
+  const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
+  const [user, setUser] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
-  const { user } = useAuth();
+  const { toast } = useToast();
 
+  // Check authentication status
   useEffect(() => {
-    getLikeStatus();
-    getLikeCount();
+    const checkAuth = async () => {
+      const { data } = await supabase.auth.getSession();
+      if (data?.session?.user) {
+        setUser(data.session.user);
+      }
+    };
+
+    checkAuth();
+
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setUser(session?.user || null);
+      }
+    );
+
+    return () => {
+      subscription.unsubscribe();
+    };
+  }, []);
+
+  // Check if user has liked the article
+  useEffect(() => {
+    const checkLikeStatus = async () => {
+      if (user) {
+        const hasLiked = await hasUserLikedArticle(articleId, user.id);
+        setLiked(hasLiked);
+      }
+    };
+
+    checkLikeStatus();
   }, [articleId, user]);
 
-  const getLikeStatus = async () => {
+  // Get like count
+  useEffect(() => {
+    const getLikeCount = async () => {
+      const count = await getArticleLikeCount(articleId);
+      setLikeCount(count);
+    };
+
+    getLikeCount();
+    
+    // Set up realtime subscription for likes
+    const channel = supabase
+      .channel('likes-changes')
+      .on('postgres_changes', 
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'likes',
+          filter: `article_id=eq.${articleId}`
+        }, 
+        () => {
+          getLikeCount();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [articleId]);
+
+  const handleLike = async () => {
     if (!user) {
-      setIsLiked(false);
-      return;
-    }
-
-    try {
-      const { data, error } = await supabase
-        .from('likes')
-        .select('*')
-        .eq('article_id', articleId)
-        .eq('user_id', user.id)
-        .maybeSingle();
-
-      if (error) {
-        throw error;
-      }
-
-      setIsLiked(!!data);
-    } catch (error: any) {
-      console.error('Error checking like status:', error.message);
-    }
-  };
-
-  const getLikeCount = async () => {
-    try {
-      const { count, error } = await supabase
-        .from('likes')
-        .select('*', { count: 'exact' })
-        .eq('article_id', articleId);
-
-      if (error) {
-        throw error;
-      }
-
-      setLikeCount(count || 0);
-    } catch (error: any) {
-      console.error('Error getting like count:', error.message);
-    }
-  };
-
-  const handleLikeToggle = async () => {
-    if (!user) {
-      toast.error('עליך להתחבר כדי לתת לייק');
+      toast({
+        title: 'התחברות נדרשת',
+        description: 'יש להתחבר כדי לסמן לייק',
+        variant: 'destructive'
+      });
       return;
     }
 
     setIsLoading(true);
+    
     try {
-      if (isLiked) {
-        // Remove like
-        const { error } = await supabase
-          .from('likes')
-          .delete()
-          .eq('article_id', articleId)
-          .eq('user_id', user.id);
-
-        if (error) throw error;
-        
-        setIsLiked(false);
-        setLikeCount(prev => Math.max(0, prev - 1));
-      } else {
-        // Add like
-        const { error } = await supabase
-          .from('likes')
-          .insert({
-            article_id: articleId,
-            user_id: user.id
-          });
-
-        if (error) throw error;
-        
-        setIsLiked(true);
-        setLikeCount(prev => prev + 1);
-      }
-    } catch (error: any) {
-      console.error('Error toggling like:', error.message);
-      toast.error('אירעה שגיאה בעת עדכון הלייק');
+      const isLiked = await toggleArticleLike(articleId, user.id);
+      setLiked(isLiked);
+      
+      toast({
+        title: isLiked ? 'סימנת לייק' : 'הסרת לייק',
+        variant: 'default'
+      });
+    } catch (error) {
+      toast({
+        title: 'שגיאה',
+        description: 'אירעה שגיאה בסימון הלייק',
+        variant: 'destructive'
+      });
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="flex items-center gap-2">
-      <Button
-        variant="outline"
-        size="sm"
-        onClick={handleLikeToggle}
-        disabled={isLoading}
-        className={`flex items-center gap-1 ${
-          isLiked
-            ? 'bg-blue-50 text-blue-600 border-blue-200'
-            : 'text-gray-500'
+    <div className="flex items-center">
+      <Button 
+        variant="outline" 
+        size="lg" 
+        className={`flex items-center gap-2 transition-colors ${
+          liked ? 'text-white bg-law-navy border-law-navy hover:bg-law-navy/90' : 
+                 'text-law-navy border-law-navy hover:bg-law-navy/10'
         }`}
+        onClick={handleLike}
+        disabled={isLoading}
       >
-        <ThumbsUp
-          className={`h-4 w-4 ${isLiked ? 'fill-blue-600' : ''}`}
-        />
-        <span>{isLiked ? 'אהבתי' : 'אהבתי'}</span>
+        <ThumbsUp className={`h-5 w-5 ${liked ? 'fill-white' : ''}`} />
+        <span className="font-heebo">
+          {liked ? 'סימנת לייק' : 'לייק'} 
+          {likeCount > 0 && ` (${likeCount})`}
+        </span>
       </Button>
-      <span className="text-sm text-gray-500">{likeCount}</span>
     </div>
   );
 };

@@ -1,6 +1,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { ThumbsUp } from 'lucide-react';
+import { getArticleLikeCount } from '@/services/articleService';
 import { supabase } from '@/integrations/supabase/client';
 
 interface LikeCountProps {
@@ -12,20 +13,8 @@ const LikeCount: React.FC<LikeCountProps> = ({ articleId }) => {
   
   useEffect(() => {
     const getLikeCount = async () => {
-      try {
-        const { count, error } = await supabase
-          .from('likes')
-          .select('*', { count: 'exact' })
-          .eq('article_id', articleId);
-
-        if (error) {
-          throw error;
-        }
-
-        setLikeCount(count || 0);
-      } catch (error: any) {
-        console.error('Error getting like count:', error.message);
-      }
+      const count = await getArticleLikeCount(articleId);
+      setLikeCount(count);
     };
 
     getLikeCount();
