@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -56,7 +57,7 @@ export function ExpertiseSection() {
                   <DialogTrigger asChild>
                     <Button 
                       variant="outline" 
-                      className="bg-gradient-to-r from-[#9b87f5] to-[#6E59A5] text-white border-none hover:from-[#7E69AB] hover:to-[#1A1F2C] transition-all duration-300 transform hover:scale-105 shadow-md hover:shadow-xl"
+                      className="text-law-navy border-law-navy hover:bg-law-navy hover:text-white transition-all duration-300 btn-pulse"
                       data-practice-area={area.id}
                     >
                       קרא עוד
@@ -69,17 +70,17 @@ export function ExpertiseSection() {
                         {area.fullDescription}
                       </DialogDescription>
                     </DialogHeader>
-                    <DialogFooter className="flex justify-between mt-6">
+                    <DialogFooter className="flex justify-between mt-6 space-x-4 space-x-reverse">
                       <Button
                         variant="outline"
-                        className="bg-gradient-to-r from-[#33C3F0] to-[#1EAEDB] text-white border-none hover:opacity-90 transition-opacity"
+                        className="text-law-navy border-law-navy hover:bg-law-navy hover:text-white transition-all duration-300"
                         onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}
                       >
                         צור קשר בנושא {area.title}
                       </Button>
                       <Link to={`/articles?expertise=${area.id}`}>
                         <Button
-                          className="bg-gradient-to-r from-[#D6BCFA] to-[#9b87f5] text-white border-none hover:opacity-90 transition-opacity"
+                          className="bg-law-navy hover:bg-law-navy/80 text-white transition-all duration-300"
                         >
                           כל המאמרים בנושא {area.title}
                         </Button>

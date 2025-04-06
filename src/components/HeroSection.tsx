@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
@@ -68,10 +69,11 @@ export function HeroSection() {
         
         <div className="order-1 md:order-2 flex justify-center animate-slide-in-right">
           <div className="relative w-full max-w-[600px]">
+            <div className="absolute -inset-4 bg-law-navy rounded-xl opacity-10 animate-pulse-light"></div>
             <img 
               src="/lovable-uploads/ad835b61-e4f6-490c-8e35-d5865c9cb250.png" 
               alt="עו״ד דני פרץ" 
-              className="rounded-lg shadow-xl w-full h-[600px] object-cover object-top transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl"
+              className="rounded-lg shadow-xl w-full h-[600px] object-cover object-top transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl relative z-10"
             />
           </div>
         </div>
