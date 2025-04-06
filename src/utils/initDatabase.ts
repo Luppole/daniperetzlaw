@@ -7,7 +7,8 @@ export async function initializeDatabase() {
   try {
     // Try to call the init_database RPC function
     try {
-      await supabase.rpc('init_database');
+      // Cast to any to bypass TypeScript's type checking for RPC functions
+      await (supabase.rpc as any)('init_database');
       console.log('Database initialized via RPC function');
     } catch (rpcError) {
       console.log('RPC function not available, skipping database initialization');

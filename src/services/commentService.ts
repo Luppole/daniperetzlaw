@@ -7,7 +7,8 @@ export async function getArticleComments(articleId: string): Promise<Comment[]> 
   try {
     // First try the RPC function
     try {
-      const { data, error } = await supabase.rpc('get_article_comments', { 
+      // Cast to any to bypass TypeScript's type checking for RPC functions
+      const { data, error } = await (supabase.rpc as any)('get_article_comments', { 
         article_id_param: articleId 
       });
 
@@ -54,7 +55,8 @@ export async function addComment(articleId: string, userId: string, content: str
   try {
     // First try the RPC function
     try {
-      const { error } = await supabase.rpc('add_comment', {
+      // Cast to any to bypass TypeScript's type checking for RPC functions
+      const { error } = await (supabase.rpc as any)('add_comment', {
         p_article_id: articleId,
         p_user_id: userId,
         p_content: content
