@@ -17,7 +17,10 @@ const sectionImages = [
   '/lovable-uploads/1fb2b49f-442a-4d77-b6c0-9578f64c98ca.png', // About section
   '/lovable-uploads/7d51b520-a305-4b68-9d5d-2d9f07241dae.png', // Expertise section
   '/lovable-uploads/d4c52f89-de61-4c7e-b12b-62040c71d1fb.png',  // Contact section
-  '/lovable-uploads/c54d0449-5cfd-4dca-9651-968dd859ac77.png'  // New lawyer image
+  '/lovable-uploads/c54d0449-5cfd-4dca-9651-968dd859ac77.png',  // Lawyer image
+  '/lovable-uploads/e7690469-a3ea-405a-bfea-1db073b1b9b0.png',  // New uploaded image 1
+  '/lovable-uploads/81da4915-6bde-4d80-a86f-e40af14156a6.png',  // New uploaded image 2
+  '/lovable-uploads/36c5cf74-2158-404a-b5db-b307fb5a1f2b.png'   // New uploaded image 3
 ];
 
 const Index = () => {

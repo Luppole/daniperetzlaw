@@ -104,17 +104,27 @@ export function Navbar() {
   };
 
   const handlePracticeAreaClick = (areaId: string) => {
-    scrollToExpertise();
-    setIsMenuOpen(false);
+    // First scroll to expertise section
+    if (isHomePage) {
+      document.getElementById('expertise')?.scrollIntoView({ behavior: 'smooth' });
+      
+      // Set a small delay to ensure the section is scrolled to first
+      setTimeout(() => {
+        // Find the card element and scroll it into view
+        const element = document.getElementById(areaId);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          // Highlight the card by setting selected practice area
+          setSelectedPracticeArea(areaId);
+        }
+      }, 300);
+    } else {
+      navigate(`/#expertise`);
+      // Add the practice area to session storage to open it after navigation
+      sessionStorage.setItem('openPracticeArea', areaId);
+    }
     
-    // Set a small delay to ensure the section is scrolled to first
-    setTimeout(() => {
-      setSelectedPracticeArea(areaId);
-      const element = document.getElementById(areaId);
-      if (element) {
-        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-    }, 300);
+    if (isMenuOpen) setIsMenuOpen(false);
   };
 
   // Find the selected practice area
@@ -186,14 +196,17 @@ export function Navbar() {
                     תחומי עיסוק
                   </NavigationMenuTrigger>
                   <NavigationMenuContent className="bg-white rounded-md shadow-lg p-4 min-w-[400px] z-50 mt-1 text-right">
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-2 gap-4">
                       {practiceAreas.map((area) => (
                         <NavigationMenuLink
                           key={area.id}
-                          className="block hover:bg-law-light rounded px-3 py-2 text-sm transition-colors"
+                          className="flex items-center hover:bg-law-light rounded px-3 py-2.5 transition-colors"
                           onClick={() => handlePracticeAreaClick(area.id)}
                         >
-                          <span className="mr-2">{area.icon}</span> {area.title}
+                          <span className="text-law-blue ml-2 flex items-center justify-center w-6 h-6">
+                            {area.icon}
+                          </span>
+                          <span className="text-law-navy text-sm">{area.title}</span>
                         </NavigationMenuLink>
                       ))}
                     </div>
@@ -277,10 +290,10 @@ export function Navbar() {
                 {practiceAreas.map((area) => (
                   <button
                     key={area.id}
-                    className="text-right text-sm text-law-gray hover:text-law-navy transition-all duration-300 py-1"
+                    className="text-right text-sm text-law-gray hover:text-law-navy transition-all duration-300 py-1 flex items-center"
                     onClick={() => handlePracticeAreaClick(area.id)}
                   >
-                    <span className="mr-1">{area.icon}</span> {area.title}
+                    <span className="ml-2 text-law-blue">{area.icon}</span> {area.title}
                   </button>
                 ))}
               </div>

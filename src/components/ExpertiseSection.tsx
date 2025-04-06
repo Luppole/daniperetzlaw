@@ -11,8 +11,8 @@ export function ExpertiseSection() {
   const [openPracticeArea, setOpenPracticeArea] = useState<string | null>(null);
   const location = useLocation();
 
-  // Check for practice area in URL hash
   useEffect(() => {
+    // Check for practice area in URL hash
     const hash = location.hash;
     if (hash && hash.includes('#')) {
       const areaId = hash.split('#')[1];
@@ -22,6 +22,15 @@ export function ExpertiseSection() {
           setOpenPracticeArea(areaId);
         }, 500);
       }
+    }
+
+    // Check if there's a stored practice area from navigation
+    const storedArea = sessionStorage.getItem('openPracticeArea');
+    if (storedArea) {
+      setTimeout(() => {
+        setOpenPracticeArea(storedArea);
+        sessionStorage.removeItem('openPracticeArea');
+      }, 800);
     }
   }, [location.hash]);
 
@@ -42,11 +51,12 @@ export function ExpertiseSection() {
               <Card 
                 key={area.id} 
                 id={area.id}
-                className={`border border-gray-200 hover:border-law-navy/30 transition-all duration-500 hover:shadow-lg animate-on-scroll hover:-translate-y-2 ${isOpen ? 'ring-2 ring-law-blue' : ''}`} 
+                className={`border border-gray-200 hover:border-law-navy/30 transition-all duration-500 hover:shadow-lg animate-on-scroll hover:-translate-y-2 cursor-pointer ${isOpen ? 'ring-2 ring-law-blue' : ''}`} 
                 style={{ animationDelay: `${index * 0.1}s` }}
+                onClick={() => setOpenPracticeArea(area.id)}
               >
                 <CardHeader className="text-center">
-                  <div className="flex justify-center transform transition-transform hover:scale-110 duration-300 text-4xl mb-2">
+                  <div className="flex justify-center transform transition-transform hover:scale-110 duration-300 text-4xl mb-2 text-law-blue">
                     {area.icon}
                   </div>
                   <CardTitle className="text-2xl font-rubik text-law-navy">
