@@ -1,5 +1,5 @@
 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback, memo, useRef } from 'react';
 import { Navbar } from '@/components/Navbar';
 import { HeroSection } from '@/components/HeroSection';
 import { AboutSection } from '@/components/AboutSection';
@@ -14,112 +14,177 @@ import { useAdmin } from '@/contexts/AdminContext';
 import { useTextEdit } from '@/contexts/TextEditContext';
 import { Button } from '@/components/ui/button';
 
-// Define images for different sections
+// Define images for different sections and prepare them for lazy loading
 const sectionImages = [
   '/lovable-uploads/ad835b61-e4f6-490c-8e35-d5865c9cb250.png', // Hero image
-  '/lovable-uploads/d946344e-c289-4991-bd3a-121dffdabbbe.png', // About section - Updated to use the new image
+  '/lovable-uploads/d946344e-c289-4991-bd3a-121dffdabbbe.png', // About section
   '/lovable-uploads/7d51b520-a305-4b68-9d5d-2d9f07241dae.png', // Expertise section
   '/lovable-uploads/d4c52f89-de61-4c7e-b12b-62040c71d1fb.png'  // Contact section
 ];
 
+// Memoized button to prevent unnecessary re-renders
+const ScrollTopButton = memo(({ show, onClick }: { show: boolean; onClick: () => void }) => (
+  <button
+    onClick={onClick}
+    className={`fixed bottom-6 left-6 bg-law-navy text-white p-3 rounded-full shadow-lg transition-all duration-300 ${
+      show ? 'opacity-80 transform translate-y-0 hover:opacity-100' : 'opacity-0 transform translate-y-10 pointer-events-none'
+    }`}
+    aria-label="Scroll to top"
+  >
+    <ArrowUp size={20} />
+  </button>
+));
+ScrollTopButton.displayName = 'ScrollTopButton';
+
+// Optimized HomePage component
 const HomePage = () => {
   const [showScrollTop, setShowScrollTop] = useState(false);
   const location = useLocation();
   const { isAdmin } = useAdmin();
   const { isEditMode, toggleEditMode, resetTexts, editedTexts } = useTextEdit();
+  const observerRef = useRef<IntersectionObserver | null>(null);
 
+  // Performance optimization: Throttled scroll handler
   useEffect(() => {
-    // Preload all uploaded images for better performance
-    const preloadImages = () => {
-      sectionImages.forEach((src) => {
+    let ticking = false;
+    
+    const handleScroll = () => {
+      if (!ticking) {
+        window.requestAnimationFrame(() => {
+          setShowScrollTop(window.scrollY > 500);
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Preload images only when needed
+  useEffect(() => {
+    // Only preload the first two images (most important ones)
+    const preloadCriticalImages = () => {
+      const imagesToPreload = sectionImages.slice(0, 2);
+      imagesToPreload.forEach((src) => {
         const img = new Image();
         img.src = src;
       });
     };
     
-    preloadImages();
+    preloadCriticalImages();
     
-    // Intersection Observer for animate-on-scroll elements
-    const observer = new IntersectionObserver(
+    // Lazy load the other images
+    const lazyLoadImages = () => {
+      if ('IntersectionObserver' in window) {
+        const imageObserver = new IntersectionObserver((entries, observer) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              const lazyImage = entry.target as HTMLImageElement;
+              if (lazyImage.dataset.src) {
+                lazyImage.src = lazyImage.dataset.src;
+                lazyImage.removeAttribute('data-src');
+              }
+              observer.unobserve(lazyImage);
+            }
+          });
+        });
+        
+        document.querySelectorAll('img[data-src]').forEach((img) => {
+          imageObserver.observe(img);
+        });
+      }
+    };
+    
+    // Run after initial render is complete
+    setTimeout(lazyLoadImages, 100);
+  }, []);
+  
+  // Optimize intersection observer for animations
+  useEffect(() => {
+    // Clean up previous observer
+    if (observerRef.current) {
+      observerRef.current.disconnect();
+    }
+    
+    // Create new intersection observer
+    observerRef.current = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
           if (entry.isIntersecting) {
             entry.target.classList.add('show');
-            // Once the animation has played, we can unobserve the element
-            observer.unobserve(entry.target);
+            observerRef.current?.unobserve(entry.target);
           }
         });
       },
       { threshold: 0.1, rootMargin: '0px 0px -10% 0px' }
     );
 
-    const animatedElements = document.querySelectorAll('.animate-on-scroll');
-    animatedElements.forEach((element) => {
-      observer.observe(element);
-    });
+    // Observe all animated elements with a small delay to avoid blocking main thread
+    setTimeout(() => {
+      const animatedElements = document.querySelectorAll('.animate-on-scroll');
+      animatedElements.forEach((element) => {
+        observerRef.current?.observe(element);
+      });
+    }, 100);
 
-    // Scroll to top button handler
-    const handleScroll = () => {
-      setShowScrollTop(window.scrollY > 500);
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
     };
+  }, []);
 
-    window.addEventListener('scroll', handleScroll);
+  // Handle hash navigation with debounce
+  useEffect(() => {
+    const hash = location.hash;
+    if (hash) {
+      // Use requestIdleCallback or setTimeout to defer non-critical work
+      const scrollToElement = () => {
+        const element = document.querySelector(hash);
+        if (element) {
+          element.scrollIntoView({ behavior: 'smooth' });
+        }
+      };
+      
+      if ('requestIdleCallback' in window) {
+        (window as any).requestIdleCallback(scrollToElement);
+      } else {
+        setTimeout(scrollToElement, 100);
+      }
+    }
     
     // Add page loaded class for animations
     document.body.classList.add('page-loaded');
-
-    // Handle hash navigation for smooth scrolling
-    const handleHashNavigation = () => {
-      const hash = location.hash;
-      if (hash) {
-        setTimeout(() => {
-          const element = document.querySelector(hash);
-          if (element) {
-            element.scrollIntoView({ behavior: 'smooth' });
-          }
-        }, 100);
-      }
-    };
-
-    handleHashNavigation();
-
-    return () => {
-      observer.disconnect();
-      window.removeEventListener('scroll', handleScroll);
-    };
   }, [location]);
 
   // Force save of edited texts before unload
   useEffect(() => {
     const handleBeforeUnload = () => {
-      if (isEditMode) {
-        // Force save edits to localStorage before page unload
-        const savedTexts = JSON.stringify(editedTexts);
-        localStorage.setItem('edited_texts', savedTexts);
-        console.log('Saved edited texts before unload', savedTexts);
+      if (isEditMode && Object.keys(editedTexts).length > 0) {
+        localStorage.setItem('edited_texts', JSON.stringify(editedTexts));
       }
     };
 
     window.addEventListener('beforeunload', handleBeforeUnload);
-    
-    return () => {
-      window.removeEventListener('beforeunload', handleBeforeUnload);
-    };
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [isEditMode, editedTexts]);
 
-  const scrollToTop = () => {
+  // Memoized callbacks
+  const scrollToTop = useCallback(() => {
     window.scrollTo({
       top: 0,
       behavior: 'smooth'
     });
-  };
+  }, []);
 
   // Function to confirm text reset
-  const handleResetTexts = () => {
+  const handleResetTexts = useCallback(() => {
     if (window.confirm('האם אתה בטוח שברצונך לאפס את כל הטקסטים המותאמים אישית?')) {
       resetTexts();
     }
-  };
+  }, [resetTexts]);
 
   return (
     <div className="min-h-screen overflow-x-hidden">
@@ -167,16 +232,8 @@ const HomePage = () => {
         </div>
       )}
       
-      {/* Scroll to top button */}
-      <button
-        onClick={scrollToTop}
-        className={`fixed bottom-6 left-6 bg-law-navy text-white p-3 rounded-full shadow-lg transition-all duration-300 ${
-          showScrollTop ? 'opacity-80 transform translate-y-0 hover:opacity-100' : 'opacity-0 transform translate-y-10 pointer-events-none'
-        }`}
-        aria-label="Scroll to top"
-      >
-        <ArrowUp size={20} />
-      </button>
+      {/* Optimized scroll to top button */}
+      <ScrollTopButton show={showScrollTop} onClick={scrollToTop} />
     </div>
   );
 };
