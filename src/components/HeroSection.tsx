@@ -36,16 +36,14 @@ export function HeroSection() {
             </div>
           </div>
           
-          <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-law-navy mb-6 animate-slide-up">
-            פתרונות משפטיים <br />
-            <span className="relative">
-              מקצועיים ואישיים
-              <span className="absolute -bottom-2 right-0 w-1/3 h-1 bg-law-navy"></span>
+          <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-law-navy mb-10 animate-slide-up text-center md:text-right">
+            <span className="relative px-2 py-1 bg-law-navy/5 rounded-lg">
+              עורך דין דני פרץ
             </span>
           </h1>
           
-          <p className="text-xl text-law-gray mb-10 max-w-xl animate-slide-up" style={{ animationDelay: '0.2s' }}>
-            מתמחה במשפחה, חדלות פרעון ומקרקעין - מספק ליווי משפטי מקיף ומקצועי לאנשים פרטיים ולעסקים.
+          <p className="text-2xl text-law-navy font-medium mb-10 max-w-xl animate-slide-up leading-relaxed" style={{ animationDelay: '0.2s' }}>
+            מתמחה בתחום דיני המשפחה, צוואות וירושות, ייפוי כוח מתמשך, זוגות מעורבים, הסכמי טרום נישואין
           </p>
           
           <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 sm:space-x-reverse animate-slide-up" style={{ animationDelay: '0.3s' }}>
@@ -73,7 +71,7 @@ export function HeroSection() {
           <div className="relative">
             <div className="absolute -inset-4 bg-law-navy rounded-xl opacity-10 animate-pulse-light"></div>
             <img 
-              src="/lovable-uploads/41432968-0b99-4cba-9e29-f6fdea6a4272.png" 
+              src="/lovable-uploads/ad835b61-e4f6-490c-8e35-d5865c9cb250.png" 
               alt="עו״ד דני פרץ" 
               className="rounded-lg shadow-xl max-w-full h-auto max-h-[450px] object-cover relative z-10 transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl"
             />

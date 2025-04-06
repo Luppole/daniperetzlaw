@@ -7,6 +7,15 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { UserMenu } from '@/components/UserMenu';
 import { useAuth } from '@/contexts/AuthContext';
 import { AppointmentModal } from '@/components/AppointmentModal';
+import {
+  NavigationMenu,
+  NavigationMenuContent,
+  NavigationMenuItem,
+  NavigationMenuLink,
+  NavigationMenuList,
+  NavigationMenuTrigger,
+} from "@/components/ui/navigation-menu";
+import practiceAreas from './PracticeAreaDescriptions';
 
 export function Navbar() {
   const navigate = useNavigate();
@@ -83,6 +92,14 @@ export function Navbar() {
     }
   };
 
+  const scrollToExpertise = () => {
+    if (isHomePage) {
+      document.getElementById('expertise')?.scrollIntoView({ behavior: 'smooth' });
+    } else {
+      navigate('/#expertise');
+    }
+  };
+
   return (
     <header className={cn(
       'fixed w-full z-50 transition-all duration-300 backdrop-blur-sm',
@@ -98,7 +115,7 @@ export function Navbar() {
           </div>
           <div className="mr-3">
             <div className="text-lg md:text-xl font-rubik font-bold text-law-navy transition-colors duration-300">עו"ד דני פרץ</div>
-            <div className="text-xs text-law-gray">משפחה • חדלות פרעון • מקרקעין</div>
+            <div className="text-xs text-law-gray">משפחה • ירושה • ייפוי כוח מתמשך</div>
           </div>
         </div>
         
@@ -133,6 +150,42 @@ export function Navbar() {
               </button>
             );
           })}
+          
+          {/* Practice Areas Dropdown */}
+          <NavigationMenu>
+            <NavigationMenuList className="space-x-reverse">
+              <NavigationMenuItem>
+                <NavigationMenuTrigger 
+                  className={cn(
+                    "px-4 py-2 text-law-navy transition-all duration-300 relative group bg-transparent hover:bg-transparent",
+                    isHomePage && activeLink === 'expertise' ? 'font-medium' : 'text-law-gray hover:text-law-navy'
+                  )}
+                  onClick={scrollToExpertise}
+                >
+                  תחומי עיסוק
+                </NavigationMenuTrigger>
+                <NavigationMenuContent className="bg-white rounded-md shadow-lg p-4 min-w-[400px] z-50 mt-1 text-right">
+                  <div className="grid grid-cols-2 gap-3">
+                    {practiceAreas.map((area) => (
+                      <NavigationMenuLink
+                        key={area.id}
+                        className="block hover:bg-law-light rounded px-3 py-2 text-sm transition-colors"
+                        onClick={() => {
+                          scrollToExpertise();
+                          setTimeout(() => {
+                            document.getElementById(area.id)?.scrollIntoView({ behavior: 'smooth' });
+                          }, 500);
+                        }}
+                      >
+                        <span className="mr-2">{area.icon}</span> {area.title}
+                      </NavigationMenuLink>
+                    ))}
+                  </div>
+                </NavigationMenuContent>
+              </NavigationMenuItem>
+            </NavigationMenuList>
+          </NavigationMenu>
+          
           <div className="flex items-center space-x-4 space-x-reverse mr-4">
             <UserMenu />
             <AppointmentModal
@@ -163,7 +216,7 @@ export function Navbar() {
       
       {/* Mobile Navigation */}
       {isMenuOpen && (
-        <nav className="md:hidden absolute top-full right-0 w-full bg-white shadow-lg py-4 px-6 flex flex-col space-y-3 animate-slide-up">
+        <nav className="md:hidden absolute top-full right-0 w-full bg-white shadow-lg py-4 px-6 flex flex-col space-y-3 animate-slide-up max-h-[80vh] overflow-y-auto">
           {navLinks.map((link, index) => {
             // Check if this is the articles link and we're on that page
             const isActive = link.href === '/articles' 
@@ -191,6 +244,38 @@ export function Navbar() {
               </button>
             );
           })}
+          
+          {/* Practice Areas in Mobile Menu */}
+          <div className="py-2">
+            <button 
+              onClick={scrollToExpertise}
+              className={cn(
+                "py-2 text-right w-full text-law-gray hover:text-law-navy transition-all duration-300 relative group font-medium",
+                "transform transition-all hover:translate-x-2"
+              )}
+            >
+              תחומי עיסוק
+              <span className="absolute bottom-0 right-0 h-0.5 bg-law-navy transition-all duration-300 w-0 group-hover:w-8" />
+            </button>
+            <div className="pr-4 mt-2 grid grid-cols-1 gap-2 border-r-2 border-law-navy/20">
+              {practiceAreas.map((area) => (
+                <button
+                  key={area.id}
+                  className="text-right text-sm text-law-gray hover:text-law-navy transition-all duration-300 py-1"
+                  onClick={() => {
+                    scrollToExpertise();
+                    setIsMenuOpen(false);
+                    setTimeout(() => {
+                      document.getElementById(area.id)?.scrollIntoView({ behavior: 'smooth' });
+                    }, 500);
+                  }}
+                >
+                  <span className="mr-1">{area.icon}</span> {area.title}
+                </button>
+              ))}
+            </div>
+          </div>
+          
           <AppointmentModal
             trigger={
               <Button 

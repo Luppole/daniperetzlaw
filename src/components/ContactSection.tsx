@@ -18,7 +18,7 @@ export function ContactSection() {
           
           <div className="space-y-8 animate-on-scroll" style={{ animationDelay: '0.2s' }}>
             <ContactInfo />
-            <LocationMap address="יפה ירקוני 22, עפולה" />
+            <LocationMap address="יפה ירקוני 18, עפולה" />
           </div>
         </div>
       </div>

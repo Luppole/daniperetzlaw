@@ -12,7 +12,7 @@ export function ContactInfo() {
   const contactInfo: ContactInfoItem[] = [
     { icon: <Phone className="h-6 w-6 text-law-blue" />, title: 'טלפון', details: '053-339-5255' },
     { icon: <Mail className="h-6 w-6 text-law-blue" />, title: 'אימייל', details: 'dani@peretz-law.co.il' },
-    { icon: <MapPin className="h-6 w-6 text-law-blue" />, title: 'כתובת', details: 'יפה ירקוני 22, עפולה' },
+    { icon: <MapPin className="h-6 w-6 text-law-blue" />, title: 'כתובת', details: 'יפה ירקוני 18, עפולה' },
     { icon: <Clock className="h-6 w-6 text-law-blue" />, title: 'שעות פעילות', details: 'א-ה: 09:00-18:00' },
   ];
 
