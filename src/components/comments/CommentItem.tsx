@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Comment } from '@/services/articleService';
+import { Comment } from '@/types/comment';
 
 interface CommentItemProps {
   comment: Comment;

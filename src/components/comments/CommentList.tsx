@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Loader2 } from 'lucide-react';
-import { Comment } from '@/services/articleService';
+import { Comment } from '@/types/comment';
 import CommentItem from './CommentItem';
 
 interface CommentListProps {
