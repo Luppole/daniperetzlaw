@@ -11,11 +11,25 @@ import {
   LogOut,
   Menu,
   X,
-  ArrowLeft
+  ArrowLeft,
+  Edit,
+  Save
 } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 import { Separator } from '@/components/ui/separator';
 import { useState } from 'react';
+import { useTextEdit } from '@/contexts/TextEditContext';
+import { 
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -23,6 +37,7 @@ interface AdminLayoutProps {
 
 export function AdminLayout({ children }: AdminLayoutProps) {
   const { signOut } = useAuth();
+  const { isEditMode, toggleEditMode, resetTexts } = useTextEdit();
   const navigate = useNavigate();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
@@ -66,6 +81,56 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         </div>
         
         <div className="flex items-center gap-4">
+          {/* Text editing toggle */}
+          <div className="flex items-center gap-2">
+            <Button
+              variant={isEditMode ? "default" : "outline"}
+              onClick={toggleEditMode}
+              className={`${isEditMode ? 'bg-green-600 hover:bg-green-700' : 'text-gray-600'}`}
+            >
+              {isEditMode ? (
+                <>
+                  <Save className="ml-2 h-4 w-4" />
+                  מצב עריכה פעיל
+                </>
+              ) : (
+                <>
+                  <Edit className="ml-2 h-4 w-4" />
+                  עריכת תוכן
+                </>
+              )}
+            </Button>
+            
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                  disabled={!isEditMode}
+                >
+                  איפוס העריכות
+                </Button>
+              </AlertDialogTrigger>
+              <AlertDialogContent>
+                <AlertDialogHeader>
+                  <AlertDialogTitle>איפוס כל העריכות</AlertDialogTitle>
+                  <AlertDialogDescription>
+                    פעולה זו תמחק את כל העריכות שבוצעו. האם אתה בטוח שברצונך להמשיך?
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                  <AlertDialogCancel>ביטול</AlertDialogCancel>
+                  <AlertDialogAction 
+                    className="bg-red-600 hover:bg-red-700 focus:ring-red-500"
+                    onClick={resetTexts}
+                  >
+                    כן, אפס את כל העריכות
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          </div>
+          
           {/* Back to Website Button */}
           <Button 
             variant="outline" 
@@ -105,6 +170,23 @@ export function AdminLayout({ children }: AdminLayoutProps) {
                     <NavItem key={item.path} item={item} />
                   ))}
                   <Separator className="my-4" />
+                  <Button 
+                    variant={isEditMode ? "default" : "outline"}
+                    onClick={toggleEditMode}
+                    className="w-full justify-start mb-2"
+                  >
+                    {isEditMode ? (
+                      <>
+                        <Save className="ml-2 h-4 w-4" />
+                        מצב עריכה פעיל
+                      </>
+                    ) : (
+                      <>
+                        <Edit className="ml-2 h-4 w-4" />
+                        עריכת תוכן
+                      </>
+                    )}
+                  </Button>
                   <Button 
                     variant="outline" 
                     className="w-full justify-start" 

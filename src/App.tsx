@@ -8,6 +8,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { Loader } from "lucide-react";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { AdminProvider } from "@/contexts/AdminContext";
+import { TextEditProvider } from "@/contexts/TextEditContext";
 import { initializeDatabase } from "@/utils/initDatabase";
 import React, { useEffect } from "react";
 import { he } from "date-fns/locale";
@@ -53,22 +54,24 @@ const App = () => {
         <BrowserRouter>
           <AuthProvider>
             <AdminProvider>
-              <TooltipProvider>
-                <Suspense fallback={<LoadingFallback />}>
-                  <Routes>
-                    <Route path="/" element={<Index />} />
-                    <Route path="/articles" element={<Articles />} />
-                    <Route path="/article/:id" element={<Article />} />
-                    <Route path="/auth" element={<Auth />} />
-                    <Route path="/admin/*" element={<Admin />} />
-                    <Route path="/404" element={<NotFound />} />
-                    {/* Redirect unknown paths to 404 */}
-                    <Route path="*" element={<Navigate to="/404" replace />} />
-                  </Routes>
-                </Suspense>
-                <Toaster />
-                <Sonner />
-              </TooltipProvider>
+              <TextEditProvider>
+                <TooltipProvider>
+                  <Suspense fallback={<LoadingFallback />}>
+                    <Routes>
+                      <Route path="/" element={<Index />} />
+                      <Route path="/articles" element={<Articles />} />
+                      <Route path="/article/:id" element={<Article />} />
+                      <Route path="/auth" element={<Auth />} />
+                      <Route path="/admin/*" element={<Admin />} />
+                      <Route path="/404" element={<NotFound />} />
+                      {/* Redirect unknown paths to 404 */}
+                      <Route path="*" element={<Navigate to="/404" replace />} />
+                    </Routes>
+                  </Suspense>
+                  <Toaster />
+                  <Sonner />
+                </TooltipProvider>
+              </TextEditProvider>
             </AdminProvider>
           </AuthProvider>
         </BrowserRouter>

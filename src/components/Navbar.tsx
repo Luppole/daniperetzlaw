@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Menu, X, Calendar } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -16,6 +15,7 @@ import {
   NavigationMenuTrigger,
 } from "@/components/ui/navigation-menu";
 import practiceAreas from './PracticeAreaDescriptions';
+import { useAdmin } from '@/contexts/AdminContext';
 
 export function Navbar() {
   const navigate = useNavigate();
@@ -25,15 +25,12 @@ export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [activeLink, setActiveLink] = useState('hero');
   
-  // Check if we're on the homepage
   const isHomePage = location.pathname === '/';
   
   useEffect(() => {
     const handleScroll = () => {
-      // Update navbar background based on scroll position
       setIsScrolled(window.scrollY > 50);
       
-      // Only update active section based on scroll position if on homepage
       if (isHomePage) {
         const sections = document.querySelectorAll('section[id]');
         const scrollPosition = window.pageYOffset + 100;
@@ -63,6 +60,7 @@ export function Navbar() {
   const navLinks = [
     { title: 'ראשי', href: '/#hero' },
     { title: 'אודות', href: '/#about' },
+    { title: 'תחומי עיסוק', href: '/#expertise', isDropdown: true },
     { title: 'מאמרים', href: '/articles' },
     { title: 'צור קשר', href: '/#contact' },
   ];
@@ -70,14 +68,11 @@ export function Navbar() {
   const handleLinkClick = (href: string) => {
     if (href.startsWith('/#')) {
       if (isHomePage) {
-        // If we're on the home page, scroll to the section
         document.querySelector(href.substring(1))?.scrollIntoView({ behavior: 'smooth' });
       } else {
-        // If we're on another page, navigate to the home page and then to the section
         navigate(href);
       }
     } else {
-      // For other pages like /articles
       navigate(href);
     }
     
@@ -102,10 +97,8 @@ export function Navbar() {
 
   const handlePracticeAreaClick = (areaId: string) => {
     if (isHomePage) {
-      // Scroll to expertise section
       document.getElementById('expertise')?.scrollIntoView({ behavior: 'smooth' });
       
-      // Find the dialog trigger button for this practice area and click it
       setTimeout(() => {
         const dialogTrigger = document.querySelector(`[data-practice-area="${areaId}"]`) as HTMLButtonElement;
         if (dialogTrigger) {
@@ -113,10 +106,8 @@ export function Navbar() {
         }
       }, 800);
     } else {
-      // Navigate to home and then to expertise
       navigate(`/#expertise`);
       
-      // Set a flag in session storage to open the dialog after navigation
       sessionStorage.setItem('openPracticeArea', areaId);
     }
     
@@ -142,10 +133,10 @@ export function Navbar() {
           </div>
         </div>
         
-        {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-1 space-x-reverse">
           {navLinks.map((link, index) => {
-            // Check if this is the articles link and we're on that page
+            if (link.isDropdown) return null;
+            
             const isActive = link.href === '/articles' 
               ? location.pathname === '/articles'
               : isHomePage && activeLink === link.href.replace('/#', '');
@@ -174,7 +165,6 @@ export function Navbar() {
             );
           })}
           
-          {/* Practice Areas Dropdown */}
           <NavigationMenu>
             <NavigationMenuList className="space-x-reverse">
               <NavigationMenuItem>
@@ -220,7 +210,6 @@ export function Navbar() {
           </div>
         </nav>
         
-        {/* Mobile Menu Button */}
         <div className="md:hidden flex items-center space-x-4 space-x-reverse">
           <UserMenu />
           <button 
@@ -233,48 +222,60 @@ export function Navbar() {
         </div>
       </div>
       
-      {/* Mobile Navigation */}
       {isMenuOpen && (
         <nav className="md:hidden absolute top-full right-0 w-full bg-white shadow-lg py-4 px-6 flex flex-col space-y-3 animate-slide-up max-h-[80vh] overflow-y-auto">
-          {navLinks.map((link, index) => {
-            // Check if this is the articles link and we're on that page
-            const isActive = link.href === '/articles' 
-              ? location.pathname === '/articles'
-              : isHomePage && activeLink === link.href.replace('/#', '');
-              
-            return (
-              <button 
-                key={link.href}
-                onClick={() => handleLinkClick(link.href)}
-                className={cn(
-                  "py-2 text-right w-full text-law-gray hover:text-law-navy transition-all duration-300 relative group",
-                  isActive ? 'text-law-navy font-medium' : '',
-                  "transform transition-all hover:translate-x-2"
-                )}
-                style={{ animationDelay: `${index * 0.05}s` }}
-              >
-                {link.title}
-                <span 
-                  className={cn(
-                    "absolute bottom-0 right-0 h-0.5 bg-law-navy transition-all duration-300",
-                    isActive ? "w-8" : "w-0 group-hover:w-8"
-                  )} 
-                />
-              </button>
-            );
-          })}
+          <button 
+            key="hero"
+            onClick={() => handleLinkClick('/#hero')}
+            className={cn(
+              "py-2 text-right w-full text-law-gray hover:text-law-navy transition-all duration-300 relative group",
+              isHomePage && activeLink === 'hero' ? 'text-law-navy font-medium' : '',
+              "transform transition-all hover:translate-x-2"
+            )}
+          >
+            ראשי
+            <span 
+              className={cn(
+                "absolute bottom-0 right-0 h-0.5 bg-law-navy transition-all duration-300",
+                isHomePage && activeLink === 'hero' ? "w-8" : "w-0 group-hover:w-8"
+              )} 
+            />
+          </button>
           
-          {/* Practice Areas in Mobile Menu */}
+          <button 
+            key="about"
+            onClick={() => handleLinkClick('/#about')}
+            className={cn(
+              "py-2 text-right w-full text-law-gray hover:text-law-navy transition-all duration-300 relative group",
+              isHomePage && activeLink === 'about' ? 'text-law-navy font-medium' : '',
+              "transform transition-all hover:translate-x-2"
+            )}
+          >
+            אודות
+            <span 
+              className={cn(
+                "absolute bottom-0 right-0 h-0.5 bg-law-navy transition-all duration-300",
+                isHomePage && activeLink === 'about' ? "w-8" : "w-0 group-hover:w-8"
+              )} 
+            />
+          </button>
+          
           <div className="py-2">
             <button 
               onClick={scrollToExpertise}
               className={cn(
-                "py-2 text-right w-full text-law-gray hover:text-law-navy transition-all duration-300 relative group font-medium",
+                "py-2 text-right w-full text-law-gray hover:text-law-navy transition-all duration-300 relative group",
+                isHomePage && activeLink === 'expertise' ? 'text-law-navy font-medium' : '',
                 "transform transition-all hover:translate-x-2"
               )}
             >
               תחומי עיסוק
-              <span className="absolute bottom-0 right-0 h-0.5 bg-law-navy transition-all duration-300 w-0 group-hover:w-8" />
+              <span 
+                className={cn(
+                  "absolute bottom-0 right-0 h-0.5 bg-law-navy transition-all duration-300",
+                  isHomePage && activeLink === 'expertise' ? "w-8" : "w-0 group-hover:w-8"
+                )} 
+              />
             </button>
             <div className="pr-4 mt-2 grid grid-cols-1 gap-2 border-r-2 border-law-navy/20">
               {practiceAreas.map((area) => (
@@ -289,6 +290,42 @@ export function Navbar() {
               ))}
             </div>
           </div>
+          
+          <button 
+            key="articles"
+            onClick={() => handleLinkClick('/articles')}
+            className={cn(
+              "py-2 text-right w-full text-law-gray hover:text-law-navy transition-all duration-300 relative group",
+              location.pathname === '/articles' ? 'text-law-navy font-medium' : '',
+              "transform transition-all hover:translate-x-2"
+            )}
+          >
+            מאמרים
+            <span 
+              className={cn(
+                "absolute bottom-0 right-0 h-0.5 bg-law-navy transition-all duration-300",
+                location.pathname === '/articles' ? "w-8" : "w-0 group-hover:w-8"
+              )} 
+            />
+          </button>
+          
+          <button 
+            key="contact"
+            onClick={() => handleLinkClick('/#contact')}
+            className={cn(
+              "py-2 text-right w-full text-law-gray hover:text-law-navy transition-all duration-300 relative group",
+              isHomePage && activeLink === 'contact' ? 'text-law-navy font-medium' : '',
+              "transform transition-all hover:translate-x-2"
+            )}
+          >
+            צור קשר
+            <span 
+              className={cn(
+                "absolute bottom-0 right-0 h-0.5 bg-law-navy transition-all duration-300",
+                isHomePage && activeLink === 'contact' ? "w-8" : "w-0 group-hover:w-8"
+              )} 
+            />
+          </button>
           
           <AppointmentModal
             trigger={

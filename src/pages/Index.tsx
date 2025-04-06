@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Navbar } from '@/components/Navbar';
 import { HeroSection } from '@/components/HeroSection';
@@ -10,6 +9,10 @@ import { ContactSection } from '@/components/ContactSection';
 import { Footer } from '@/components/Footer';
 import { ArrowUp } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
+import { EditableText } from '@/components/EditableText';
+import { useAdmin } from '@/contexts/AdminContext';
+import { useTextEdit } from '@/contexts/TextEditContext';
+import { Button } from '@/components/ui/button';
 
 // Define images for different sections
 const sectionImages = [
@@ -22,6 +25,8 @@ const sectionImages = [
 const Index = () => {
   const [showScrollTop, setShowScrollTop] = useState(false);
   const location = useLocation();
+  const { isAdmin } = useAdmin();
+  const { isEditMode, toggleEditMode } = useTextEdit();
 
   useEffect(() => {
     // Preload all uploaded images for better performance
@@ -101,6 +106,18 @@ const Index = () => {
       <FaqSection />
       <ContactSection />
       <Footer />
+      
+      {/* Admin edit mode toggle button */}
+      {isAdmin && (
+        <Button
+          onClick={toggleEditMode}
+          className={`fixed top-24 left-6 z-40 shadow-lg transition-all duration-300 ${
+            isEditMode ? 'bg-green-600 hover:bg-green-700' : 'bg-law-navy hover:bg-law-navy/90'
+          }`}
+        >
+          {isEditMode ? 'סיים עריכה' : 'עריכת תוכן'}
+        </Button>
+      )}
       
       {/* Scroll to top button */}
       <button
