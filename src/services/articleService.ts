@@ -1,3 +1,4 @@
+
 import { supabase } from '@/integrations/supabase/client';
 
 // Article type definition
@@ -170,7 +171,8 @@ export const addArticle = createArticle;
 // Get comments for an article
 export async function getArticleComments(articleId: string): Promise<Comment[]> {
   try {
-    const { data, error } = await supabase.rpc(
+    // Use the any type to bypass TypeScript checking for RPC calls
+    const { data, error } = await (supabase.rpc as any)(
       'get_article_comments', 
       { article_id_param: articleId }
     );
@@ -186,7 +188,8 @@ export async function getArticleComments(articleId: string): Promise<Comment[]> 
 // Add a comment to an article
 export async function addComment(articleId: string, userId: string, content: string): Promise<boolean> {
   try {
-    const { error } = await supabase.rpc(
+    // Use the any type to bypass TypeScript checking for RPC calls
+    const { error } = await (supabase.rpc as any)(
       'add_comment', 
       {
         p_article_id: articleId,
@@ -206,7 +209,8 @@ export async function addComment(articleId: string, userId: string, content: str
 // Get like count for an article
 export async function getArticleLikeCount(articleId: string): Promise<number> {
   try {
-    const { data, error } = await supabase.rpc(
+    // Use the any type to bypass TypeScript checking for RPC calls
+    const { data, error } = await (supabase.rpc as any)(
       'get_article_likes_count', 
       { article_id_param: articleId }
     );

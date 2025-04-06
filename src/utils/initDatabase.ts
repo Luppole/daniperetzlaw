@@ -5,7 +5,8 @@ import { ensureArticlesExist } from '@/services/articleService';
 export async function initializeDatabase() {
   try {
     // Initialize the database with the RPC function
-    const { error } = await supabase.rpc(
+    // Use the any type to bypass TypeScript checking for RPC calls
+    const { error } = await (supabase.rpc as any)(
       'init_database'
     );
     
