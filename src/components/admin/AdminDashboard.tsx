@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { 
@@ -13,15 +12,6 @@ import { collection, getCountFromServer, getDocs, query, orderBy, limit } from '
 import { db } from '@/integrations/firebase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Link } from 'react-router-dom';
-import { 
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Title,
-  Tooltip,
-  Legend 
-} from 'chart.js';
 import {
   ChartContainer,
   ChartTooltip,
@@ -43,23 +33,18 @@ export function AdminDashboard() {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        // Fetch appointment stats
         const apptCounts = await getAppointmentCounts();
         setAppointmentStats(apptCounts);
         
-        // Fetch articles count
         const articlesSnapshot = await getCountFromServer(collection(db, 'articles'));
         setArticlesCount(articlesSnapshot.data().count);
         
-        // Fetch comments count
         const commentsSnapshot = await getCountFromServer(collection(db, 'comments'));
         setCommentsCount(commentsSnapshot.data().count);
         
-        // Fetch users count (from profiles collection)
         const profilesSnapshot = await getCountFromServer(collection(db, 'profiles'));
         setUsersCount(profilesSnapshot.data().count);
 
-        // Create stats data for the chart
         setStatsData([
           { name: 'מאמרים', value: articlesSnapshot.data().count },
           { name: 'תגובות', value: commentsSnapshot.data().count },
@@ -67,7 +52,6 @@ export function AdminDashboard() {
           { name: 'פגישות', value: apptCounts.total }
         ]);
         
-        // Fetch recent activity (recent comments)
         const recentCommentsQuery = query(
           collection(db, 'comments'),
           orderBy('created_at', 'desc'),
@@ -88,9 +72,6 @@ export function AdminDashboard() {
         });
         
         setRecentActivity(recentCommentsData);
-        
-        // TODO: Fetch upcoming appointments if needed in the future
-        
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
       } finally {
@@ -100,7 +81,6 @@ export function AdminDashboard() {
     
     fetchData();
     
-    // Set up interval to refresh data every minute
     const intervalId = setInterval(fetchData, 60000);
     
     return () => clearInterval(intervalId);
@@ -137,7 +117,6 @@ export function AdminDashboard() {
     },
   ];
 
-  // Format date for display
   const formatDate = (date: Date) => {
     return new Intl.DateTimeFormat('he-IL', {
       day: 'numeric',
