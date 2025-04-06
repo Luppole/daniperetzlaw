@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { CheckCircle, Loader, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -5,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { toast } from '@/components/ui/use-toast';
+import { EditableText } from '@/components/EditableText';
 
 export function ContactForm() {
   const [formData, setFormData] = useState({
@@ -123,19 +125,27 @@ export function ContactForm() {
 
   return (
     <div className="glass-card p-8 transform transition-all duration-300 hover:shadow-xl hover:-translate-y-1 animate-on-scroll">
-      <h3 className="text-2xl font-bold text-law-dark mb-6">השאירו פרטים</h3>
+      <h3 className="text-2xl font-bold text-law-dark mb-6">
+        <EditableText id="contact-form-title">השאירו פרטים</EditableText>
+      </h3>
       
       {submitted ? (
         <div className="flex flex-col items-center justify-center py-10 space-y-4 text-center">
           <CheckCircle className="h-16 w-16 text-green-500 animate-pulse" />
-          <h4 className="text-xl font-medium text-law-dark">ההודעה נשלחה בהצלחה!</h4>
-          <p className="text-law-gray">תודה על פנייתך, ניצור איתך קשר בהקדם.</p>
+          <h4 className="text-xl font-medium text-law-dark">
+            <EditableText id="contact-form-success-title">ההודעה נשלחה בהצלחה!</EditableText>
+          </h4>
+          <p className="text-law-gray">
+            <EditableText id="contact-form-success-message">תודה על פנייתך, ניצור איתך קשר בהקדם.</EditableText>
+          </p>
         </div>
       ) : (
         <form className="space-y-6" onSubmit={handleSubmit}>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="name">שם מלא</Label>
+              <Label htmlFor="name">
+                <EditableText id="contact-form-name-label">שם מלא</EditableText>
+              </Label>
               <Input 
                 id="name" 
                 value={formData.name}
@@ -146,7 +156,9 @@ export function ContactForm() {
               {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
             </div>
             <div className="space-y-2">
-              <Label htmlFor="phone">טלפון</Label>
+              <Label htmlFor="phone">
+                <EditableText id="contact-form-phone-label">טלפון</EditableText>
+              </Label>
               <Input 
                 id="phone" 
                 value={formData.phone}
@@ -159,7 +171,9 @@ export function ContactForm() {
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="email">אימייל</Label>
+            <Label htmlFor="email">
+              <EditableText id="contact-form-email-label">אימייל</EditableText>
+            </Label>
             <Input 
               id="email" 
               type="email"
@@ -172,7 +186,9 @@ export function ContactForm() {
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="subject">נושא</Label>
+            <Label htmlFor="subject">
+              <EditableText id="contact-form-subject-label">נושא</EditableText>
+            </Label>
             <Input 
               id="subject"
               value={formData.subject}
@@ -184,7 +200,9 @@ export function ContactForm() {
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="message">הודעה</Label>
+            <Label htmlFor="message">
+              <EditableText id="contact-form-message-label">הודעה</EditableText>
+            </Label>
             <Textarea 
               id="message" 
               value={formData.message}
@@ -204,12 +222,12 @@ export function ContactForm() {
             {isSubmitting ? (
               <>
                 <Loader className="h-5 w-5 mr-2 animate-spin" />
-                שולח הודעה...
+                <EditableText id="contact-form-submitting">שולח הודעה...</EditableText>
               </>
             ) : (
               <>
                 <Send className="h-5 w-5 mr-2" />
-                שלח הודעה
+                <EditableText id="contact-form-submit">שלח הודעה</EditableText>
               </>
             )}
             <span 

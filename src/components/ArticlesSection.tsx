@@ -8,6 +8,7 @@ import { useInView } from 'react-intersection-observer';
 import LikeCount from '@/components/LikeCount';
 import { getAllArticles, Article } from '@/services/articleService';
 import { Loader2 } from 'lucide-react';
+import { EditableText } from '@/components/EditableText';
 
 // Legal-themed high-quality images
 const LEGAL_IMAGES = [
@@ -55,11 +56,11 @@ export function ArticlesSection() {
       <div className="container mx-auto" ref={ref}>
         <div className={`text-center mb-20 transition-all duration-700 transform ${inView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
           <h2 className="section-title text-3xl md:text-4xl font-bold font-rubik text-law-navy mb-6 relative inline-block">
-            מאמרים משפטיים
+            <EditableText id="articles-title">מאמרים משפטיים</EditableText>
           </h2>
           <p className="section-subtitle text-lg text-law-gray transition-opacity duration-700 delay-200 font-heebo" 
              style={{ opacity: inView ? 1 : 0, transitionDelay: '400ms' }}>
-            ידע וחדשות מעולם המשפט
+            <EditableText id="articles-subtitle">ידע וחדשות מעולם המשפט</EditableText>
           </p>
         </div>
         
@@ -140,7 +141,7 @@ export function ArticlesSection() {
               window.scrollTo(0, 0);
             }}
           >
-            לכל המאמרים
+            <EditableText id="articles-view-all">לכל המאמרים</EditableText>
           </Button>
         </div>
       </div>

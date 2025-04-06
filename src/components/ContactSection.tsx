@@ -3,14 +3,19 @@ import React from 'react';
 import { ContactForm } from '@/components/ContactForm';
 import { ContactInfo } from '@/components/ContactInfo';
 import { LocationMap } from '@/components/LocationMap';
+import { EditableText } from '@/components/EditableText';
 
 export function ContactSection() {
   return (
     <section id="contact" className="section-wrapper bg-law-light">
       <div className="container mx-auto">
         <div className="text-center mb-16 animate-on-scroll">
-          <h2 className="section-title">צור קשר</h2>
-          <p className="section-subtitle">אשמח לעמוד לשירותך</p>
+          <h2 className="section-title">
+            <EditableText id="contact-title">צור קשר</EditableText>
+          </h2>
+          <p className="section-subtitle">
+            <EditableText id="contact-subtitle">אשמח לעמוד לשירותך</EditableText>
+          </p>
         </div>
         
         <div className="grid md:grid-cols-2 gap-10">

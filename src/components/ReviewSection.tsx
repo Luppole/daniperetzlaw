@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -286,7 +287,7 @@ const ReviewSection: React.FC = () => {
                           className="text-red-500 hover:text-red-700"
                           onClick={() => handleDeleteReview(review.id)}
                         >
-                          מחק
+                          <EditableText id="reviews-delete">מחק</EditableText>
                         </Button>
                       )}
                     </div>
@@ -298,7 +299,9 @@ const ReviewSection: React.FC = () => {
           ))}
         </div>
       ) : (
-        <p className="text-center text-muted-foreground my-6">אין חוות דעת עדיין. היה הראשון לכתוב חוות דעת!</p>
+        <p className="text-center text-muted-foreground my-6">
+          <EditableText id="reviews-empty">אין חוות דעת עדיין. היה הראשון לכתוב חוות דעת!</EditableText>
+        </p>
       )}
 
       {!user && (
