@@ -9,6 +9,7 @@ import { formatDistanceToNow } from 'date-fns';
 import { he } from 'date-fns/locale';
 import { Loader2 } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
+import { EditableText } from '@/components/EditableText';
 import { 
   collection, 
   addDoc, 
@@ -200,17 +201,23 @@ const ReviewSection: React.FC = () => {
 
   return (
     <div className="mt-12 mb-8">
-      <h2 className="text-2xl font-bold mb-4 text-law-navy">חוות דעת</h2>
+      <h2 className="text-2xl font-bold mb-4 text-law-navy">
+        <EditableText id="reviews-title">חוות דעת</EditableText>
+      </h2>
 
       {user && !userHasReviewed && (
         <Card className="mb-6">
           <CardHeader className="pb-2">
-            <h3 className="text-lg font-semibold">השאר חוות דעת</h3>
+            <h3 className="text-lg font-semibold">
+              <EditableText id="reviews-leave-review">השאר חוות דעת</EditableText>
+            </h3>
           </CardHeader>
           <form onSubmit={handleSubmitReview}>
             <CardContent className="space-y-4">
               <div>
-                <label className="block text-sm font-medium mb-2">דירוג</label>
+                <label className="block text-sm font-medium mb-2">
+                  <EditableText id="reviews-rating-label">דירוג</EditableText>
+                </label>
                 <StarRating
                   value={rating}
                   onChange={handleUpdateRating}
@@ -218,9 +225,11 @@ const ReviewSection: React.FC = () => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium mb-2">חוות דעת</label>
+                <label className="block text-sm font-medium mb-2">
+                  <EditableText id="reviews-content-label">חוות דעת</EditableText>
+                </label>
                 <Textarea
-                  placeholder="כתוב את חוות דעתך כאן..."
+                  placeholder={<EditableText id="reviews-placeholder">כתוב את חוות דעתך כאן...</EditableText>}
                   value={newReview}
                   onChange={(e) => setNewReview(e.target.value)}
                   className="min-h-[100px]"
@@ -236,9 +245,9 @@ const ReviewSection: React.FC = () => {
                 {isSubmitting ? (
                   <>
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    שולח...
+                    <EditableText id="reviews-submitting">שולח...</EditableText>
                   </>
-                ) : 'פרסם חוות דעת'}
+                ) : <EditableText id="reviews-submit">פרסם חוות דעת</EditableText>}
               </Button>
             </CardFooter>
           </form>
@@ -294,13 +303,15 @@ const ReviewSection: React.FC = () => {
 
       {!user && (
         <div className="text-center my-6 bg-gray-50 p-4 rounded-lg">
-          <p className="text-muted-foreground">יש להתחבר כדי להוסיף חוות דעת</p>
+          <p className="text-muted-foreground">
+            <EditableText id="reviews-login-required">יש להתחבר כדי להוסיף חוות דעת</EditableText>
+          </p>
           <Button 
             variant="outline" 
             className="mt-2 border-law-navy text-law-navy hover:bg-law-navy/10"
             onClick={() => window.location.href = '/auth'}
           >
-            התחברות / הרשמה
+            <EditableText id="reviews-login-button">התחברות / הרשמה</EditableText>
           </Button>
         </div>
       )}

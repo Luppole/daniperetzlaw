@@ -3,7 +3,7 @@ import React from 'react';
 import { 
   Scale, Coins, Users, HomeIcon, FileText, 
   ShieldCheck, Scroll, ClipboardSignature, Heart, 
-  Rainbow, Clock, Target // Replaced Ring with Target
+  Rainbow, Clock, Target
 } from 'lucide-react';
 
 export type PracticeArea = {

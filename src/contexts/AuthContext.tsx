@@ -1,4 +1,3 @@
-
 import * as React from 'react';
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { 
@@ -14,6 +13,7 @@ import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
 import { auth, db } from '@/integrations/firebase/client';
 import { Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
+import { EditableText } from '@/components/EditableText';
 
 type AuthContextType = {
   user: User | null;
@@ -42,7 +42,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
-    // Set up auth state listener
     const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
       setUser(firebaseUser);
       setIsLoading(false);
@@ -70,18 +69,15 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     fullName?: string
   ): Promise<User | null> => {
     try {
-      // Create the user
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const newUser = userCredential.user;
       
-      // Update the user profile with the full name
       if (fullName) {
         await updateProfile(newUser, {
           displayName: fullName
         });
       }
 
-      // Create a profile document in Firestore
       await setDoc(doc(db, 'profiles', newUser.uid), {
         id: newUser.uid,
         full_name: fullName || '',
@@ -89,7 +85,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         created_at: serverTimestamp(),
       });
 
-      // Send email verification
       await sendEmailVerification(newUser);
       
       toast.success('הרשמה בוצעה בהצלחה! אנא בדוק את המייל שלך לאימות');
@@ -111,7 +106,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   };
 
-  // Helper function to translate Firebase error codes into Hebrew messages
   const getErrorMessage = (errorCode: string): string => {
     switch (errorCode) {
       case 'auth/invalid-email':
@@ -150,7 +144,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       <div className="min-h-screen flex items-center justify-center bg-law-light">
         <div className="text-center">
           <Loader2 className="h-10 w-10 text-law-navy animate-spin mx-auto mb-4" />
-          <p className="text-law-gray font-medium">טוען...</p>
+          <p className="text-law-gray font-medium">
+            <EditableText id="auth-loading">טוען...</EditableText>
+          </p>
         </div>
       </div>
     );

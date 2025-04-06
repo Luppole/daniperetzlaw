@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Facebook, Instagram, Linkedin, Youtube, Phone, Mail, MapPin } from 'lucide-react';
+import { EditableText } from '@/components/EditableText';
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
@@ -15,11 +16,13 @@ export function Footer() {
                 <span className="text-2xl font-rubik font-bold text-law-navy">DP</span>
               </div>
               <div className="mr-3">
-                <h3 className="text-xl font-bold">עו"ד דני פרץ</h3>
+                <h3 className="text-xl font-bold"><EditableText id="footer-lawyer-name">עו"ד דני פרץ</EditableText></h3>
               </div>
             </div>
             <p className="text-law-silver mb-4">
-              עורך דין מקצועי המתמחה בדיני משפחה, חדלות פרעון ומקרקעין, מספק ייעוץ משפטי אישי ומקצועי.
+              <EditableText id="footer-description">
+                עורך דין מקצועי המתמחה בדיני משפחה, חדלות פרעון ומקרקעין, מספק ייעוץ משפטי אישי ומקצועי.
+              </EditableText>
             </p>
             <div className="flex space-x-4 space-x-reverse">
               <a href="https://www.facebook.com/danipertz05/" target="_blank" rel="noopener noreferrer" className="text-law-silver hover:text-white transition-colors group">
@@ -39,38 +42,38 @@ export function Footer() {
           
           <div className="animate-slide-up" style={{ animationDelay: '0.1s' }}>
             <h3 className="text-xl font-bold mb-4 relative pb-2 text-white">
-              קישורים מהירים
+              <EditableText id="footer-quick-links">קישורים מהירים</EditableText>
               <span className="absolute bottom-0 right-0 w-12 h-0.5 bg-law-silver"></span>
             </h3>
             <ul className="space-y-2">
               <li>
                 <a href="#hero" className="text-law-silver hover:text-white transition-colors inline-block hover:translate-x-2 transform duration-300">
-                  ראשי
+                  <EditableText id="footer-home">ראשי</EditableText>
                 </a>
               </li>
               <li>
                 <a href="#about" className="text-law-silver hover:text-white transition-colors inline-block hover:translate-x-2 transform duration-300">
-                  אודות
+                  <EditableText id="footer-about">אודות</EditableText>
                 </a>
               </li>
               <li>
                 <a href="#expertise" className="text-law-silver hover:text-white transition-colors inline-block hover:translate-x-2 transform duration-300">
-                  תחומי התמחות
+                  <EditableText id="footer-expertise">תחומי התמחות</EditableText>
                 </a>
               </li>
               <li>
                 <a href="#articles" className="text-law-silver hover:text-white transition-colors inline-block hover:translate-x-2 transform duration-300">
-                  מאמרים
+                  <EditableText id="footer-articles">מאמרים</EditableText>
                 </a>
               </li>
               <li>
                 <a href="#faq" className="text-law-silver hover:text-white transition-colors inline-block hover:translate-x-2 transform duration-300">
-                  שאלות נפוצות
+                  <EditableText id="footer-faq">שאלות נפוצות</EditableText>
                 </a>
               </li>
               <li>
                 <a href="#contact" className="text-law-silver hover:text-white transition-colors inline-block hover:translate-x-2 transform duration-300">
-                  צור קשר
+                  <EditableText id="footer-contact">צור קשר</EditableText>
                 </a>
               </li>
             </ul>
@@ -78,34 +81,33 @@ export function Footer() {
           
           <div className="animate-slide-up" style={{ animationDelay: '0.2s' }}>
             <h3 className="text-xl font-bold mb-4 relative pb-2 text-white">
-              צור קשר
+              <EditableText id="footer-contact-title">צור קשר</EditableText>
               <span className="absolute bottom-0 right-0 w-12 h-0.5 bg-law-silver"></span>
             </h3>
             <ul className="space-y-3">
               <li className="text-law-silver flex items-start">
                 <Phone className="h-5 w-5 ml-2 text-law-silver" />
-                <span>053-339-5255</span>
+                <EditableText id="footer-phone">053-339-5255</EditableText>
               </li>
               <li className="text-law-silver flex items-start">
                 <Mail className="h-5 w-5 ml-2 text-law-silver" />
-                <span>dani@peretz-law.co.il</span>
+                <EditableText id="footer-email">dani@peretz-law.co.il</EditableText>
               </li>
               <li className="text-law-silver flex items-start">
                 <MapPin className="h-5 w-5 ml-2 text-law-silver" />
-                <span>יפה ירקוני 22, עפולה</span>
+                <EditableText id="footer-address">יפה ירקוני 22, עפולה</EditableText>
               </li>
               <li className="text-law-silver">
-                <strong className="text-white">שעות פעילות:</strong> א-ה: 09:00-18:00
+                <strong className="text-white"><EditableText id="footer-hours-title">שעות פעילות:</EditableText></strong> <EditableText id="footer-hours">א-ה: 09:00-18:00</EditableText>
               </li>
             </ul>
           </div>
         </div>
         
         <div className="border-t border-law-silver/20 mt-10 pt-6 text-center text-law-silver">
-          <p>© {currentYear} עו"ד דני פרץ. כל הזכויות שמורות.</p>
+          <p><EditableText id="footer-copyright">© {currentYear} עו"ד דני פרץ. כל הזכויות שמורות.</EditableText></p>
         </div>
       </div>
     </footer>
   );
 }
-

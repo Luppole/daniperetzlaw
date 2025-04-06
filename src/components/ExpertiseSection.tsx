@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 import practiceAreas from './PracticeAreaDescriptions';
+import { EditableText } from '@/components/EditableText';
 
 export function ExpertiseSection() {
   React.useEffect(() => {
@@ -41,8 +42,12 @@ export function ExpertiseSection() {
     <section id="expertise" className="section-wrapper animated-gradient parallax">
       <div className="container mx-auto">
         <div className="text-center mb-16 animate-on-scroll">
-          <h2 className="section-title text-law-navy">תחומי התמחות</h2>
-          <p className="section-subtitle">הניסיון והמקצועיות שלנו לשירותכם</p>
+          <h2 className="section-title text-law-navy">
+            <EditableText id="expertise-title">תחומי התמחות</EditableText>
+          </h2>
+          <p className="section-subtitle">
+            <EditableText id="expertise-subtitle">הניסיון והמקצועיות שלנו לשירותכם</EditableText>
+          </p>
         </div>
         
         <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -57,12 +62,12 @@ export function ExpertiseSection() {
                   {area.icon}
                 </div>
                 <CardTitle className="text-2xl font-rubik text-law-navy">
-                  {area.title}
+                  <EditableText id={`expertise-title-${area.id}`}>{area.title}</EditableText>
                 </CardTitle>
               </CardHeader>
               <CardContent>
                 <CardDescription className="text-law-gray text-center text-base">
-                  {area.shortDescription}
+                  <EditableText id={`expertise-short-${area.id}`}>{area.shortDescription}</EditableText>
                 </CardDescription>
               </CardContent>
               <CardFooter className="flex justify-center">
@@ -73,14 +78,16 @@ export function ExpertiseSection() {
                       className="text-law-navy border-law-navy hover:bg-law-navy hover:text-white transition-all duration-300 btn-pulse"
                       data-practice-area={area.id}
                     >
-                      קרא עוד
+                      <EditableText id={`expertise-readmore-${area.id}`}>קרא עוד</EditableText>
                     </Button>
                   </DialogTrigger>
                   <DialogContent className="max-w-3xl">
                     <DialogHeader>
-                      <DialogTitle className="text-2xl mb-4">{area.title}</DialogTitle>
+                      <DialogTitle className="text-2xl mb-4">
+                        <EditableText id={`expertise-dialog-title-${area.id}`}>{area.title}</EditableText>
+                      </DialogTitle>
                       <DialogDescription className="text-lg text-law-gray">
-                        {area.fullDescription}
+                        <EditableText id={`expertise-full-${area.id}`}>{area.fullDescription}</EditableText>
                       </DialogDescription>
                     </DialogHeader>
                     <DialogFooter className="flex justify-between mt-6 space-x-6 space-x-reverse">
@@ -89,13 +96,13 @@ export function ExpertiseSection() {
                         className="text-law-navy border-law-navy hover:bg-law-navy hover:text-white transition-all duration-300"
                         onClick={handleContactClick}
                       >
-                        צור קשר בנושא {area.title}
+                        <EditableText id={`expertise-contact-${area.id}`}>צור קשר בנושא {area.title}</EditableText>
                       </Button>
                       <Link to={`/articles?expertise=${area.id}`}>
                         <Button
                           className="bg-law-navy hover:bg-law-navy/80 text-white transition-all duration-300"
                         >
-                          כל המאמרים בנושא {area.title}
+                          <EditableText id={`expertise-articles-${area.id}`}>כל המאמרים בנושא {area.title}</EditableText>
                         </Button>
                       </Link>
                     </DialogFooter>
