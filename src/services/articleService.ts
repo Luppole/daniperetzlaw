@@ -97,8 +97,25 @@ export async function getAllArticles(): Promise<Article[]> {
 // Get article by ID
 export async function getArticleById(id: string): Promise<Article | null> {
   try {
+    // First try with the exact ID
     const docRef = doc(db, 'articles', id);
-    const docSnap = await getDoc(docRef);
+    let docSnap = await getDoc(docRef);
+    
+    // If not found and the ID is numeric, try with a different format
+    if (!docSnap.exists() && /^\d+$/.test(id)) {
+      // Try to find the article by querying all articles
+      const articlesRef = collection(db, 'articles');
+      const articlesQuery = query(articlesRef);
+      const querySnapshot = await getDocs(articlesQuery);
+      
+      for (const doc of querySnapshot.docs) {
+        // If we find an article with the same numeric ID or the document ID
+        if (doc.id === id) {
+          docSnap = doc;
+          break;
+        }
+      }
+    }
     
     if (docSnap.exists()) {
       const data = docSnap.data() as FirebaseArticle;
@@ -108,6 +125,7 @@ export async function getArticleById(id: string): Promise<Article | null> {
       });
     }
     
+    console.log(`Article not found with ID: ${id}`);
     return null;
   } catch (error) {
     console.error('Error fetching article:', error);

@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Navbar } from '@/components/Navbar';
@@ -10,6 +9,7 @@ import LikeButton from '@/components/LikeButton';
 import CommentSection from '@/components/comments/CommentSection';
 import { Loader2 } from 'lucide-react';
 import { getArticleById, Article as ArticleType, getAllArticles } from '@/services/articleService';
+import { toast } from 'sonner';
 
 // Legal-themed high-quality images
 const LEGAL_IMAGES = [
@@ -22,7 +22,7 @@ const LEGAL_IMAGES = [
 ];
 
 const Article = () => {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [article, setArticle] = useState<ArticleType | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -32,23 +32,29 @@ const Article = () => {
     const fetchArticleData = async () => {
       setIsLoading(true);
       if (id) {
+        console.log('Fetching article with ID:', id);
         const fetchedArticle = await getArticleById(id);
-        setArticle(fetchedArticle);
         
-        const allArticles = await getAllArticles();
-        // Enhance related articles with better images
-        const filtered = allArticles
-          .filter(a => a.id !== id)
-          .map((article, index) => {
-            if (!article.image_url || article.image_url.includes('placeholder')) {
-              return {
-                ...article,
-                image_url: LEGAL_IMAGES[index % LEGAL_IMAGES.length]
-              };
-            }
-            return article;
-          });
-        setRelatedArticles(filtered);
+        if (fetchedArticle) {
+          setArticle(fetchedArticle);
+          
+          const allArticles = await getAllArticles();
+          // Enhance related articles with better images
+          const filtered = allArticles
+            .filter(a => a.id !== id)
+            .map((article, index) => {
+              if (!article.image_url || article.image_url.includes('placeholder')) {
+                return {
+                  ...article,
+                  image_url: LEGAL_IMAGES[index % LEGAL_IMAGES.length]
+                };
+              }
+              return article;
+            });
+          setRelatedArticles(filtered);
+        } else {
+          toast.error('המאמר לא נמצא');
+        }
       }
       setIsLoading(false);
     };
@@ -81,7 +87,7 @@ const Article = () => {
             <h1 className="text-3xl font-bold text-law-navy mb-4">המאמר לא נמצא</h1>
             <p className="text-law-gray mb-8">המאמר שחיפשת אינו קיים או שהוסר</p>
             <Button 
-              onClick={() => navigate('/#articles')} 
+              onClick={() => navigate('/articles')} 
               className="bg-law-navy hover:bg-law-navy/80"
             >
               חזרה למאמרים
@@ -93,16 +99,14 @@ const Article = () => {
     );
   }
 
-  // Significantly improve the content with better spacing and far fewer images - only after every 25th paragraph or heading
   const enhancedContent = article.content
     .replace(/<h2>/g, '<h2 class="text-2xl font-bold text-law-navy mt-20 mb-12">')
     .replace(/<h3>/g, '<h3 class="text-xl font-semibold text-law-navy mt-16 mb-10">')
     .replace(/<p>/g, '<p class="text-gray-700 leading-relaxed mb-12 text-lg">')
     .replace(/<ul>/g, '<ul class="list-disc list-inside mb-16 ml-8 space-y-6 text-gray-700">')
     .replace(/<li>/g, '<li class="mb-6 leading-relaxed">')
-    // Add just one image after a significant amount of content
     .replace(
-      /(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)/g, 
+      /(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)/g, 
       (match, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, p20, p21, p22, p23, p24, p25) => 
         p1 + p2 + p3 + p4 + p5 + p6 + p7 + p8 + p9 + p10 + p11 + p12 + p13 + p14 + p15 + p16 + p17 + p18 + p19 + p20 + p21 + p22 + p23 + p24 + p25 + 
         '<div class="my-28 mx-auto w-4/5 max-w-3xl">' +
@@ -130,12 +134,12 @@ const Article = () => {
             <Button 
               variant="ghost" 
               className="p-0 hover:bg-transparent hover:text-law-navy flex items-center"
-              onClick={() => navigate('/#articles')}
+              onClick={() => navigate('/articles')}
             >
               מאמרים
             </Button>
             <span className="mx-2">/</span>
-            <span className="text-law-navy font-medium truncate max-w-[200px]">{article.title}</span>
+            <span className="text-law-navy font-medium truncate max-w-[200px]">{article?.title || 'טוען...'}</span>
           </div>
           
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-16">
@@ -172,7 +176,14 @@ const Article = () => {
                           prose-p:text-gray-700 prose-p:leading-relaxed prose-p:mb-14 prose-ul:text-gray-700 
                           prose-li:mb-6 prose-a:text-law-navy prose-a:font-medium prose-a:no-underline 
                           hover:prose-a:underline"
-                dangerouslySetInnerHTML={{ __html: enhancedContent }}
+                dangerouslySetInnerHTML={{ 
+                  __html: article.content
+                    .replace(/<h2>/g, '<h2 class="text-2xl font-bold text-law-navy mt-20 mb-12">')
+                    .replace(/<h3>/g, '<h3 class="text-xl font-semibold text-law-navy mt-16 mb-10">')
+                    .replace(/<p>/g, '<p class="text-gray-700 leading-relaxed mb-12 text-lg">')
+                    .replace(/<ul>/g, '<ul class="list-disc list-inside mb-16 ml-8 space-y-6 text-gray-700">')
+                    .replace(/<li>/g, '<li class="mb-6 leading-relaxed">')
+                }} 
               />
               
               <div className="mt-28 pt-10 border-t border-gray-200">
@@ -206,7 +217,7 @@ const Article = () => {
                   onClick={() => {
                     const prevId = String(parseInt(id || '0') - 1);
                     if (parseInt(prevId) > 0) {
-                      navigate(`/article/${prevId}`);
+                      navigate(`/articles/${prevId}`);
                       window.scrollTo(0, 0);
                     }
                   }}
@@ -221,7 +232,7 @@ const Article = () => {
                   onClick={() => {
                     const nextId = String(parseInt(id || '0') + 1);
                     if (relatedArticles.some(article => article.id === nextId)) {
-                      navigate(`/article/${nextId}`);
+                      navigate(`/articles/${nextId}`);
                       window.scrollTo(0, 0);
                     }
                   }}
@@ -264,10 +275,10 @@ const Article = () => {
                     <div key={relatedArticle.id} className="border-b border-gray-100 pb-8 last:border-0 hover:bg-gray-50 p-4 rounded-lg transition-colors">
                       <h4 className="font-medium text-law-navy mb-4 hover:text-law-navy/70 transition-colors text-lg">
                         <a 
-                          href={`/article/${relatedArticle.id}`}
+                          href={`/articles/${relatedArticle.id}`}
                           onClick={(e) => {
                             e.preventDefault();
-                            navigate(`/article/${relatedArticle.id}`);
+                            navigate(`/articles/${relatedArticle.id}`);
                             window.scrollTo(0, 0);
                           }}
                           className="hover-link"
@@ -286,7 +297,7 @@ const Article = () => {
                   <Button 
                     variant="outline" 
                     className="w-full border-law-navy text-law-navy hover:bg-law-navy hover:text-white transition-all py-5"
-                    onClick={() => navigate('/#articles')}
+                    onClick={() => navigate('/articles')}
                   >
                     לכל המאמרים
                   </Button>

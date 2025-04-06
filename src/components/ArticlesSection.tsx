@@ -96,10 +96,10 @@ export function ArticlesSection() {
                   </div>
                   <CardTitle className="text-xl font-rubik font-bold text-law-navy line-clamp-2 group">
                     <a 
-                      href={`/article/${article.id}`}
+                      href={`/articles/${article.id}`}
                       onClick={(e) => {
                         e.preventDefault();
-                        navigate(`/article/${article.id}`);
+                        navigate(`/articles/${article.id}`);
                         window.scrollTo(0, 0);
                       }}
                       className="hover:text-law-navy/80 transition-colors duration-300"
@@ -118,7 +118,7 @@ export function ArticlesSection() {
                     variant="ghost" 
                     className="text-law-navy hover:bg-law-navy/10 p-0 group transition-all duration-300 font-heebo"
                     onClick={() => {
-                      navigate(`/article/${article.id}`);
+                      navigate(`/articles/${article.id}`);
                       window.scrollTo(0, 0);
                     }}
                   >

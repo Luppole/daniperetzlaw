@@ -8,7 +8,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import LikeCount from '@/components/LikeCount';
-import { supabase } from '@/integrations/supabase/client';
 import { getAllArticles, Article as ArticleType, ensureArticlesExist } from '@/services/articleService';
 import { Loader2 } from 'lucide-react';
 
@@ -142,10 +141,10 @@ const Articles = () => {
                     </div>
                     <CardTitle className="text-xl font-rubik font-bold text-law-navy line-clamp-2 transition-colors duration-300">
                       <a 
-                        href={`/article/${article.id}`}
+                        href={`/articles/${article.id}`}
                         onClick={(e) => {
                           e.preventDefault();
-                          navigate(`/article/${article.id}`);
+                          navigate(`/articles/${article.id}`);
                           window.scrollTo(0, 0);
                         }}
                         className="hover:text-law-navy/80 focus:outline-none focus:text-law-navy/70"
@@ -163,7 +162,7 @@ const Articles = () => {
                     <Button 
                       variant="ghost" 
                       className="text-law-navy hover:bg-law-navy/10 p-0 group transition-all duration-300 font-heebo"
-                      onClick={() => navigate(`/article/${article.id}`)}
+                      onClick={() => navigate(`/articles/${article.id}`)}
                     >
                       <span className="inline-block transform transition-all duration-300 group-hover:translate-x-[-4px]">המשך קריאה</span>
                       <ArrowLeft className="mr-2 h-4 w-4 transform transition-all duration-300 group-hover:translate-x-[-4px]" />
