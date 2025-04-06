@@ -56,14 +56,19 @@ export const EditableText: React.FC<EditableTextProps> = ({
 
   // Save the edited text
   const handleSave = () => {
-    updateText(id, currentText);
+    if (currentText.trim() !== displayText.trim()) {
+      updateText(id, currentText);
+      console.log(`Saved text with ID: ${id}, new content: ${currentText}`);
+      toast.success('הטקסט נשמר בהצלחה');
+    } else {
+      console.log(`No changes made to text with ID: ${id}`);
+    }
     setIsEditing(false);
-    toast.success('הטקסט נשמר בהצלחה');
-    console.log(`Saved text with ID: ${id}, new content: ${currentText}`);
   };
 
   // Start editing
   const handleEdit = (e: React.MouseEvent) => {
+    e.preventDefault();
     e.stopPropagation(); // Prevent triggering parent click events
     setIsEditing(true);
     console.log(`Started editing text with ID: ${id}`);
@@ -107,10 +112,10 @@ export const EditableText: React.FC<EditableTextProps> = ({
           <Component 
             className={cn(
               className,
-              "group relative cursor-default border border-transparent hover:border-dashed hover:border-law-navy/50 hover:bg-law-navy/5 rounded-sm transition-all p-1"
+              "group relative cursor-pointer border border-transparent hover:border-dashed hover:border-law-navy/50 hover:bg-law-navy/5 rounded-sm transition-all p-1"
             )}
           >
-            {editedTexts[id] || children}
+            {editedTexts[id] !== undefined ? editedTexts[id] : children}
             <Button
               size="icon"
               variant="ghost"
@@ -131,7 +136,7 @@ export const EditableText: React.FC<EditableTextProps> = ({
   // For regular view or non-admins, just display the text
   return (
     <Component className={className}>
-      {editedTexts[id] || children}
+      {editedTexts[id] !== undefined ? editedTexts[id] : children}
     </Component>
   );
 };

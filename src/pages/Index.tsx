@@ -8,9 +8,8 @@ import { ArticlesSection } from '@/components/ArticlesSection';
 import { FaqSection } from '@/components/FaqSection';
 import { ContactSection } from '@/components/ContactSection';
 import { Footer } from '@/components/Footer';
-import { ArrowUp, Edit, Save } from 'lucide-react';
+import { ArrowUp, Edit, Save, RotateCcw } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
-import { EditableText } from '@/components/EditableText';
 import { useAdmin } from '@/contexts/AdminContext';
 import { useTextEdit } from '@/contexts/TextEditContext';
 import { Button } from '@/components/ui/button';
@@ -105,6 +104,8 @@ const Index = () => {
     }
   };
 
+  console.log('Index rendering, admin:', isAdmin, 'editMode:', isEditMode);
+
   return (
     <div className="min-h-screen overflow-x-hidden">
       <Navbar />
@@ -144,6 +145,7 @@ const Index = () => {
               onClick={handleResetTexts}
               className="shadow-lg"
             >
+              <RotateCcw className="h-4 w-4 ml-2" />
               אפס טקסטים
             </Button>
           )}

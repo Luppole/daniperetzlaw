@@ -47,6 +47,8 @@ export const TextEditProvider = ({ children }: { children: ReactNode }) => {
         console.log('Loaded edited texts from localStorage:', parsedTexts);
       } catch (error) {
         console.error('Failed to parse saved texts', error);
+        // Clear corrupted data
+        localStorage.removeItem(STORAGE_KEY);
       }
     }
   }, []);
@@ -69,6 +71,7 @@ export const TextEditProvider = ({ children }: { children: ReactNode }) => {
       } else {
         toast.success('השינויים נשמרו בהצלחה.');
       }
+      console.log('Edit mode toggled:', newMode);
     } else {
       console.log('Non-admin user tried to toggle edit mode');
     }
@@ -94,14 +97,18 @@ export const TextEditProvider = ({ children }: { children: ReactNode }) => {
     console.log('All texts have been reset');
   };
 
+  const contextValue = {
+    editedTexts,
+    isEditMode,
+    toggleEditMode,
+    updateText,
+    resetTexts
+  };
+
+  console.log('TextEditContext state:', { isEditMode, editedTextsCount: Object.keys(editedTexts).length });
+
   return (
-    <TextEditContext.Provider value={{
-      editedTexts,
-      isEditMode,
-      toggleEditMode,
-      updateText,
-      resetTexts
-    }}>
+    <TextEditContext.Provider value={contextValue}>
       {children}
     </TextEditContext.Provider>
   );

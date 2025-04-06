@@ -2,6 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { getAllArticles } from '@/services/articleService';
+import { EditableText } from '@/components/EditableText';
 
 export function AboutSection() {
   const [articleCount, setArticleCount] = React.useState(0);
@@ -19,37 +20,51 @@ export function AboutSection() {
     <section id="about" className="section-wrapper bg-law-light">
       <div className="container mx-auto">
         <div className="text-center mb-16">
-          <h2 className="section-title">אודות</h2>
-          <p className="section-subtitle">מי אני ומה אני עושה</p>
+          <h2 className="section-title"><EditableText id="about-title">אודות</EditableText></h2>
+          <p className="section-subtitle"><EditableText id="about-subtitle">מי אני ומה אני עושה</EditableText></p>
         </div>
         
         <div className="grid md:grid-cols-2 gap-12 items-center">
           <div className="glass-card p-8">
-            <h3 className="text-2xl font-bold text-law-dark mb-4">עו"ד דני פרץ</h3>
+            <h3 className="text-2xl font-bold text-law-dark mb-4">
+              <EditableText id="about-name">עו"ד דני פרץ</EditableText>
+            </h3>
             <p className="text-law-gray mb-4">
-              דני פרץ - משרד עורכי דין מתמחה בטיפול מקצועי מעמיק ויצירתי בתחום המעמד האישי במגוון רחב של נושאים.
+              <EditableText id="about-para-1">
+                דני פרץ - משרד עורכי דין מתמחה בטיפול מקצועי מעמיק ויצירתי בתחום המעמד האישי במגוון רחב של נושאים.
+              </EditableText>
             </p>
             <p className="text-law-gray mb-4">
-              משרדנו מעניק ללקוח טיפול צמוד תוך גיבוש אסטרטגיה מותאמת למטרותיו של הלקות במשדרגו הלקוח נהנה מטיפול מקיף, תוך זמינות גבוהה, ותמיכה לאורך כל הדרך.
+              <EditableText id="about-para-2">
+                משרדנו מעניק ללקוח טיפול צמוד תוך גיבוש אסטרטגיה מותאמת למטרותיו של הלקות במשדרגו הלקוח נהנה מטיפול מקיף, תוך זמינות גבוהה, ותמיכה לאורך כל הדרך.
+              </EditableText>
             </p>
             <p className="text-law-gray mb-4">
-              דני פרץ - משרד עורכי דין, פועל מתוך ראייה כוללת לטובת לקוחותיו ותוך דבקות במטרה אם באמצעות ייצוגם בערכאות משפטיות ואם באמצעות מו"מ להסכמים אפשריים והוגנים.
+              <EditableText id="about-para-3">
+                דני פרץ - משרד עורכי דין, פועל מתוך ראייה כוללת לטובת לקוחותיו ותוך דבקות במטרה אם באמצעות ייצוגם בערכאות משפטיות ואם באמצעות מו"מ להסכמים אפשריים והוגנים.
+              </EditableText>
             </p>
             <p className="text-law-gray mb-4">
-              כל מקרה הוא מקרה פרטי והייעוץ שמקבל הלקוח כולל לא רק היבטים מקצועיים מהתחום המשפטי, אלא משולב גם חשיבה עסקית אסטרטגית עם ראיה עתידית מעבר לסוגיה המשפטית הצרה.
+              <EditableText id="about-para-4">
+                כל מקרה הוא מקרה פרטי והייעוץ שמקבל הלקוח כולל לא רק היבטים מקצועיים מהתחום המשפטי, אלא משולב גם חשיבה עסקית אסטרטגית עם ראיה עתידית מעבר לסוגיה המשפטית הצרה.
+              </EditableText>
             </p>
             <p className="text-law-gray mb-4">
-              דני פרץ- משרד עורכי דין, חרט על דגלו, מקצועיות בלתי מתפשרת, רגישות, יצירתיות, זמינות ושיתוף הלקוח בעת קבלת החלטות.
+              <EditableText id="about-para-5">
+                דני פרץ- משרד עורכי דין, חרט על דגלו, מקצועיות בלתי מתפשרת, רגישות, יצירתיות, זמינות ושיתוף הלקוח בעת קבלת החלטות.
+              </EditableText>
             </p>
             <p className="text-law-gray mb-6">
-              המוטו במשרד דני פרץ - משרד עורכי דין הינו כי, "לנצח אין פירושו להביט" ניצחון הינו השנת התוצאה הטובה ביותר עבורכם מתוך ראיית הצרכים האישיים של לקוח ולקות. בין באמצעות הסכם הוגן, ובין אם צריך, באמצעות הליכים משפטיים אשר ינקטו על ידי משרדנו לצורך השגת המטרות שהוצבו בתיאום עם הלקות.
+              <EditableText id="about-para-6">
+                המוטו במשרד דני פרץ - משרד עורכי דין הינו כי, "לנצח אין פירושו להביט" ניצחון הינו השנת התוצאה הטובה ביותר עבורכם מתוך ראיית הצרכים האישיים של לקוח ולקות. בין באמצעות הסכם הוגן, ובין אם צריך, באמצעות הליכים משפטיים אשר ינקטו על ידי משרדנו לצורך השגת המטרות שהוצבו בתיאום עם הלקות.
+              </EditableText>
             </p>
             <div className="flex flex-wrap justify-start">
               <Button 
                 onClick={() => document.getElementById('expertise')?.scrollIntoView({ behavior: 'smooth' })}
                 className="bg-law-blue hover:bg-law-blue/80 text-white"
               >
-                תחומי התמחות
+                <EditableText id="about-button">תחומי התמחות</EditableText>
               </Button>
             </div>
           </div>

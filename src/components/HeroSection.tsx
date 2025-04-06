@@ -1,8 +1,10 @@
+
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { AppointmentModal } from '@/components/AppointmentModal';
+import { EditableText } from '@/components/EditableText';
 
 export function HeroSection() {
   const navigate = useNavigate();
@@ -30,19 +32,21 @@ export function HeroSection() {
               <span className="text-3xl font-rubik font-bold text-white">DP</span>
             </div>
             <div className="mr-3 border-r-2 border-law-navy pr-3 cursor-pointer" onClick={scrollToTop}>
-              <h2 className="text-2xl font-rubik font-bold text-law-navy">דני פרץ</h2>
-              <p className="text-law-gray">עורך דין</p>
+              <EditableText id="hero-name" className="text-2xl font-rubik font-bold text-law-navy">דני פרץ</EditableText>
+              <EditableText id="hero-title" className="text-law-gray">עורך דין</EditableText>
             </div>
           </div>
           
           <h1 className="text-5xl md:text-6xl lg:text-7xl font-bold text-law-navy mb-10 animate-slide-up text-center md:text-right">
             <span className="relative px-2 py-1 bg-law-navy/5 rounded-lg">
-              עורך דין דני פרץ
+              <EditableText id="hero-heading">עורך דין דני פרץ</EditableText>
             </span>
           </h1>
           
           <p className="text-2xl text-law-navy font-medium mb-10 max-w-xl animate-slide-up leading-relaxed" style={{ animationDelay: '0.2s' }}>
-            מתמחה בתחום דיני המשפחה, צוואות וירושות, ייפוי כוח מתמשך, זוגות מעורבים, הסכמי טרום נישואין
+            <EditableText id="hero-description">
+              מתמחה בתחום דיני המשפחה, צוואות וירושות, ייפוי כוח מתמשך, זוגות מעורבים, הסכמי טרום נישואין
+            </EditableText>
           </p>
           
           <div className="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4 sm:space-x-reverse animate-slide-up" style={{ animationDelay: '0.3s' }}>
@@ -51,7 +55,7 @@ export function HeroSection() {
                 <Button 
                   className="bg-law-navy hover:bg-law-navy/80 text-white py-6 px-8 rounded-md font-medium transition-all hover:-translate-y-1 hover:shadow-lg"
                 >
-                  קבע פגישת ייעוץ
+                  <EditableText id="hero-button-appointment">קבע פגישת ייעוץ</EditableText>
                   <ArrowLeft className="mr-2 h-5 w-5" />
                 </Button>
               }
@@ -61,7 +65,7 @@ export function HeroSection() {
               className="border-law-navy text-law-navy py-6 px-8 rounded-md font-medium transition-all hover:bg-law-navy hover:text-white hover:shadow-md"
               onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}
             >
-              צור קשר
+              <EditableText id="hero-button-contact">צור קשר</EditableText>
             </Button>
           </div>
         </div>
@@ -81,7 +85,7 @@ export function HeroSection() {
       <div className="absolute bottom-10 left-1/2 transform -translate-x-1/2 animate-bounce">
         <button onClick={scrollToAbout} className="text-law-navy hover:text-law-navy/70 transition-colors">
           <div className="flex flex-col items-center">
-            <span className="mb-2">קרא עוד</span>
+            <span className="mb-2"><EditableText id="hero-scroll">קרא עוד</EditableText></span>
             <div className="w-6 h-10 border-2 border-law-navy rounded-full flex justify-center pt-1">
               <div className="w-1 h-3 bg-law-navy rounded-full"></div>
             </div>
