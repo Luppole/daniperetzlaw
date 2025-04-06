@@ -57,6 +57,7 @@ export function Navbar() {
     setIsMenuOpen(!isMenuOpen);
   };
 
+  // Updated order of navLinks to place תחומי עיסוק correctly
   const navLinks = [
     { title: 'ראשי', href: '/#hero' },
     { title: 'אודות', href: '/#about' },
@@ -134,36 +135,44 @@ export function Navbar() {
         </div>
         
         <nav className="hidden md:flex items-center space-x-1 space-x-reverse">
-          {navLinks.map((link, index) => {
-            if (link.isDropdown) return null;
-            
-            const isActive = link.href === '/articles' 
-              ? location.pathname === '/articles'
-              : isHomePage && activeLink === link.href.replace('/#', '');
-              
-            return (
-              <button 
-                key={link.href}
-                onClick={() => handleLinkClick(link.href)}
-                className={cn(
-                  "px-4 py-2 text-law-navy transition-all duration-300 relative group",
-                  isActive ? 'font-medium' : 'text-law-gray hover:text-law-navy',
-                  "animate-fade-in"
-                )}
-                style={{ animationDelay: `${index * 0.1}s` }}
-              >
-                {link.title}
-                <span 
-                  className={cn(
-                    "absolute bottom-0 left-1/2 w-0 h-0.5 bg-law-navy transition-all duration-300",
-                    isActive 
-                      ? "w-1/2 h-0.5 transform -translate-x-1/2" 
-                      : "w-0 h-0.5 group-hover:w-1/2 transform -translate-x-1/2 group-hover:h-0.5"
-                  )} 
-                />
-              </button>
-            );
-          })}
+          <button 
+            onClick={() => handleLinkClick('/#hero')}
+            className={cn(
+              "px-4 py-2 text-law-navy transition-all duration-300 relative group",
+              isHomePage && activeLink === 'hero' ? 'font-medium' : 'text-law-gray hover:text-law-navy',
+              "animate-fade-in"
+            )}
+          >
+            ראשי
+            <span 
+              className={cn(
+                "absolute bottom-0 left-1/2 w-0 h-0.5 bg-law-navy transition-all duration-300",
+                isHomePage && activeLink === 'hero' 
+                  ? "w-1/2 h-0.5 transform -translate-x-1/2" 
+                  : "w-0 h-0.5 group-hover:w-1/2 transform -translate-x-1/2 group-hover:h-0.5"
+              )} 
+            />
+          </button>
+          
+          <button 
+            onClick={() => handleLinkClick('/#about')}
+            className={cn(
+              "px-4 py-2 text-law-navy transition-all duration-300 relative group",
+              isHomePage && activeLink === 'about' ? 'font-medium' : 'text-law-gray hover:text-law-navy',
+              "animate-fade-in"
+            )}
+            style={{ animationDelay: '0.1s' }}
+          >
+            אודות
+            <span 
+              className={cn(
+                "absolute bottom-0 left-1/2 w-0 h-0.5 bg-law-navy transition-all duration-300",
+                isHomePage && activeLink === 'about' 
+                  ? "w-1/2 h-0.5 transform -translate-x-1/2" 
+                  : "w-0 h-0.5 group-hover:w-1/2 transform -translate-x-1/2 group-hover:h-0.5"
+              )} 
+            />
+          </button>
           
           <NavigationMenu>
             <NavigationMenuList className="space-x-reverse">
@@ -174,6 +183,7 @@ export function Navbar() {
                     isHomePage && activeLink === 'expertise' ? 'font-medium' : 'text-law-gray hover:text-law-navy'
                   )}
                   onClick={scrollToExpertise}
+                  style={{ animationDelay: '0.2s' }}
                 >
                   תחומי עיסוק
                 </NavigationMenuTrigger>
@@ -194,6 +204,46 @@ export function Navbar() {
               </NavigationMenuItem>
             </NavigationMenuList>
           </NavigationMenu>
+          
+          <button 
+            onClick={() => handleLinkClick('/articles')}
+            className={cn(
+              "px-4 py-2 text-law-navy transition-all duration-300 relative group",
+              location.pathname === '/articles' ? 'font-medium' : 'text-law-gray hover:text-law-navy',
+              "animate-fade-in"
+            )}
+            style={{ animationDelay: '0.3s' }}
+          >
+            מאמרים
+            <span 
+              className={cn(
+                "absolute bottom-0 left-1/2 w-0 h-0.5 bg-law-navy transition-all duration-300",
+                location.pathname === '/articles' 
+                  ? "w-1/2 h-0.5 transform -translate-x-1/2" 
+                  : "w-0 h-0.5 group-hover:w-1/2 transform -translate-x-1/2 group-hover:h-0.5"
+              )} 
+            />
+          </button>
+          
+          <button 
+            onClick={() => handleLinkClick('/#contact')}
+            className={cn(
+              "px-4 py-2 text-law-navy transition-all duration-300 relative group",
+              isHomePage && activeLink === 'contact' ? 'font-medium' : 'text-law-gray hover:text-law-navy',
+              "animate-fade-in"
+            )}
+            style={{ animationDelay: '0.4s' }}
+          >
+            צור קשר
+            <span 
+              className={cn(
+                "absolute bottom-0 left-1/2 w-0 h-0.5 bg-law-navy transition-all duration-300",
+                isHomePage && activeLink === 'contact' 
+                  ? "w-1/2 h-0.5 transform -translate-x-1/2" 
+                  : "w-0 h-0.5 group-hover:w-1/2 transform -translate-x-1/2 group-hover:h-0.5"
+              )} 
+            />
+          </button>
           
           <div className="flex items-center space-x-4 space-x-reverse mr-4">
             <UserMenu />
@@ -222,6 +272,7 @@ export function Navbar() {
         </div>
       </div>
       
+      {/* Mobile menu - also needs to be updated for correct order */}
       {isMenuOpen && (
         <nav className="md:hidden absolute top-full right-0 w-full bg-white shadow-lg py-4 px-6 flex flex-col space-y-3 animate-slide-up max-h-[80vh] overflow-y-auto">
           <button 

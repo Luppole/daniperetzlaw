@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Navbar } from '@/components/Navbar';
 import { HeroSection } from '@/components/HeroSection';
@@ -7,12 +8,13 @@ import { ArticlesSection } from '@/components/ArticlesSection';
 import { FaqSection } from '@/components/FaqSection';
 import { ContactSection } from '@/components/ContactSection';
 import { Footer } from '@/components/Footer';
-import { ArrowUp } from 'lucide-react';
+import { ArrowUp, Edit, Save } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import { EditableText } from '@/components/EditableText';
 import { useAdmin } from '@/contexts/AdminContext';
 import { useTextEdit } from '@/contexts/TextEditContext';
 import { Button } from '@/components/ui/button';
+import { toast } from 'sonner';
 
 // Define images for different sections
 const sectionImages = [
@@ -26,7 +28,7 @@ const Index = () => {
   const [showScrollTop, setShowScrollTop] = useState(false);
   const location = useLocation();
   const { isAdmin } = useAdmin();
-  const { isEditMode, toggleEditMode } = useTextEdit();
+  const { isEditMode, toggleEditMode, resetTexts } = useTextEdit();
 
   useEffect(() => {
     // Preload all uploaded images for better performance
@@ -96,6 +98,13 @@ const Index = () => {
     });
   };
 
+  // Function to confirm text reset
+  const handleResetTexts = () => {
+    if (window.confirm('האם אתה בטוח שברצונך לאפס את כל הטקסטים המותאמים אישית?')) {
+      resetTexts();
+    }
+  };
+
   return (
     <div className="min-h-screen overflow-x-hidden">
       <Navbar />
@@ -107,16 +116,38 @@ const Index = () => {
       <ContactSection />
       <Footer />
       
-      {/* Admin edit mode toggle button */}
+      {/* Admin edit mode toggle button with enhanced visibility */}
       {isAdmin && (
-        <Button
-          onClick={toggleEditMode}
-          className={`fixed top-24 left-6 z-40 shadow-lg transition-all duration-300 ${
-            isEditMode ? 'bg-green-600 hover:bg-green-700' : 'bg-law-navy hover:bg-law-navy/90'
-          }`}
-        >
-          {isEditMode ? 'סיים עריכה' : 'עריכת תוכן'}
-        </Button>
+        <div className="fixed top-24 left-6 z-40 flex flex-col gap-2">
+          <Button
+            onClick={toggleEditMode}
+            className={`shadow-lg transition-all duration-300 ${
+              isEditMode ? 'bg-green-600 hover:bg-green-700' : 'bg-law-navy hover:bg-law-navy/90'
+            }`}
+          >
+            {isEditMode ? (
+              <>
+                <Save className="h-4 w-4 ml-2" />
+                סיים עריכה
+              </>
+            ) : (
+              <>
+                <Edit className="h-4 w-4 ml-2" />
+                עריכת תוכן
+              </>
+            )}
+          </Button>
+          
+          {isEditMode && (
+            <Button 
+              variant="destructive" 
+              onClick={handleResetTexts}
+              className="shadow-lg"
+            >
+              אפס טקסטים
+            </Button>
+          )}
+        </div>
       )}
       
       {/* Scroll to top button */}

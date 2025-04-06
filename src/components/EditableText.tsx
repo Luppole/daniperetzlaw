@@ -11,6 +11,7 @@ import {
   HoverCardTrigger,
   HoverCardContent
 } from '@/components/ui/hover-card';
+import { toast } from 'sonner';
 
 interface EditableTextProps {
   id: string;
@@ -42,24 +43,30 @@ export const EditableText: React.FC<EditableTextProps> = ({
       setCurrentText(displayText);
       textareaRef.current.focus();
       textareaRef.current.select();
+      console.log(`Editing text with ID: ${id}, current content: ${displayText}`);
     }
-  }, [isEditing, displayText]);
+  }, [isEditing, displayText, id]);
 
   // Cancel editing and reset
   const handleCancel = () => {
     setIsEditing(false);
     setCurrentText('');
+    console.log(`Cancelled editing text with ID: ${id}`);
   };
 
   // Save the edited text
   const handleSave = () => {
     updateText(id, currentText);
     setIsEditing(false);
+    toast.success('הטקסט נשמר בהצלחה');
+    console.log(`Saved text with ID: ${id}, new content: ${currentText}`);
   };
 
   // Start editing
-  const handleEdit = () => {
+  const handleEdit = (e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent triggering parent click events
     setIsEditing(true);
+    console.log(`Started editing text with ID: ${id}`);
   };
 
   // If admin and edit mode is on, show editable content
