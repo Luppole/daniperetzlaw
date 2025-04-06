@@ -229,7 +229,7 @@ const ReviewSection: React.FC = () => {
                   <EditableText id="reviews-content-label">חוות דעת</EditableText>
                 </label>
                 <Textarea
-                  placeholder={<EditableText id="reviews-placeholder">כתוב את חוות דעתך כאן...</EditableText>}
+                  placeholder="כתוב את חוות דעתך כאן..."
                   value={newReview}
                   onChange={(e) => setNewReview(e.target.value)}
                   className="min-h-[100px]"
