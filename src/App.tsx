@@ -1,15 +1,16 @@
+
 import React from 'react';
 import { Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from './components/ui/theme-provider';
-import { Index } from './pages';
-import { Articles } from './pages/Articles';
-import { Article } from './pages/Article';
-import { Auth } from './pages/Auth';
+import { Index } from './pages/index';
+import Articles from './pages/Articles';
+import Article from './pages/Article';
+import Auth from './pages/Auth';
 import Admin from './pages/Admin';
-import { NotFound } from './pages/NotFound';
+import NotFound from './pages/NotFound';
 import { DraggableInfoProvider } from './contexts/DraggableInfoContext';
-import { Sonner } from 'sonner';
+import { Toaster as Sonner } from 'sonner';
 import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { AdminProvider } from '@/contexts/AdminContext';
