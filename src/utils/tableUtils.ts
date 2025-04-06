@@ -6,15 +6,22 @@ interface TableExistsResponse {
   exists: boolean;
 }
 
+interface TableCreateResponse {
+  success: boolean;
+}
+
 // Function to safely check if a table exists using edge functions
 export async function ensureTableExists(tableName: string): Promise<boolean> {
   try {
     console.log(`Checking if table ${tableName} exists...`);
     
-    // Use proper typing with generic parameters
-    const { data, error } = await supabase.functions.invoke<TableExistsResponse>('check-table-exists', {
-      body: { tableName } as { tableName: string }
-    });
+    // Use proper typing with generic parameters - for both return type and body type
+    const { data, error } = await supabase.functions.invoke<TableExistsResponse, { tableName: string }>(
+      'check-table-exists', 
+      {
+        body: { tableName } 
+      }
+    );
     
     if (error) {
       console.log(`Error checking table existence via function:`, error);
@@ -36,16 +43,22 @@ export async function createAppointmentsTableIfNeeded(): Promise<boolean> {
     console.log('Attempting to create appointments table...');
     try {
       // Use proper typing with generic parameters
-      const { data, error } = await supabase.functions.invoke<{ success: boolean }>('create-appointments-table', {
-        body: {} as Record<string, never>
-      });
+      const { data, error } = await supabase.functions.invoke<TableCreateResponse, Record<string, never>>(
+        'create-appointments-table', 
+        {
+          body: {}
+        }
+      );
       
       if (error) {
         console.error('Failed to create appointments table via function:', error);
         
         // Fall back to RPC
         try {
-          const { data: rpcData, error: rpcError } = await supabase.rpc('init_database');
+          const { data: rpcData, error: rpcError } = await supabase.rpc<boolean, Record<string, never>>(
+            'init_database',
+            {}
+          );
           
           if (rpcError) {
             console.error('Failed to create appointments table via RPC:', rpcError);

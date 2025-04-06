@@ -2,19 +2,23 @@
 import { supabase } from '@/integrations/supabase/client';
 import { Appointment } from '@/types/appointments';
 
-// Define return types for RPC functions
+// Define interfaces for RPC functions' response types
 interface AppointmentRPCResponse {
   id?: string;
+  success?: boolean;
   [key: string]: any;
 }
 
-// Fetch all appointments using RPC only
+// Fetch all appointments using RPC
 export async function getAllAppointments(): Promise<Appointment[]> {
   try {
     console.log('Fetching all appointments...');
     
-    // Use explicit typing for the RPC call
-    const { data, error } = await supabase.rpc<Appointment[]>('get_all_appointments');
+    // Use the correct generic parameters for rpc call (return type, params type)
+    const { data, error } = await supabase.rpc<Appointment[], Record<string, never>>(
+      'get_all_appointments',
+      {}
+    );
     
     if (error) {
       console.error('Error fetching appointments:', error);
@@ -28,7 +32,7 @@ export async function getAllAppointments(): Promise<Appointment[]> {
   }
 }
 
-// Create a new appointment - using RPC only
+// Create a new appointment
 export async function createAppointment(appointmentData: {
   name: string;
   email: string;
@@ -40,15 +44,25 @@ export async function createAppointment(appointmentData: {
   try {
     console.log('Creating appointment with data:', appointmentData);
     
-    // Use explicit typing for the RPC call
-    const { data, error } = await supabase.rpc<AppointmentRPCResponse>('insert_appointment', {
-      p_name: appointmentData.name,
-      p_email: appointmentData.email,
-      p_phone: appointmentData.phone,
-      p_date: appointmentData.date,
-      p_time: appointmentData.time,
-      p_details: appointmentData.details || ''
-    });
+    // Use the correct generic parameters for rpc call (return type, params type)
+    const { data, error } = await supabase.rpc<AppointmentRPCResponse, {
+      p_name: string;
+      p_email: string;
+      p_phone: string;
+      p_date: string;
+      p_time: string;
+      p_details: string;
+    }>(
+      'insert_appointment', 
+      {
+        p_name: appointmentData.name,
+        p_email: appointmentData.email,
+        p_phone: appointmentData.phone,
+        p_date: appointmentData.date,
+        p_time: appointmentData.time,
+        p_details: appointmentData.details || ''
+      }
+    );
 
     if (error) {
       console.error('Error creating appointment:', error);
@@ -56,7 +70,7 @@ export async function createAppointment(appointmentData: {
     }
     
     console.log('Appointment created successfully:', data);
-    // Handle the response data safely with proper typing
+    // Type guard to ensure data has the expected shape
     if (data && typeof data === 'object' && 'id' in data) {
       return { success: true, id: data.id as string };
     }
@@ -67,16 +81,22 @@ export async function createAppointment(appointmentData: {
   }
 }
 
-// Update appointment status with RPC
+// Update appointment status
 export async function updateAppointmentStatus(id: string, status: 'pending' | 'confirmed' | 'cancelled'): Promise<boolean> {
   try {
     console.log(`Updating appointment ${id} status to ${status}`);
     
-    // Use explicit typing for the RPC call
-    const { data, error } = await supabase.rpc<{ success: boolean }>('update_appointment_status', {
-      p_id: id,
-      p_status: status
-    });
+    // Use the correct generic parameters for rpc call (return type, params type)
+    const { data, error } = await supabase.rpc<{ success: boolean }, {
+      p_id: string;
+      p_status: string;
+    }>(
+      'update_appointment_status',
+      {
+        p_id: id,
+        p_status: status
+      }
+    );
     
     if (error) {
       console.error('Error updating appointment status:', error);
@@ -90,15 +110,20 @@ export async function updateAppointmentStatus(id: string, status: 'pending' | 'c
   }
 }
 
-// Delete an appointment with RPC
+// Delete an appointment
 export async function deleteAppointment(id: string): Promise<boolean> {
   try {
     console.log(`Deleting appointment ${id}`);
     
-    // Use explicit typing for the RPC call
-    const { data, error } = await supabase.rpc<{ success: boolean }>('delete_appointment', {
-      p_id: id
-    });
+    // Use the correct generic parameters for rpc call (return type, params type)
+    const { data, error } = await supabase.rpc<{ success: boolean }, {
+      p_id: string;
+    }>(
+      'delete_appointment',
+      {
+        p_id: id
+      }
+    );
     
     if (error) {
       console.error('Error deleting appointment:', error);
@@ -112,18 +137,23 @@ export async function deleteAppointment(id: string): Promise<boolean> {
   }
 }
 
-// Get appointment counts for dashboard with RPC
+// Get appointment counts for dashboard
 export async function getAppointmentCounts(): Promise<{ total: number; pending: number; confirmed: number; }> {
   try {
-    // Use explicit typing for the RPC call
-    const { data, error } = await supabase.rpc<{ total: number; pending: number; confirmed: number; }>('get_appointment_counts');
+    // Use the correct generic parameters for rpc call (return type, params type)
+    const { data, error } = await supabase.rpc<
+      { total: number; pending: number; confirmed: number; },
+      Record<string, never>
+    >(
+      'get_appointment_counts',
+      {}
+    );
     
     if (error) {
       console.error('Error getting appointment counts:', error);
       return { total: 0, pending: 0, confirmed: 0 };
     }
     
-    // Handle potentially null data
     return data || { total: 0, pending: 0, confirmed: 0 };
   } catch (error) {
     console.error('Error getting appointment counts:', error);
@@ -131,23 +161,31 @@ export async function getAppointmentCounts(): Promise<{ total: number; pending: 
   }
 }
 
-// Get booked time slots for a specific date with RPC
+// Get booked time slots for a specific date
 export async function getBookedSlots(date: string): Promise<string[]> {
   try {
     console.log('Fetching booked slots for date:', date);
     
-    // Use explicit typing for the RPC call
-    const { data, error } = await supabase.rpc<Array<{ time: string }>>('get_booked_slots', {
-      date_param: date
-    });
+    // Use the correct generic parameters for rpc call (return type, params type)
+    const { data, error } = await supabase.rpc<
+      Array<{ time: string }>,
+      { date_param: string }
+    >(
+      'get_booked_slots',
+      {
+        date_param: date
+      }
+    );
     
     if (error) {
       console.error('Error fetching booked slots:', error);
       return [];
     }
     
-    // Extract time values safely with proper null handling
+    // Safe handling if data is null or undefined
     if (!data) return [];
+    
+    // Extract time values safely with proper null handling
     const bookedSlots = data.map(item => item.time || '').filter(Boolean);
     console.log('Booked slots:', bookedSlots);
     return bookedSlots;
