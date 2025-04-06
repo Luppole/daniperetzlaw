@@ -13,35 +13,23 @@ export async function getAllAppointments(): Promise<Appointment[]> {
   try {
     console.log('Fetching all appointments...');
     
-    // Use RPC to avoid type issues
-    const { data, error } = await supabase.rpc('get_all_appointments') as unknown as AppointmentResult;
+    // Use RPC only
+    const { data, error } = await supabase.rpc('get_all_appointments');
     
     if (error) {
-      console.error('Supabase error fetching appointments:', error);
-      
-      // Try direct SQL as fallback (but handle the type safety)
-      try {
-        const result = await supabase.rpc('get_all_appointments_direct_sql') as unknown as AppointmentResult;
-        if (result.error) {
-          throw result.error;
-        }
-        return result.data || [];
-      } catch (fallbackError) {
-        console.error('Fallback error:', fallbackError);
-        // Last resort - empty array with proper typing
-        return [];
-      }
+      console.error('Error fetching appointments:', error);
+      return [];
     }
     
-    // Type cast data to Appointment[] 
-    return data || [];
+    // Cast data to Appointment[] with type assertion
+    return (data as Appointment[]) || [];
   } catch (error) {
     console.error('Error fetching appointments:', error);
     return [];
   }
 }
 
-// Create a new appointment - using direct insert with RPC
+// Create a new appointment - using RPC only
 export async function createAppointment(appointmentData: {
   name: string;
   email: string;
@@ -53,7 +41,7 @@ export async function createAppointment(appointmentData: {
   try {
     console.log('Creating appointment with data:', appointmentData);
     
-    // Try RPC for type safety
+    // Use RPC for type safety
     const { data, error } = await supabase.rpc('insert_appointment', {
       p_name: appointmentData.name,
       p_email: appointmentData.email,
@@ -61,26 +49,11 @@ export async function createAppointment(appointmentData: {
       p_date: appointmentData.date,
       p_time: appointmentData.time,
       p_details: appointmentData.details || ''
-    }) as unknown as { data: {id: string} | null; error: any };
+    });
 
     if (error) {
-      console.error('RPC error creating appointment:', error);
-      
-      // Fallback to SQL procedure (bypassing type checks)
-      try {
-        const result = await supabase.rpc('insert_appointment_direct_sql', {
-          data: JSON.stringify(appointmentData)
-        }) as unknown as { data: {id: string} | null; error: any };
-        
-        if (result.error) {
-          throw result.error;
-        }
-        
-        return { success: true, id: result.data?.id };
-      } catch (fallbackError) {
-        console.error('Fallback error:', fallbackError);
-        return { success: false };
-      }
+      console.error('Error creating appointment:', error);
+      return { success: false };
     }
     
     console.log('Appointment created successfully:', data);
@@ -91,36 +64,20 @@ export async function createAppointment(appointmentData: {
   }
 }
 
-// Update appointment status
+// Update appointment status with RPC
 export async function updateAppointmentStatus(id: string, status: 'pending' | 'confirmed' | 'cancelled'): Promise<boolean> {
   try {
     console.log(`Updating appointment ${id} status to ${status}`);
     
-    // Try RPC first
+    // Use RPC
     const { error } = await supabase.rpc('update_appointment_status', {
       p_id: id,
       p_status: status
     });
     
     if (error) {
-      console.error('RPC error updating appointment status:', error);
-      
-      // Fallback to SQL procedure
-      try {
-        const result = await supabase.rpc('update_appointment_status_direct_sql', {
-          p_id: id,
-          p_status: status
-        });
-        
-        if (result.error) {
-          throw result.error;
-        }
-        
-        return true;
-      } catch (fallbackError) {
-        console.error('Fallback error:', fallbackError);
-        return false;
-      }
+      console.error('Error updating appointment status:', error);
+      return false;
     }
     
     return true;
@@ -130,34 +87,19 @@ export async function updateAppointmentStatus(id: string, status: 'pending' | 'c
   }
 }
 
-// Delete an appointment
+// Delete an appointment with RPC
 export async function deleteAppointment(id: string): Promise<boolean> {
   try {
     console.log(`Deleting appointment ${id}`);
     
-    // Try RPC
+    // Use RPC
     const { error } = await supabase.rpc('delete_appointment', {
       p_id: id
     });
     
     if (error) {
-      console.error('RPC error deleting appointment:', error);
-      
-      // Fallback
-      try {
-        const result = await supabase.rpc('delete_appointment_direct_sql', {
-          p_id: id
-        });
-        
-        if (result.error) {
-          throw result.error;
-        }
-        
-        return true;
-      } catch (fallbackError) {
-        console.error('Fallback error:', fallbackError);
-        return false;
-      }
+      console.error('Error deleting appointment:', error);
+      return false;
     }
     
     return true;
@@ -167,28 +109,15 @@ export async function deleteAppointment(id: string): Promise<boolean> {
   }
 }
 
-// Get appointment counts for dashboard
+// Get appointment counts for dashboard with RPC
 export async function getAppointmentCounts(): Promise<{ total: number; pending: number; confirmed: number; }> {
   try {
-    // Try RPC
-    const { data, error } = await supabase.rpc('get_appointment_counts') as unknown as AppointmentCountResult;
+    // Use RPC only
+    const { data, error } = await supabase.rpc('get_appointment_counts');
     
     if (error) {
-      console.error('RPC error getting appointment counts:', error);
-      
-      // Fallback
-      try {
-        const result = await supabase.rpc('get_appointment_counts_direct_sql') as unknown as AppointmentCountResult;
-        
-        if (result.error) {
-          throw result.error;
-        }
-        
-        return result.data || { total: 0, pending: 0, confirmed: 0 };
-      } catch (fallbackError) {
-        console.error('Fallback error:', fallbackError);
-        return { total: 0, pending: 0, confirmed: 0 };
-      }
+      console.error('Error getting appointment counts:', error);
+      return { total: 0, pending: 0, confirmed: 0 };
     }
     
     return data || { total: 0, pending: 0, confirmed: 0 };
@@ -198,34 +127,19 @@ export async function getAppointmentCounts(): Promise<{ total: number; pending: 
   }
 }
 
-// Get booked time slots for a specific date
+// Get booked time slots for a specific date with RPC
 export async function getBookedSlots(date: string): Promise<string[]> {
   try {
     console.log('Fetching booked slots for date:', date);
     
-    // Try RPC
+    // Use RPC
     const { data, error } = await supabase.rpc('get_booked_slots', {
       date_param: date
-    }) as unknown as BookedSlotsResult;
+    });
     
     if (error) {
-      console.error('RPC error fetching booked slots:', error);
-      
-      // Fallback
-      try {
-        const result = await supabase.rpc('get_booked_slots_direct_sql', {
-          date_param: date
-        }) as unknown as BookedSlotsResult;
-        
-        if (result.error) {
-          throw result.error;
-        }
-        
-        return result.data || [];
-      } catch (fallbackError) {
-        console.error('Fallback error:', fallbackError);
-        return [];
-      }
+      console.error('Error fetching booked slots:', error);
+      return [];
     }
     
     // Extract time values safely

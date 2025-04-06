@@ -4,10 +4,10 @@ import { supabase } from '@/integrations/supabase/client';
 // Function to safely check if a table exists (with type safety)
 export async function ensureTableExists(tableName: string) {
   try {
-    // Use raw SQL query to check if table exists
+    // Use RPC to check if table exists
     const { data, error } = await supabase.rpc('check_table_exists', { 
       table_name: tableName 
-    }) as unknown as { data: boolean; error: any };
+    });
     
     if (error) {
       console.log(`Error checking if table ${tableName} exists:`, error);
