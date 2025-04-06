@@ -5,33 +5,31 @@ import { ensureArticlesExist } from '@/services/articleInitService';
 // Function to initialize the database
 export async function initializeDatabase() {
   try {
-    // Try to call the init_database RPC function
+    console.log('Initializing database...');
+    
+    // Create appointments table
     try {
-      // Cast to any to bypass TypeScript's type checking for RPC functions
-      await (supabase.rpc as any)('init_database');
-      console.log('Database initialized via RPC function');
-    } catch (rpcError) {
-      console.log('RPC function not available, creating tables directly');
+      const { error } = await supabase.query(`
+        CREATE TABLE IF NOT EXISTS public.appointments (
+          id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+          name TEXT NOT NULL,
+          email TEXT NOT NULL,
+          phone TEXT NOT NULL,
+          date TEXT NOT NULL,
+          time TEXT NOT NULL,
+          details TEXT,
+          status TEXT DEFAULT 'pending',
+          created_at TIMESTAMPTZ DEFAULT NOW()
+        );
+      `);
       
-      // Create appointments table directly if RPC function is not available
-      try {
-        await (supabase as any).query(`
-          CREATE TABLE IF NOT EXISTS public.appointments (
-            id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-            name TEXT NOT NULL,
-            email TEXT NOT NULL,
-            phone TEXT NOT NULL,
-            date TEXT NOT NULL,
-            time TEXT NOT NULL,
-            details TEXT,
-            status TEXT DEFAULT 'pending',
-            created_at TIMESTAMPTZ DEFAULT NOW()
-          );
-        `);
+      if (error) {
+        console.error('Error creating appointments table:', error);
+      } else {
         console.log('Appointments table created or already exists');
-      } catch (tableError) {
-        console.log('Could not create appointments table directly:', tableError);
       }
+    } catch (tableError) {
+      console.error('Could not create appointments table directly:', tableError);
     }
 
     // Ensure that we have some default articles
