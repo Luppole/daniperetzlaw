@@ -9,7 +9,8 @@ import {
   getDoc, 
   doc, 
   serverTimestamp,
-  Timestamp 
+  Timestamp,
+  deleteDoc
 } from 'firebase/firestore';
 import { db, auth } from '@/integrations/firebase/client';
 import { Comment } from '@/types/comment';
@@ -20,13 +21,14 @@ import { toast } from 'sonner';
 const convertFirestoreCommentToComment = async (
   comment: FirebaseComment & { id: string }
 ): Promise<Comment> => {
-  let userName = 'Anonymous User';
+  let userName = 'משתמש אנונימי';
   
   try {
     // Get user profile data
     const userDoc = await getDoc(doc(db, 'profiles', comment.user_id));
     if (userDoc.exists()) {
-      userName = userDoc.data().full_name || 'Anonymous User';
+      const userData = userDoc.data();
+      userName = userData.full_name || userData.displayName || 'משתמש אנונימי';
     }
   } catch (error: any) {
     console.error('Error fetching user profile:', error.message);
@@ -107,5 +109,24 @@ export async function addComment(articleId: string, userId: string, content: str
   } catch (error: any) {
     console.error('Error adding comment:', error);
     throw new Error(`Failed to add comment: ${error.message}`);
+  }
+}
+
+// Delete a comment
+export async function deleteComment(commentId: string): Promise<boolean> {
+  try {
+    // Verify the user is logged in
+    if (!auth.currentUser) {
+      toast.error('יש להתחבר כדי למחוק תגובה');
+      throw new Error('Must be logged in to delete comments');
+    }
+    
+    await deleteDoc(doc(db, 'comments', commentId));
+    toast.success('התגובה נמחקה בהצלחה');
+    return true;
+  } catch (error: any) {
+    console.error('Error deleting comment:', error);
+    toast.error('שגיאה במחיקת התגובה');
+    return false;
   }
 }

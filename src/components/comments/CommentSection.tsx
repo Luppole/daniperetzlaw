@@ -4,7 +4,6 @@ import { useAuth } from '@/contexts/AuthContext';
 import { Comment } from '@/types/comment';
 import { collection, onSnapshot, query, where, orderBy } from 'firebase/firestore';
 import { db } from '@/integrations/firebase/client';
-import { Loader2 } from 'lucide-react';
 import CommentForm from './CommentForm';
 import CommentList from './CommentList';
 import { getArticleComments } from '@/services/commentService';

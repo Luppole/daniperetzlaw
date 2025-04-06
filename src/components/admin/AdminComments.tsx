@@ -19,7 +19,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Eye, Loader2, Trash2 } from 'lucide-react';
-import { collection, getDocs, deleteDoc, doc, query, orderBy, getDoc } from 'firebase/firestore';
+import { collection, getDocs, doc, query, orderBy, getDoc } from 'firebase/firestore';
 import { db } from '@/integrations/firebase/client';
 import { format } from 'date-fns';
 import { he } from 'date-fns/locale';
@@ -27,6 +27,8 @@ import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
 import { getArticleById } from '@/services/articleService';
 import { FirebaseComment } from '@/integrations/firebase/types';
+import { deleteComment } from '@/services/commentService';
+import { Timestamp, onSnapshot } from 'firebase/firestore';
 
 type CommentWithArticle = {
   id: string;
@@ -133,11 +135,12 @@ export function AdminComments() {
     
     setIsDeleting(true);
     try {
-      await deleteDoc(doc(db, 'comments', commentToDelete.id));
+      const success = await deleteComment(commentToDelete.id);
       
-      setComments(comments.filter(comment => comment.id !== commentToDelete.id));
-      toast.success('התגובה נמחקה בהצלחה');
-      setDeleteDialogOpen(false);
+      if (success) {
+        setComments(comments.filter(comment => comment.id !== commentToDelete.id));
+        setDeleteDialogOpen(false);
+      }
     } catch (error) {
       console.error('Error deleting comment:', error);
       toast.error('שגיאה במחיקת התגובה');
@@ -269,6 +272,3 @@ export function AdminComments() {
     </div>
   );
 }
-
-// Import missing Timestamp and onSnapshot
-import { Timestamp, onSnapshot } from 'firebase/firestore';
