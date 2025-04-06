@@ -1,27 +1,27 @@
 
 import { supabase } from '@/integrations/supabase/client';
-import { ensureArticlesExist } from '@/services/articleService';
+import { ensureArticlesExist } from '@/services/articleInitService';
 
+// Function to initialize the database
 export async function initializeDatabase() {
   try {
-    // Initialize the database with the RPC function
-    // Use the any type to bypass TypeScript checking for RPC calls
-    const { error } = await (supabase.rpc as any)(
-      'init_database'
-    );
-    
-    if (error) {
-      console.error('Error initializing database:', error);
-      
-      // Fall back to manually ensuring articles exist
-      await ensureArticlesExist();
+    // Try to call the init_database RPC function
+    try {
+      await supabase.rpc('init_database');
+      console.log('Database initialized via RPC function');
+    } catch (rpcError) {
+      console.log('RPC function not available, skipping database initialization');
     }
-    
-    console.info('Database initialization completed successfully');
+
+    // Ensure that we have some default articles
+    try {
+      await ensureArticlesExist();
+    } catch (articleError) {
+      console.error('Error ensuring articles exist:', articleError);
+    }
+
+    console.log('Database initialization completed');
   } catch (error) {
-    console.error('Error initializing database:', error);
-    
-    // Still attempt to create default articles even if the RPC fails
-    await ensureArticlesExist();
+    console.error('Error during database initialization:', error);
   }
 }

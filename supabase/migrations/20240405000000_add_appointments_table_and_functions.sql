@@ -46,6 +46,18 @@ AS $$
   SELECT * FROM public.appointments ORDER BY date ASC, time ASC;
 $$;
 
+-- Function to get booked slots for a specific date
+CREATE OR REPLACE FUNCTION public.get_booked_slots(date_param TEXT)
+RETURNS TABLE(time TEXT)
+LANGUAGE sql
+SECURITY DEFINER
+AS $$
+  SELECT time FROM public.appointments 
+  WHERE date = date_param 
+  AND status IN ('confirmed', 'pending')
+  ORDER BY time ASC;
+$$;
+
 -- Function to update appointment status
 CREATE OR REPLACE FUNCTION public.update_appointment_status(
   p_id UUID,
@@ -117,5 +129,50 @@ BEGIN
     status TEXT DEFAULT 'pending',
     created_at TIMESTAMPTZ DEFAULT NOW()
   );
+END;
+$$;
+
+-- Comments functions
+CREATE OR REPLACE FUNCTION public.get_article_comments(article_id_param UUID)
+RETURNS TABLE (
+  id UUID,
+  article_id UUID,
+  user_id UUID,
+  user_name TEXT,
+  content TEXT,
+  created_at TIMESTAMPTZ
+)
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  RETURN QUERY
+  SELECT 
+    c.id, 
+    c.article_id, 
+    c.user_id, 
+    p.full_name as user_name, 
+    c.content, 
+    c.created_at
+  FROM comments c
+  LEFT JOIN profiles p ON c.user_id = p.id
+  WHERE c.article_id = article_id_param
+  ORDER BY c.created_at DESC;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION public.add_comment(
+  p_article_id UUID,
+  p_user_id UUID,
+  p_content TEXT
+)
+RETURNS BOOLEAN
+LANGUAGE plpgsql
+SECURITY DEFINER
+AS $$
+BEGIN
+  INSERT INTO comments (article_id, user_id, content)
+  VALUES (p_article_id, p_user_id, p_content);
+  RETURN TRUE;
 END;
 $$;

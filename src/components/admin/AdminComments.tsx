@@ -47,13 +47,18 @@ export function AdminComments() {
       // Get comments first
       const { data: commentsData, error: commentsError } = await supabase
         .from('comments')
-        .select('id, content, user_id, created_at, article_id')
-        .order('created_at', { ascending: false });
+        .select('id, content, user_id, created_at, article_id');
 
       if (commentsError) throw commentsError;
       
+      if (!commentsData || commentsData.length === 0) {
+        setComments([]);
+        setIsLoading(false);
+        return;
+      }
+      
       // Get article titles separately
-      const articleIds = [...new Set(commentsData?.map(c => c.article_id) || [])];
+      const articleIds = [...new Set(commentsData.map(c => c.article_id) || [])];
       const { data: articlesData, error: articlesError } = await supabase
         .from('articles')
         .select('id, title')
@@ -70,16 +75,26 @@ export function AdminComments() {
       // Get user details for each comment
       const commentsWithUserNames = await Promise.all(
         (commentsData || []).map(async (comment) => {
-          const { data: profileData } = await supabase
-            .from('profiles')
-            .select('full_name')
-            .eq('id', comment.user_id)
-            .single();
+          let userName = 'משתמש אנונימי';
+          
+          try {
+            const { data: profileData } = await supabase
+              .from('profiles')
+              .select('full_name')
+              .eq('id', comment.user_id)
+              .single();
+              
+            if (profileData && profileData.full_name) {
+              userName = profileData.full_name;
+            }
+          } catch (err) {
+            console.error('Error fetching user details:', err);
+          }
 
           return {
             id: comment.id,
             content: comment.content,
-            user_name: profileData?.full_name || 'משתמש אנונימי',
+            user_name: userName,
             created_at: comment.created_at,
             article_id: comment.article_id,
             article_title: articleTitleMap.get(comment.article_id) || 'מאמר לא מזוהה',
@@ -149,7 +164,11 @@ export function AdminComments() {
   };
 
   const formatDate = (dateString: string) => {
-    return format(new Date(dateString), 'dd בMMM yyyy, HH:mm', { locale: he });
+    try {
+      return format(new Date(dateString), 'dd בMMM yyyy, HH:mm', { locale: he });
+    } catch (error) {
+      return dateString;
+    }
   };
 
   const truncateContent = (content: string, maxLength = 50) => {

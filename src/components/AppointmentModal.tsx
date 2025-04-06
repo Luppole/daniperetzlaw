@@ -5,6 +5,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogDescription
 } from "@/components/ui/dialog"
 import { 
   Loader2, 
@@ -185,6 +186,9 @@ export function AppointmentModal({ trigger }: AppointmentModalProps) {
       <DialogContent className="w-full sm:max-w-[90%] md:max-w-[850px] p-6 overflow-y-auto max-h-[90vh] rounded-xl shadow-xl bg-white">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold text-law-navy text-center mb-4">קביעת פגישה</DialogTitle>
+          <DialogDescription className="sr-only">
+            טופס לקביעת פגישה עם משרד עורכי הדין
+          </DialogDescription>
         </DialogHeader>
         
         {formSubmitted ? (
