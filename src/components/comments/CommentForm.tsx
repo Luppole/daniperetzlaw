@@ -2,10 +2,11 @@
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
-import { addComment } from '@/services/articleService';
+import { toast } from 'sonner';
+import { auth } from '@/integrations/firebase/client';
+import { addComment } from '@/services/commentService';
 import { Loader2 } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface CommentFormProps {
   articleId: string;
@@ -15,49 +16,25 @@ interface CommentFormProps {
 const CommentForm: React.FC<CommentFormProps> = ({ articleId, onCommentAdded }) => {
   const [newComment, setNewComment] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [user, setUser] = useState<any>(null);
-  const { toast } = useToast();
-
-  // Check authentication status
-  React.useEffect(() => {
-    const checkAuth = async () => {
-      const { data } = await supabase.auth.getSession();
-      if (data?.session?.user) {
-        setUser(data.session.user);
-      }
-    };
-
-    checkAuth();
-
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setUser(session?.user || null);
-      }
-    );
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
+  const { user } = useAuth();
 
   const handleSubmitComment = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!user) {
-      toast({
-        title: 'התחברות נדרשת',
+      toast('התחברות נדרשת', {
         description: 'יש להתחבר כדי להוסיף תגובה',
-        variant: 'destructive'
+        action: {
+          label: 'התחבר',
+          onClick: () => window.location.href = '/auth',
+        },
       });
       return;
     }
 
     if (!newComment.trim()) {
-      toast({
-        title: 'שגיאה',
+      toast('שגיאה', {
         description: 'לא ניתן לשלוח תגובה ריקה',
-        variant: 'destructive'
       });
       return;
     }
@@ -65,27 +42,21 @@ const CommentForm: React.FC<CommentFormProps> = ({ articleId, onCommentAdded }) 
     setIsSubmitting(true);
     
     try {
-      // The issue might be here - make sure articleId is passed correctly
-      console.log('Submitting comment for article:', articleId);
-      const result = await addComment(articleId, user.id, newComment);
+      console.log('Submitting comment for article:', articleId, 'User ID:', user.uid);
+      const result = await addComment(articleId, user.uid, newComment);
       
       if (result) {
         setNewComment('');
-        toast({
-          title: 'התגובה נוספה בהצלחה',
-          variant: 'default'
-        });
+        toast('התגובה נוספה בהצלחה');
         // Make sure we call this to refresh the comments list
         onCommentAdded();
       } else {
         throw new Error('Failed to add comment');
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error adding comment:', error);
-      toast({
-        title: 'שגיאה',
-        description: 'אירעה שגיאה בהוספת התגובה',
-        variant: 'destructive'
+      toast('שגיאה', {
+        description: `אירעה שגיאה בהוספת התגובה: ${error.message}`,
       });
     } finally {
       setIsSubmitting(false);

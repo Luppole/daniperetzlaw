@@ -1,9 +1,11 @@
 
 import React, { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import { getArticleComments, Comment } from '@/services/articleService';
+import { getArticleComments } from '@/services/commentService';
+import { Comment } from '@/types/comment';
 import CommentForm from './CommentForm';
 import CommentList from './CommentList';
+import { collection, onSnapshot, query, where, orderBy } from 'firebase/firestore';
+import { db } from '@/integrations/firebase/client';
 
 interface CommentSectionProps {
   articleId: string;
@@ -15,33 +17,38 @@ const CommentSection: React.FC<CommentSectionProps> = ({ articleId }) => {
 
   // Fetch comments
   const fetchComments = async () => {
+    console.log('Fetching comments for article:', articleId);
     setIsLoading(true);
-    const fetchedComments = await getArticleComments(articleId);
-    setComments(fetchedComments);
-    setIsLoading(false);
+    try {
+      const fetchedComments = await getArticleComments(articleId);
+      setComments(fetchedComments);
+    } catch (error) {
+      console.error('Error fetching comments:', error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
     fetchComments();
 
     // Set up realtime subscription for comments
-    const channel = supabase
-      .channel('comments-changes')
-      .on('postgres_changes', 
-        { 
-          event: '*', 
-          schema: 'public', 
-          table: 'comments',
-          filter: `article_id=eq.${articleId}`
-        }, 
-        () => {
-          fetchComments();
-        }
-      )
-      .subscribe();
+    const commentsRef = collection(db, 'comments');
+    const commentsQuery = query(
+      commentsRef, 
+      where('article_id', '==', articleId),
+      orderBy('created_at', 'desc')
+    );
+    
+    const unsubscribe = onSnapshot(commentsQuery, async () => {
+      console.log('Comments updated, refreshing');
+      fetchComments();
+    }, (error) => {
+      console.error('Error in comments snapshot listener:', error);
+    });
 
     return () => {
-      supabase.removeChannel(channel);
+      unsubscribe();
     };
   }, [articleId]);
 
