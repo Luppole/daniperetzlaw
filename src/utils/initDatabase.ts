@@ -3,10 +3,7 @@ import {
   collection, 
   getDocs, 
   query, 
-  limit, 
-  getFirestore,
-  doc, 
-  setDoc
+  limit
 } from 'firebase/firestore';
 import { db } from '@/integrations/firebase/client';
 import { ensureArticlesExist } from '@/services/articleInitService';
@@ -23,7 +20,6 @@ export async function initializeDatabase() {
     
     if (appointmentsSnapshot.empty) {
       console.log('No appointments collection detected, creating sample document...');
-      // Create a sample document to ensure collection exists
       try {
         // No need to create actual appointment, just checking if it works
         console.log('Appointments collection access verified');
@@ -34,9 +30,10 @@ export async function initializeDatabase() {
       console.log('Appointments collection verified');
     }
 
-    // Ensure that we have some default articles
+    // Ensure that we have all our default articles
     try {
       await ensureArticlesExist();
+      console.log('Articles initialization completed');
     } catch (articleError) {
       console.error('Error ensuring articles exist:', articleError);
     }
