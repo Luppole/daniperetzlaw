@@ -10,7 +10,7 @@ import {
   doc, 
   serverTimestamp 
 } from 'firebase/firestore';
-import { db } from '@/integrations/firebase/client';
+import { db, auth } from '@/integrations/firebase/client';
 import { Comment } from '@/types/comment';
 import { FirebaseComment } from '@/integrations/firebase/types';
 
@@ -26,8 +26,8 @@ const convertFirestoreCommentToComment = async (
     if (userDoc.exists()) {
       userName = userDoc.data().full_name || 'Anonymous User';
     }
-  } catch (error) {
-    console.error('Error fetching user profile:', error);
+  } catch (error: any) {
+    console.error('Error fetching user profile:', error.message);
   }
   
   return {
@@ -63,8 +63,8 @@ export async function getArticleComments(articleId: string): Promise<Comment[]> 
     }
     
     return comments;
-  } catch (error) {
-    console.error('Error fetching comments:', error);
+  } catch (error: any) {
+    console.error('Error fetching comments:', error.message);
     return [];
   }
 }
@@ -72,6 +72,11 @@ export async function getArticleComments(articleId: string): Promise<Comment[]> 
 // Add a comment to an article
 export async function addComment(articleId: string, userId: string, content: string): Promise<boolean> {
   try {
+    // Verify the user is logged in
+    if (!auth.currentUser) {
+      throw new Error('Must be logged in to add comments');
+    }
+    
     const firestoreComment: Omit<FirebaseComment, 'id'> = {
       article_id: articleId,
       user_id: userId,
@@ -81,8 +86,8 @@ export async function addComment(articleId: string, userId: string, content: str
     
     const docRef = await addDoc(collection(db, 'comments'), firestoreComment);
     return !!docRef.id;
-  } catch (error) {
-    console.error('Error adding comment:', error);
-    return false;
+  } catch (error: any) {
+    console.error('Error adding comment:', error.message);
+    throw new Error(`Failed to add comment: ${error.message}`);
   }
 }

@@ -5,9 +5,11 @@ import {
   where, 
   getDocs, 
   addDoc, 
-  serverTimestamp 
+  serverTimestamp,
+  getCountFromServer,
+  limit
 } from 'firebase/firestore';
-import { db } from '@/integrations/firebase/client';
+import { db, auth } from '@/integrations/firebase/client';
 import { FirebaseArticle } from '@/integrations/firebase/types';
 
 // Sample articles with more content for initial database population
@@ -82,6 +84,25 @@ export async function ensureArticlesExist() {
   try {
     console.log('Checking for existing articles...');
     
+    // Check if current user is authenticated
+    const currentUser = auth.currentUser;
+    if (!currentUser) {
+      console.log('User not authenticated. Skipping article creation.');
+      return;
+    }
+    
+    console.log('User authenticated:', currentUser.uid);
+    
+    // First, check if we can read from the articles collection at all
+    try {
+      const articlesRef = collection(db, 'articles');
+      const countSnapshot = await getCountFromServer(query(articlesRef, limit(1)));
+      console.log(`Articles collection accessible, found ${countSnapshot.data().count} documents`);
+    } catch (error: any) {
+      console.error('Error accessing articles collection:', error.message);
+      throw new Error(`Cannot access articles collection: ${error.message}`);
+    }
+    
     // Get existing articles to check against
     const articlesRef = collection(db, 'articles');
     const articlesSnapshot = await getDocs(articlesRef);
@@ -99,15 +120,22 @@ export async function ensureArticlesExist() {
     // Add each article if it doesn't already exist
     for (const article of defaultArticles) {
       if (!existingArticleTitles.has(article.title)) {
-        const firestoreArticle: Omit<FirebaseArticle, 'id'> = {
-          ...article,
-          created_at: serverTimestamp() as any,
-          updated_at: null
-        };
-        
-        const docRef = await addDoc(collection(db, 'articles'), firestoreArticle);
-        console.log(`Article "${article.title}" created successfully with ID: ${docRef.id}`);
-        addedCount++;
+        try {
+          const firestoreArticle: Omit<FirebaseArticle, 'id'> = {
+            ...article,
+            created_at: serverTimestamp() as any,
+            updated_at: null
+          };
+          
+          const docRef = await addDoc(collection(db, 'articles'), firestoreArticle);
+          console.log(`Article "${article.title}" created successfully with ID: ${docRef.id}`);
+          addedCount++;
+        } catch (error: any) {
+          console.error(`Error creating article "${article.title}":`, error.message);
+          if (error.code === 'permission-denied') {
+            throw new Error('Permission denied. Please check that you have admin rights.');
+          }
+        }
       } else {
         console.log(`Article "${article.title}" already exists, skipping`);
         skippedCount++;
@@ -115,7 +143,8 @@ export async function ensureArticlesExist() {
     }
     
     console.log(`Articles initialization complete. Added: ${addedCount}, Skipped: ${skippedCount}`);
-  } catch (error) {
-    console.error('Error in ensureArticlesExist:', error);
+  } catch (error: any) {
+    console.error('Error in ensureArticlesExist:', error.message);
+    throw error;
   }
 }

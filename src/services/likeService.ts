@@ -6,20 +6,20 @@ import {
   getDocs, 
   addDoc, 
   deleteDoc, 
-  serverTimestamp 
+  serverTimestamp,
+  getCountFromServer 
 } from 'firebase/firestore';
-import { db } from '@/integrations/firebase/client';
+import { db, auth } from '@/integrations/firebase/client';
 
 // Get like count for an article
 export async function getArticleLikeCount(articleId: string): Promise<number> {
   try {
     const likesRef = collection(db, 'likes');
-    const likesQuery = query(likesRef, where('article_id', '==', articleId));
-    const querySnapshot = await getDocs(likesQuery);
-    
-    return querySnapshot.size;
-  } catch (error) {
-    console.error('Error getting like count:', error);
+    const q = query(likesRef, where('article_id', '==', articleId));
+    const snapshot = await getCountFromServer(q);
+    return snapshot.data().count;
+  } catch (error: any) {
+    console.error('Error getting like count:', error.message);
     return 0;
   }
 }
@@ -27,6 +27,8 @@ export async function getArticleLikeCount(articleId: string): Promise<number> {
 // Check if a user has liked an article
 export async function hasUserLikedArticle(articleId: string, userId: string): Promise<boolean> {
   try {
+    if (!userId) return false;
+    
     const likesRef = collection(db, 'likes');
     const likesQuery = query(
       likesRef, 
@@ -36,8 +38,8 @@ export async function hasUserLikedArticle(articleId: string, userId: string): Pr
     
     const querySnapshot = await getDocs(likesQuery);
     return !querySnapshot.empty;
-  } catch (error) {
-    console.error('Error checking if user liked article:', error);
+  } catch (error: any) {
+    console.error('Error checking if user liked article:', error.message);
     return false;
   }
 }
@@ -45,6 +47,15 @@ export async function hasUserLikedArticle(articleId: string, userId: string): Pr
 // Toggle like for an article
 export async function toggleArticleLike(articleId: string, userId: string): Promise<boolean> {
   try {
+    // Verify user is authenticated
+    if (!auth.currentUser) {
+      throw new Error('Must be logged in to like articles');
+    }
+    
+    if (!userId) {
+      throw new Error('User ID is required');
+    }
+    
     const likesRef = collection(db, 'likes');
     const likesQuery = query(
       likesRef, 
@@ -68,8 +79,8 @@ export async function toggleArticleLike(articleId: string, userId: string): Prom
       });
       return true; // Return true to indicate the article is now liked
     }
-  } catch (error) {
-    console.error('Error toggling like:', error);
-    return false;
+  } catch (error: any) {
+    console.error('Error toggling like:', error.message);
+    throw new Error(`Failed to toggle like: ${error.message}`);
   }
 }

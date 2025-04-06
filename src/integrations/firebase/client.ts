@@ -1,6 +1,6 @@
 
 import { initializeApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
+import { getFirestore, connectFirestoreEmulator } from "firebase/firestore";
 import { getAuth, connectAuthEmulator } from "firebase/auth";
 import { getAnalytics } from "firebase/analytics";
 
@@ -9,7 +9,7 @@ const firebaseConfig = {
   apiKey: "AIzaSyD6GP8bbDi_0CZCN-WlMOd1sGiVFVBXNGc",
   authDomain: "dannyperetzlaw.firebaseapp.com",
   projectId: "dannyperetzlaw",
-  storageBucket: "dannyperetzlaw.firebasestorage.app",
+  storageBucket: "dannyperetzlaw.appspot.com", // Fixed the storage bucket URL
   messagingSenderId: "434508219722",
   appId: "1:434508219722:web:fd1531d419b4e65f0cedb3",
   measurementId: "G-JM8VLXW3S2"
@@ -28,6 +28,7 @@ export const initializeFirebase = () => {
     try {
       // Connect to auth emulator if running locally
       // connectAuthEmulator(auth, "http://localhost:9099");
+      // connectFirestoreEmulator(db, "localhost", 8080);
       console.log("Firebase initialization complete");
     } catch (error) {
       console.error("Firebase initialization error:", error);

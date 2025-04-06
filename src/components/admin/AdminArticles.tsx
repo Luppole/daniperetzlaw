@@ -6,20 +6,34 @@ import { ArticleForm } from './articles/ArticleForm';
 import { ensureArticlesExist } from '@/services/articleInitService';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
+import { auth } from '@/integrations/firebase/client';
+import { useAdmin } from '@/contexts/AdminContext';
 
 export function AdminArticles() {
   const navigate = useNavigate();
+  const { isAdmin } = useAdmin();
 
   const importDefaultArticles = async () => {
     try {
+      // Verify the user is logged in and is an admin
+      if (!auth.currentUser) {
+        toast.error('יש להתחבר כדי לייבא מאמרים');
+        return;
+      }
+      
+      if (!isAdmin) {
+        toast.error('רק מנהלים רשאים לייבא מאמרים');
+        return;
+      }
+      
       toast.info('מייבא מאמרים...');
       await ensureArticlesExist();
       toast.success('המאמרים יובאו בהצלחה');
       // Refresh the current page to show the new articles
       navigate(0);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error importing articles:', error);
-      toast.error('אירעה שגיאה בייבוא המאמרים');
+      toast.error(`אירעה שגיאה בייבוא המאמרים: ${error.message}`);
     }
   };
 
