@@ -3,7 +3,7 @@ import React from 'react';
 import { Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from './components/ui/theme-provider';
-import HomePage from './pages';
+import HomePage from './pages/HomePage';
 import Articles from './pages/Articles';
 import Article from './pages/Article';
 import Auth from './pages/Auth';
