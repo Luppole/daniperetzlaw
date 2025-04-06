@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "@/components/ui/dialog";
 import practiceAreas from './PracticeAreaDescriptions';
 
 export function ExpertiseSection() {
@@ -70,14 +70,16 @@ export function ExpertiseSection() {
                         {area.fullDescription}
                       </DialogDescription>
                     </DialogHeader>
-                    <DialogFooter className="flex justify-between mt-6 space-x-4 space-x-reverse">
-                      <Button
-                        variant="outline"
-                        className="text-law-navy border-law-navy hover:bg-law-navy hover:text-white transition-all duration-300"
-                        onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}
-                      >
-                        צור קשר בנושא {area.title}
-                      </Button>
+                    <DialogFooter className="flex justify-between mt-6 space-x-6 space-x-reverse">
+                      <DialogClose asChild>
+                        <Button
+                          variant="outline"
+                          className="text-law-navy border-law-navy hover:bg-law-navy hover:text-white transition-all duration-300"
+                          onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}
+                        >
+                          צור קשר בנושא {area.title}
+                        </Button>
+                      </DialogClose>
                       <Link to={`/articles?expertise=${area.id}`}>
                         <Button
                           className="bg-law-navy hover:bg-law-navy/80 text-white transition-all duration-300"
