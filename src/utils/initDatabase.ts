@@ -16,6 +16,8 @@ export async function initializeDatabase() {
       
       if (error) {
         console.error('Error setting up database functions:', error);
+      } else {
+        console.log('Database functions set up successfully');
       }
     } catch (error) {
       console.error('Error invoking setup functions:', error);
@@ -27,6 +29,8 @@ export async function initializeDatabase() {
       
       if (!success) {
         console.error('Could not create appointments table');
+      } else {
+        console.log('Appointments table check completed');
       }
     } catch (tableError) {
       console.error('Could not create appointments table:', tableError);

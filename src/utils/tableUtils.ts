@@ -1,27 +1,23 @@
 
 import { supabase } from '@/integrations/supabase/client';
 
-// Function to safely check if a table exists using direct SQL
+// Function to safely check if a table exists using edge functions
 export async function ensureTableExists(tableName: string) {
   try {
-    // Use direct SQL function call
+    // Use edge function to check table existence
     console.log(`Checking if table ${tableName} exists...`);
     
-    try {
-      const { data, error } = await supabase.functions.invoke('check-table-exists', {
-        body: { tableName }
-      });
-      
-      if (error) {
-        console.log(`Error checking table existence via function:`, error);
-        return false;
-      }
-      
-      return data?.exists || false;
-    } catch (err) {
-      console.error(`Cannot invoke function to check table:`, err);
+    // Call edge function
+    const { data, error } = await supabase.functions.invoke('check-table-exists', {
+      body: { tableName } 
+    });
+    
+    if (error) {
+      console.log(`Error checking table existence via function:`, error);
       return false;
     }
+    
+    return data?.exists || false;
   } catch (err) {
     console.error(`Error checking if table ${tableName} exists:`, err);
     return false;
@@ -36,36 +32,32 @@ export async function createAppointmentsTableIfNeeded() {
     console.log('Attempting to create appointments table...');
     try {
       // Try using functions API
-      try {
-        const { error } = await supabase.functions.invoke('create-appointments-table', {
-          body: {}
-        });
+      const { error } = await supabase.functions.invoke('create-appointments-table', {
+        body: {}
+      });
+      
+      if (error) {
+        console.error('Failed to create appointments table via function:', error);
         
-        if (error) {
-          console.error('Failed to create appointments table via function:', error);
+        // Fall back to RPC
+        try {
+          const { error: rpcError } = await supabase.rpc('init_database');
+          
+          if (rpcError) {
+            console.error('Failed to create appointments table via RPC:', rpcError);
+            return false;
+          }
+          
+          console.log('Appointments table created successfully via RPC');
+          return true;
+        } catch (rpcErr) {
+          console.error('Failed to call RPC for table creation:', rpcErr);
           return false;
         }
-        
-        return true;
-      } catch (fnError) {
-        console.error('Failed to invoke create table function:', fnError);
       }
       
-      // Fall back to direct RPC
-      try {
-        const { error } = await supabase.rpc('init_database');
-        
-        if (error) {
-          console.error('Failed to create appointments table:', error);
-          return false;
-        }
-        
-        console.log('Appointments table created successfully');
-        return true;
-      } catch (error) {
-        console.error('Failed to create appointments table:', error);
-        return false;
-      }
+      console.log('Appointments table created successfully via function');
+      return true;
     } catch (error) {
       console.error('Failed to create appointments table:', error);
       return false;
