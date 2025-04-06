@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { toast } from '@/components/ui/use-toast';
 import { EditableText } from '@/components/EditableText';
+import { supabase } from '@/integrations/supabase/client';
 
 export function ContactForm() {
   const [formData, setFormData] = useState({
@@ -20,7 +21,7 @@ export function ContactForm() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
-  const recipientEmail = 'danip05@gmail.com';
+  const recipientEmail = 'daniperetz05@gmail.com';
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -48,6 +49,34 @@ export function ContactForm() {
         delete newErrors[id];
         return newErrors;
       });
+    }
+  };
+
+  const saveMessageToDatabase = async (data: typeof formData) => {
+    try {
+      // Save the message to Supabase
+      const { error } = await supabase
+        .from('contact_messages')
+        .insert([
+          {
+            name: data.name,
+            phone: data.phone,
+            email: data.email,
+            subject: data.subject,
+            message: data.message,
+            created_at: new Date().toISOString()
+          }
+        ]);
+
+      if (error) {
+        console.error('Error saving message:', error);
+        return false;
+      }
+      
+      return true;
+    } catch (error) {
+      console.error('Error saving message to database:', error);
+      return false;
     }
   };
 
@@ -81,6 +110,10 @@ export function ContactForm() {
       setIsSubmitting(true);
       
       try {
+        // First save to database
+        const savedToDatabase = await saveMessageToDatabase(formData);
+        
+        // Then attempt to send email
         const success = await sendEmail(formData);
         
         if (success) {

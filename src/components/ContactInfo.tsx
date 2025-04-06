@@ -21,7 +21,7 @@ export function ContactInfo() {
     { 
       icon: <Mail className="h-6 w-6 text-law-blue" />, 
       title: 'אימייל', 
-      details: 'dani@peretz-law.co.il',
+      details: 'daniperetz05@gmail.com',
       id: 'contact-email'
     },
     { 

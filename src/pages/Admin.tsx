@@ -8,6 +8,7 @@ import { AdminDashboard } from '@/components/admin/AdminDashboard';
 import { AdminArticles } from '@/components/admin/AdminArticles';
 import { AdminAppointments } from '@/components/admin/AdminAppointments';
 import { AdminComments } from '@/components/admin/AdminComments';
+import { AdminMessages } from '@/components/admin/AdminMessages';
 import { Loader2 } from 'lucide-react';
 
 const Admin = () => {
@@ -46,10 +47,11 @@ const Admin = () => {
         <Route path="articles/*" element={<AdminArticles />} />
         <Route path="appointments" element={<AdminAppointments />} />
         <Route path="comments" element={<AdminComments />} />
+        <Route path="messages" element={<AdminMessages />} />
         <Route path="*" element={<Navigate to="/admin" replace />} />
       </Routes>
     </AdminLayout>
   );
-};
+}
 
 export default Admin;
