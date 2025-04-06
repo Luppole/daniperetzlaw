@@ -1,69 +1,69 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
+import { getAllArticles } from '@/services/articleService';
 
 export function AboutSection() {
+  const [articleCount, setArticleCount] = React.useState(0);
+
+  React.useEffect(() => {
+    const fetchArticleCount = async () => {
+      const articles = await getAllArticles();
+      setArticleCount(articles.length);
+    };
+
+    fetchArticleCount();
+  }, []);
+
   return (
     <section id="about" className="section-wrapper bg-law-light">
-      <div className="container mx-auto px-4 py-16">
-        <div className="text-center mb-12">
+      <div className="container mx-auto">
+        <div className="text-center mb-16">
           <h2 className="section-title">אודות</h2>
           <p className="section-subtitle">מי אני ומה אני עושה</p>
         </div>
         
-        <div className="grid md:grid-cols-2 gap-10 items-center">
-          <div className="order-2 md:order-1 flex justify-center">
-            <div className="relative overflow-hidden rounded-lg shadow-2xl animate-on-scroll">
-              <img 
-                src="/lovable-uploads/36c5cf74-2158-404a-b5db-b307fb5a1f2b.png" 
-                alt="עורך דין דני פרץ" 
-                className="w-full h-auto object-cover transition-transform duration-700 hover:scale-105"
-              />
+        <div className="grid md:grid-cols-2 gap-12 items-center">
+          <div className="glass-card p-8">
+            <h3 className="text-2xl font-bold text-law-dark mb-4">עו"ד דני פרץ</h3>
+            <p className="text-law-gray mb-4">
+              דני פרץ - משרד עורכי דין מתמחה בטיפול מקצועי מעמיק ויצירתי בתחום המעמד האישי במגוון רחב של נושאים.
+            </p>
+            <p className="text-law-gray mb-4">
+              משרדנו מעניק ללקוח טיפול צמוד תוך גיבוש אסטרטגיה מותאמת למטרותיו של הלקות במשדרגו הלקוח נהנה מטיפול מקיף, תוך זמינות גבוהה, ותמיכה לאורך כל הדרך.
+            </p>
+            <p className="text-law-gray mb-4">
+              דני פרץ - משרד עורכי דין, פועל מתוך ראייה כוללת לטובת לקוחותיו ותוך דבקות במטרה אם באמצעות ייצוגם בערכאות משפטיות ואם באמצעות מו"מ להסכמים אפשריים והוגנים.
+            </p>
+            <p className="text-law-gray mb-4">
+              כל מקרה הוא מקרה פרטי והייעוץ שמקבל הלקוח כולל לא רק היבטים מקצועיים מהתחום המשפטי, אלא משולב גם חשיבה עסקית אסטרטגית עם ראיה עתידית מעבר לסוגיה המשפטית הצרה.
+            </p>
+            <p className="text-law-gray mb-4">
+              דני פרץ- משרד עורכי דין, חרט על דגלו, מקצועיות בלתי מתפשרת, רגישות, יצירתיות, זמינות ושיתוף הלקוח בעת קבלת החלטות.
+            </p>
+            <p className="text-law-gray mb-4">
+              משרדנו הציב וימשיך להציב במשרד סטנדרטים מקצועיים, במשרדנו שואפים לצמיחה התחדשות ושיפור מתמידים ודוגלים בהשקעה מקסימליח בכל מקרה ומקרה, ברמה המשפטית הגבוהה ביותר, עם נשמה יתירה ואנושיות.
+            </p>
+            <p className="text-law-gray mb-6">
+              המוטו במשרד דני פרץ - משרד עורכי דין הינו כי, "לנצח אין פירושו להביט" ניצחון הינו השנת התוצאה הטובה ביותר עבורכם מתוך ראיית הצרכים האישיים של לקוח ולקות. בין באמצעות הסכם הוגן, ובין אם צריך, באמצעות הליכים משפטיים אשר ינקטו על ידי משרדנו לצורך השגת המטרות שהוצבו בתיאום עם הלקות.
+            </p>
+            <div className="flex flex-wrap justify-start">
+              <Button 
+                onClick={() => document.getElementById('expertise')?.scrollIntoView({ behavior: 'smooth' })}
+                className="bg-law-blue hover:bg-law-blue/80 text-white"
+              >
+                תחומי התמחות
+              </Button>
             </div>
           </div>
           
-          <div className="order-1 md:order-2 flex flex-col">
-            <div className="glass-card p-8 shadow-lg">
-              <h3 className="text-2xl font-bold text-law-navy mb-6 border-b border-law-blue/20 pb-3">עו"ד דני פרץ</h3>
-              
-              <div className="space-y-4 text-law-gray">
-                <p>
-                  דני פרץ - משרד עורכי דין מתמחה בטיפול מקצועי מעמיק ויצירתי בתחום המעמד האישי במגוון רחב של נושאים.
-                </p>
-                <p>
-                  משרדנו מעניק ללקוח טיפול צמוד תוך גיבוש אסטרטגיה מותאמת למטרותיו של הלקוח במסגרתו הלקוח נהנה מטיפול מקיף, תוך זמינות גבוהה, ותמיכה לאורך כל הדרך.
-                </p>
-                <p>
-                  דני פרץ - משרד עורכי דין, פועל מתוך ראייה כוללת לטובת לקוחותיו ותוך דבקות במטרה אם באמצעות ייצוגם בערכאות משפטיות ואם באמצעות מו"מ להסכמים אפשריים והוגנים.
-                </p>
-                <p>
-                  כל מקרה הוא מקרה פרטי והייעוץ שמקבל הלקוח כולל לא רק היבטים מקצועיים מהתחום המשפטי, אלא משולב גם חשיבה עסקית אסטרטגית עם ראיה עתידית מעבר לסוגיה המשפטית הצרה.
-                </p>
-              </div>
-              
-              <div className="mt-6 pt-4 border-t border-law-blue/20">
-                <div className="space-y-4 text-law-gray">
-                  <p>
-                    דני פרץ- משרד עורכי דין, חרט על דגלו, מקצועיות בלתי מתפשרת, רגישות, יצירתיות, זמינות ושיתוף הלקוח בעת קבלת החלטות.
-                  </p>
-                  <p>
-                    משרדנו הציב וימשיך להציב במשרד סטנדרטים מקצועיים, במשרדנו שואפים לצמיחה התחדשות ושיפור מתמידים ודוגלים בהשקעה מקסימלית בכל מקרה ומקרה, ברמה המשפטית הגבוהה ביותר, עם נשמה יתירה ואנושיות.
-                  </p>
-                  <p>
-                    המוטו במשרד דני פרץ - משרד עורכי דין הינו כי, "לנצח אין פירושו להביט" ניצחון הינו השגת התוצאה הטובה ביותר עבורכם מתוך ראיית הצרכים האישיים של לקוח ולקוחה. בין באמצעות הסכם הוגן, ובין אם צריך, באמצעות הליכים משפטיים אשר ינקטו על ידי משרדנו לצורך השגת המטרות שהוצבו בתיאום עם הלקוח.
-                  </p>
-                </div>
-              </div>
-              
-              <div className="flex flex-wrap justify-start mt-6">
-                <Button 
-                  onClick={() => document.getElementById('expertise')?.scrollIntoView({ behavior: 'smooth' })}
-                  className="bg-law-blue hover:bg-law-blue/80 text-white"
-                >
-                  תחומי התמחות
-                </Button>
-              </div>
-            </div>
+          <div className="relative h-[500px] overflow-hidden rounded-lg shadow-xl animate-on-scroll">
+            <img 
+              src="/lovable-uploads/1fb2b49f-442a-4d77-b6c0-9578f64c98ca.png" 
+              alt="עורך דין דני פרץ" 
+              className="w-full h-full object-cover object-center transition-transform duration-700 hover:scale-105"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-law-navy/40 to-transparent"></div>
           </div>
         </div>
       </div>
