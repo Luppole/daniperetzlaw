@@ -1,36 +1,27 @@
 
 import { supabase } from '@/integrations/supabase/client';
 
-// Function to safely check if a table exists using RPC
+// Function to safely check if a table exists using direct SQL
 export async function ensureTableExists(tableName: string) {
   try {
-    // Try to execute an RPC function that checks table existence
-    const { data, error } = await supabase.rpc('check_table_exists', { 
-      table_name: tableName 
-    });
+    // Use direct SQL function call
+    console.log(`Checking if table ${tableName} exists...`);
     
-    if (error) {
-      console.log(`Error checking if table ${tableName} exists:`, error);
-      
-      // Fallback approach: try to query the postgres information schema directly
-      // This is a more advanced SQL query we can use when the RPC doesn't exist yet
-      const { data: infoData, error: infoError } = await supabase.rpc('exec_sql', {
-        sql_query: `SELECT EXISTS (
-          SELECT FROM information_schema.tables 
-          WHERE table_schema = 'public'
-          AND table_name = '${tableName}'
-        )`
+    try {
+      const { data, error } = await supabase.functions.invoke('check-table-exists', {
+        body: { tableName }
       });
       
-      if (infoError) {
-        console.error('Error with fallback table check:', infoError);
+      if (error) {
+        console.log(`Error checking table existence via function:`, error);
         return false;
       }
       
-      return infoData ? true : false;
+      return data?.exists || false;
+    } catch (err) {
+      console.error(`Cannot invoke function to check table:`, err);
+      return false;
     }
-    
-    return data || false;
   } catch (err) {
     console.error(`Error checking if table ${tableName} exists:`, err);
     return false;
@@ -44,41 +35,37 @@ export async function createAppointmentsTableIfNeeded() {
   if (!tableExists) {
     console.log('Attempting to create appointments table...');
     try {
-      // Use RPC to create table
-      const { error } = await supabase.rpc('init_database');
-      
-      if (error) {
-        console.error('Failed to create appointments table:', error);
-        
-        // Fallback: Try with direct SQL execution if RPC fails
-        const createTableSQL = `
-          CREATE TABLE IF NOT EXISTS public.appointments (
-            id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-            name TEXT NOT NULL,
-            email TEXT NOT NULL,
-            phone TEXT NOT NULL,
-            date TEXT NOT NULL,
-            time TEXT NOT NULL,
-            details TEXT,
-            status TEXT DEFAULT 'pending',
-            created_at TIMESTAMPTZ DEFAULT NOW()
-          );
-        `;
-        
-        const { error: sqlError } = await supabase.rpc('exec_sql', {
-          sql_query: createTableSQL
+      // Try using functions API
+      try {
+        const { error } = await supabase.functions.invoke('create-appointments-table', {
+          body: {}
         });
         
-        if (sqlError) {
-          console.error('Failed to create table with SQL fallback:', sqlError);
+        if (error) {
+          console.error('Failed to create appointments table via function:', error);
           return false;
         }
         
         return true;
+      } catch (fnError) {
+        console.error('Failed to invoke create table function:', fnError);
       }
       
-      console.log('Appointments table created successfully');
-      return true;
+      // Fall back to direct RPC
+      try {
+        const { error } = await supabase.rpc('init_database');
+        
+        if (error) {
+          console.error('Failed to create appointments table:', error);
+          return false;
+        }
+        
+        console.log('Appointments table created successfully');
+        return true;
+      } catch (error) {
+        console.error('Failed to create appointments table:', error);
+        return false;
+      }
     } catch (error) {
       console.error('Failed to create appointments table:', error);
       return false;

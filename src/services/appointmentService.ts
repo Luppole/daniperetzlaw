@@ -50,7 +50,9 @@ export async function createAppointment(appointmentData: {
     }
     
     console.log('Appointment created successfully:', data);
-    return { success: true, id: data ? data.id : undefined };
+    // Type assertion here to access properties safely
+    const result = data as { id: string } | null;
+    return { success: true, id: result ? result.id : undefined };
   } catch (error) {
     console.error('Error creating appointment:', error);
     return { success: false };
@@ -113,7 +115,7 @@ export async function getAppointmentCounts(): Promise<{ total: number; pending: 
       return { total: 0, pending: 0, confirmed: 0 };
     }
     
-    return data || { total: 0, pending: 0, confirmed: 0 };
+    return (data as { total: number; pending: number; confirmed: number }) || { total: 0, pending: 0, confirmed: 0 };
   } catch (error) {
     console.error('Error getting appointment counts:', error);
     return { total: 0, pending: 0, confirmed: 0 };
@@ -136,7 +138,7 @@ export async function getBookedSlots(date: string): Promise<string[]> {
     }
     
     // Extract time values safely
-    const bookedSlots = Array.isArray(data) ? data : [];
+    const bookedSlots = Array.isArray(data) ? data.map((item: any) => item.time || '') : [];
     console.log('Booked slots:', bookedSlots);
     return bookedSlots;
   } catch (error) {

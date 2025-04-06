@@ -8,39 +8,17 @@ export async function initializeDatabase() {
   try {
     console.log('Initializing database...');
     
-    // Create exec_sql RPC function if it doesn't exist
-    // This helps us run SQL directly as a fallback when needed
+    // Try to create exec_sql function via edge function
     try {
-      const { error } = await supabase.rpc('create_exec_sql_function');
-      if (error && !error.message.includes('already exists')) {
-        console.log('Creating exec_sql RPC function:', error);
-        
-        // Execute the creation manually if function doesn't exist
-        const { error: createError } = await supabase.rpc('exec_sql_raw', {
-          query: `
-            CREATE OR REPLACE FUNCTION public.exec_sql(sql_query TEXT)
-            RETURNS JSONB
-            LANGUAGE plpgsql
-            SECURITY DEFINER
-            AS $$
-            DECLARE
-              result JSONB;
-            BEGIN
-              EXECUTE sql_query INTO result;
-              RETURN result;
-            EXCEPTION WHEN OTHERS THEN
-              RETURN NULL;
-            END;
-            $$;
-          `
-        });
-        
-        if (createError) {
-          console.error('Error creating exec_sql function:', createError);
-        }
+      const { error } = await supabase.functions.invoke('setup-database-functions', {
+        body: {}
+      });
+      
+      if (error) {
+        console.error('Error setting up database functions:', error);
       }
     } catch (error) {
-      console.error('Error setting up SQL execution functions:', error);
+      console.error('Error invoking setup functions:', error);
     }
     
     // Create appointments table
