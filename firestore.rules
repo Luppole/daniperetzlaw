@@ -39,9 +39,9 @@ service cloud.firestore {
       allow write: if request.auth != null && request.auth.uid == userId;
     }
     
-    // Add rules for contact_messages collection
+    // Updated rules for contact_messages collection to fix permission issues
     match /contact_messages/{messageId} {
-      // Public can create messages
+      // Allow anyone to create messages without authentication
       allow create: if true;
       // Only admin can read, update, delete
       allow read, update, delete: if request.auth != null && isAdmin();

@@ -25,18 +25,11 @@ export const storage = getStorage(firebaseApp);
 
 // Initialize Firebase Analytics
 export const initializeFirebase = () => {
-  // Console log the auth state to debug
-  console.log('Current auth state:', auth.currentUser ? 'Logged in' : 'Not logged in');
-  
-  // Enable auth emulator if in development
-  if (import.meta.env.DEV) {
-    try {
-      // Connect to auth emulator if running locally
-      // connectAuthEmulator(auth, "http://localhost:9099");
-      // connectFirestoreEmulator(db, "localhost", 8080);
-      console.log("Firebase initialization complete");
-    } catch (error) {
-      console.error("Firebase initialization error:", error);
-    }
+  try {
+    // Console log the auth state to debug
+    console.log('Current auth state:', auth.currentUser ? 'Logged in' : 'Not logged in');
+    console.log('Firebase initialization complete');
+  } catch (error) {
+    console.error("Firebase initialization error:", error);
   }
 };
