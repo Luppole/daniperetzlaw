@@ -9,7 +9,6 @@ import {
   doc, 
   query, 
   orderBy, 
-  Timestamp, 
   serverTimestamp,
 } from 'firebase/firestore';
 import { FirebaseContactMessage } from '@/integrations/firebase/types';
@@ -20,12 +19,15 @@ const COLLECTION_NAME = 'contact_messages';
 
 export const fetchContactMessages = async (): Promise<ContactMessage[]> => {
   try {
+    console.log('Attempting to fetch contact messages from Firebase');
+    
     const contactMessagesQuery = query(
       collection(db, COLLECTION_NAME),
       orderBy('created_at', 'desc')
     );
     
     const querySnapshot = await getDocs(contactMessagesQuery);
+    console.log('Fetched messages count:', querySnapshot.size);
     
     return querySnapshot.docs.map(doc => {
       const data = doc.data() as FirebaseContactMessage;
@@ -43,7 +45,7 @@ export const fetchContactMessages = async (): Promise<ContactMessage[]> => {
   } catch (error) {
     console.error('Error fetching contact messages:', error);
     toast.error('שגיאה בטעינת ההודעות');
-    return [];
+    throw error; // Re-throw to allow handling by the component
   }
 };
 
@@ -75,7 +77,10 @@ export const saveContactMessage = async (message: Omit<ContactMessage, 'id' | 'c
   try {
     console.log('Saving contact message to Firebase:', message);
     
-    const docRef = await addDoc(collection(db, COLLECTION_NAME), {
+    // Ensure we have a valid collection reference
+    const contactMessagesRef = collection(db, COLLECTION_NAME);
+    
+    const docRef = await addDoc(contactMessagesRef, {
       ...message,
       created_at: serverTimestamp(),
       read: false
@@ -86,7 +91,7 @@ export const saveContactMessage = async (message: Omit<ContactMessage, 'id' | 'c
   } catch (error) {
     console.error('Error saving contact message to Firebase:', error);
     toast.error('שגיאה בשמירת ההודעה');
-    // Return true to still allow email fallback
-    return true;
+    // Return false to indicate error
+    return false;
   }
 };

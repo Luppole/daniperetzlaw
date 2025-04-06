@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { CheckCircle, Loader, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -84,46 +83,54 @@ export function ContactForm() {
       try {
         console.log('Submitting contact form data:', formData);
         
-        // First try to save to Firebase
-        const savedToDatabase = await saveContactMessage({
+        // Always try to save to Firebase first
+        const messageData = {
           name: formData.name,
           phone: formData.phone,
           email: formData.email,
           subject: formData.subject,
           message: formData.message
-        });
+        };
+        
+        const savedToDatabase = await saveContactMessage(messageData);
         
         if (savedToDatabase) {
           console.log('Message successfully saved to Firebase');
-        } else {
-          console.warn('Failed to save message to Firebase, proceeding with email only');
-        }
-        
-        // Then attempt to send email as a backup/notification
-        await sendEmail(formData);
-        
-        setIsSubmitting(false);
-        setSubmitted(true);
-        toast.success("הודעה נשלחה בהצלחה", {
-          description: "תודה על פנייתך, ניצור איתך קשר בהקדם",
-        });
-        
-        // Reset form after delay
-        setTimeout(() => {
-          setFormData({
-            name: '',
-            phone: '',
-            email: '',
-            subject: '',
-            message: ''
+          
+          // Show success message after successful database save
+          setIsSubmitting(false);
+          setSubmitted(true);
+          toast.success("הודעה נשלחה בהצלחה", {
+            description: "תודה על פנייתך, ניצור איתך קשר בהקדם",
           });
-          setSubmitted(false);
-        }, 3000);
+          
+          // Reset form after delay
+          setTimeout(() => {
+            setFormData({
+              name: '',
+              phone: '',
+              email: '',
+              subject: '',
+              message: ''
+            });
+            setSubmitted(false);
+          }, 3000);
+        } else {
+          // Fall back to email if database save failed
+          console.warn('Failed to save message to database, falling back to email');
+          await sendEmail(formData);
+          
+          setIsSubmitting(false);
+          setSubmitted(true);
+          toast.success("הודעה נשלחה בהצלחה (באמצעות ��ייל)", {
+            description: "תודה על פנייתך, ניצור איתך קשר בהקדם",
+          });
+        }
       } catch (error) {
         console.error("Error sending message:", error);
         setIsSubmitting(false);
         
-        // Even if there's an error, try to open the email client as a fallback
+        // Always try to open the email client as a last resort
         const emailSent = await sendEmail(formData);
         
         if (emailSent) {

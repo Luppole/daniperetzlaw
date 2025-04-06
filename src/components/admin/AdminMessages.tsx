@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
@@ -17,7 +16,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Eye, Trash2, MailOpen, Loader2 } from 'lucide-react';
+import { Eye, Trash2, MailOpen, Loader2, AlertTriangle } from 'lucide-react';
 import { formatDistance } from 'date-fns';
 import { he } from 'date-fns/locale';
 import {
@@ -42,13 +41,15 @@ import { ContactMessage } from '@/types/contact-message';
 
 export function AdminMessages() {
   const [selectedMessage, setSelectedMessage] = useState<ContactMessage | null>(null);
-  const [messageToDelete, setMessageToDelete] = useState<string | null>(null); // Changed from number to string
+  const [messageToDelete, setMessageToDelete] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
-  // Fetch messages
-  const { data: messages, isLoading, error } = useQuery({
+  // Fetch messages with error handling
+  const { data: messages, isLoading, error, refetch } = useQuery({
     queryKey: ['contactMessages'],
-    queryFn: fetchContactMessages
+    queryFn: fetchContactMessages,
+    retry: 1,  // Only retry once to avoid too many failed attempts
+    retryDelay: 1000
   });
 
   // Mark as read mutation
@@ -59,6 +60,7 @@ export function AdminMessages() {
       toast.success('הודעה סומנה כנקראה');
     },
     onError: (error) => {
+      console.error('Error marking message as read:', error);
       toast.error('שגיאה בסימון ההודעה: ' + error);
     }
   });
@@ -72,6 +74,7 @@ export function AdminMessages() {
       setMessageToDelete(null);
     },
     onError: (error) => {
+      console.error('Error deleting message:', error);
       toast.error('שגיאה במחיקת ההודעה: ' + error);
       setMessageToDelete(null);
     }
@@ -115,9 +118,24 @@ export function AdminMessages() {
 
   if (error) {
     return (
-      <div className="text-center text-red-500 py-10">
-        <p>שגיאה בטעינת ההודעות</p>
-        <p className="text-sm">{String(error)}</p>
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <h2 className="text-2xl font-bold text-law-navy">הודעות מטופס צור קשר</h2>
+        </div>
+        
+        <div className="text-center py-10 bg-red-50 border border-red-200 rounded-lg">
+          <AlertTriangle className="h-10 w-10 text-red-500 mx-auto mb-2" />
+          <p className="text-red-600 font-medium mb-2">שגיאה בטעינת ההודעות</p>
+          <p className="text-sm text-red-500 mb-4">{String(error)}</p>
+          <Button 
+            variant="outline" 
+            onClick={() => refetch()}
+            className="mx-auto"
+          >
+            <Loader2 className={`h-4 w-4 ml-2 ${isLoading ? 'animate-spin' : ''}`} />
+            נסה שוב
+          </Button>
+        </div>
       </div>
     );
   }

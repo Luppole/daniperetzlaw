@@ -46,6 +46,7 @@ export interface FirebaseProfile {
   full_name: string | null;
   avatar_url: string | null;
   created_at: Timestamp;
+  role?: string;  // Added role field to support isAdmin check
 }
 
 export interface FirebaseReview {
