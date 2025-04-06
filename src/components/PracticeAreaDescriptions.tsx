@@ -3,7 +3,7 @@ import React from 'react';
 import { 
   Scale, Coins, Users, HomeIcon, FileText, 
   ShieldCheck, Scroll, ClipboardSignature, Heart, 
-  Rainbow, Ring, Clock 
+  Rainbow, Clock, Target // Replaced Ring with Target
 } from 'lucide-react';
 
 export type PracticeArea = {
@@ -88,7 +88,7 @@ export const practiceAreas: PracticeArea[] = [
   {
     id: 'prenup',
     title: 'הסכמי טרום נישואים',
-    icon: <Ring className="h-8 w-8 text-law-blue" />,
+    icon: <Target className="h-8 w-8 text-law-blue" />, // Updated icon
     shortDescription: 'עריכת הסכמי ממון לפני נישואין, הסדרת יחסי הרכוש והכנסות בני הזוג',
     fullDescription: 'המשרד מתמחה בעריכת הסכמי ממון לפני נישואין והסדרת יחסי הרכוש והכנסות בני הזוג. אנו מסייעים לזוגות לתכנן את עתידם הכלכלי בצורה מושכלת, להגן על נכסים פרטיים ועסקיים, ולמנוע סכסוכים עתידיים. המשרד מלווה את הלקוחות בניסוח הסכם מאוזן המותאם לצרכים הספציפיים שלהם, ובאישורו בפני נוטריון או בבית המשפט לענייני משפחה.'
   },
