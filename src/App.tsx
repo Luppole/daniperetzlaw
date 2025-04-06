@@ -3,7 +3,7 @@ import React from 'react';
 import { Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from './components/ui/theme-provider';
-import IndexPage from './pages';
+import HomePage from './pages';
 import Articles from './pages/Articles';
 import Article from './pages/Article';
 import Auth from './pages/Auth';
@@ -26,7 +26,7 @@ function App() {
           <ThemeProvider defaultTheme="light" storageKey="lawsite-theme">
             <DraggableInfoProvider>
               <Routes>
-                <Route path="/" element={<IndexPage />} />
+                <Route path="/" element={<HomePage />} />
                 <Route path="/articles" element={<Articles />} />
                 <Route path="/articles/:id" element={<Article />} />
                 <Route path="/auth" element={<Auth />} />

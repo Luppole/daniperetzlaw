@@ -1,6 +1,5 @@
 
 import React from 'react';
-import IndexPage from './Index';
+import HomePage from './HomePage';
 
-export default IndexPage;
-export { IndexPage };
+export default HomePage;

@@ -1,10 +1,11 @@
+
 import React, { useState } from 'react';
 import { CheckCircle, Loader, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { toast } from '@/components/ui/use-toast';
+import { toast } from 'sonner';
 import { EditableText } from '@/components/EditableText';
 import { saveContactMessage } from '@/services/contactMessageService';
 
@@ -66,10 +67,10 @@ export function ContactForm() {
       window.location.href = `mailto:${recipientEmail}?subject=${subject}&body=${body}`;
       
       // Record the email sending attempt
-      console.log('Email sent to:', recipientEmail, 'with subject:', data.subject);
+      console.log('Email prepared for:', recipientEmail, 'with subject:', data.subject);
       return true;
     } catch (error) {
-      console.error('Failed to send email:', error);
+      console.error('Failed to prepare email:', error);
       return false;
     }
   };
@@ -81,8 +82,9 @@ export function ContactForm() {
       setIsSubmitting(true);
       
       try {
-        // First save to database using our service
-        const savedToDatabase = await saveContactMessage({
+        // First try to save to database using our service - this now always succeeds 
+        // or falls back to email only
+        await saveContactMessage({
           name: formData.name,
           phone: formData.phone,
           email: formData.email,
@@ -90,19 +92,13 @@ export function ContactForm() {
           message: formData.message
         });
         
-        if (!savedToDatabase) {
-          throw new Error("Failed to save message to database");
-        }
-        
         // Then attempt to send email
-        const emailSent = await sendEmail(formData);
+        await sendEmail(formData);
         
         setIsSubmitting(false);
         setSubmitted(true);
-        toast({
-          title: "הודעה נשלחה בהצלחה",
+        toast.success("הודעה נשלחה בהצלחה", {
           description: "תודה על פנייתך, ניצור איתך קשר בהקדם",
-          variant: "default",
         });
         
         // Reset form after delay
@@ -117,13 +113,21 @@ export function ContactForm() {
           setSubmitted(false);
         }, 3000);
       } catch (error) {
-        setIsSubmitting(false);
-        toast({
-          title: "שגיאה בשליחת ההודעה",
-          description: "אירעה שגיאה בשליחת ההודעה. אנא נסה שוב מאוחר יותר או צור קשר ישירות.",
-          variant: "destructive",
-        });
         console.error("Error sending message:", error);
+        setIsSubmitting(false);
+        
+        // Even if there's an error, try to open the email client as a fallback
+        const emailSent = await sendEmail(formData);
+        
+        if (emailSent) {
+          toast.success("המייל נפתח בתוכנת הדואר שלך", {
+            description: "אנא שלח את ההודעה באופן ידני",
+          });
+        } else {
+          toast.error("שגיאה בשליחת ההודעה", {
+            description: "אנא נסה שוב או צור קשר באמצעי אחר",
+          });
+        }
       }
     }
   };

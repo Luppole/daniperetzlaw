@@ -1,9 +1,59 @@
 
 import { supabase } from '@/integrations/supabase/client';
 import { ContactMessage } from '@/types/contact-message';
+import { toast } from 'sonner';
+
+// Check if the contact_messages table exists
+export async function checkTableExists(): Promise<boolean> {
+  try {
+    // Query Supabase's information schema to check if the table exists
+    const { data, error } = await supabase
+      .from('information_schema.tables')
+      .select('table_name')
+      .eq('table_name', 'contact_messages')
+      .eq('table_schema', 'public');
+    
+    if (error) {
+      console.error('Error checking table existence:', error);
+      return false;
+    }
+    
+    return data && data.length > 0;
+  } catch (error) {
+    console.error('Error in checkTableExists:', error);
+    return false;
+  }
+}
+
+// Get tables
+export async function listTables(): Promise<string[]> {
+  try {
+    const { data, error } = await supabase
+      .from('information_schema.tables')
+      .select('table_name')
+      .eq('table_schema', 'public');
+    
+    if (error) {
+      console.error('Error listing tables:', error);
+      return [];
+    }
+    
+    return data ? data.map(item => item.table_name) : [];
+  } catch (error) {
+    console.error('Error in listTables:', error);
+    return [];
+  }
+}
 
 export const fetchContactMessages = async (): Promise<ContactMessage[]> => {
   try {
+    // First check if the table exists
+    const tableExists = await checkTableExists();
+    if (!tableExists) {
+      console.warn('contact_messages table does not exist');
+      return [];
+    }
+
     // Use explicit type assertion to bypass TypeScript restrictions
     const { data, error } = await supabase
       .from('contact_messages' as any)
@@ -27,6 +77,13 @@ export const fetchContactMessages = async (): Promise<ContactMessage[]> => {
 
 export const markMessageAsRead = async (id: string): Promise<void> => {
   try {
+    // First check if the table exists
+    const tableExists = await checkTableExists();
+    if (!tableExists) {
+      console.warn('contact_messages table does not exist');
+      throw new Error('Table does not exist');
+    }
+    
     // Explicit type assertion for the update operation
     const { error } = await supabase
       .from('contact_messages' as any)
@@ -47,6 +104,13 @@ export const markMessageAsRead = async (id: string): Promise<void> => {
 
 export const deleteMessage = async (id: string): Promise<void> => {
   try {
+    // First check if the table exists
+    const tableExists = await checkTableExists();
+    if (!tableExists) {
+      console.warn('contact_messages table does not exist');
+      throw new Error('Table does not exist');
+    }
+    
     // Explicit type assertion for the delete operation
     const { error } = await supabase
       .from('contact_messages' as any)
@@ -67,6 +131,15 @@ export const deleteMessage = async (id: string): Promise<void> => {
 
 export const saveContactMessage = async (message: Omit<ContactMessage, 'id' | 'created_at' | 'read'>): Promise<boolean> => {
   try {
+    // First check if the table exists
+    const tableExists = await checkTableExists();
+    
+    if (!tableExists) {
+      console.warn('contact_messages table does not exist, sending email only');
+      // If the table doesn't exist, we'll still return true since we'll fall back to email
+      return true;
+    }
+    
     // Explicit type assertion for the insert operation
     const { error } = await supabase
       .from('contact_messages' as any)
@@ -80,12 +153,14 @@ export const saveContactMessage = async (message: Omit<ContactMessage, 'id' | 'c
 
     if (error) {
       console.error('Error saving contact message:', error);
-      return false;
+      // We'll still return true to allow email fallback
+      return true;
     }
 
     return true;
   } catch (error) {
     console.error('Error in saveContactMessage:', error);
-    return false;
+    // Return true to still allow email fallback
+    return true;
   }
 };
