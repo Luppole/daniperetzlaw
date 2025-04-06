@@ -39,7 +39,11 @@ export function ArticlesList({ onImportArticles }: ArticlesListProps) {
     setIsLoading(true);
     try {
       const data = await getAllArticles();
-      setArticles(data);
+      // Remove duplicates by creating a Map keyed by article ID
+      const uniqueArticles = Array.from(
+        new Map(data.map(article => [article.id, article])).values()
+      );
+      setArticles(uniqueArticles);
     } catch (error) {
       console.error('Error fetching articles:', error);
       toast.error('שגיאה בטעינת המאמרים');

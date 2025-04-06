@@ -74,16 +74,20 @@ export async function getAllArticles(): Promise<Article[]> {
     const articlesQuery = query(articlesRef, orderBy('created_at', 'desc'));
     const querySnapshot = await getDocs(articlesQuery);
     
-    const articles: Article[] = [];
+    const articlesMap = new Map<string, Article>();
+    
     querySnapshot.forEach((doc) => {
       const data = doc.data() as FirebaseArticle;
-      articles.push(convertFirestoreArticleToArticle({
-        ...data,
-        id: doc.id
-      }));
+      // Only add if not already in the map (prevents duplicates)
+      if (!articlesMap.has(doc.id)) {
+        articlesMap.set(doc.id, convertFirestoreArticleToArticle({
+          ...data,
+          id: doc.id
+        }));
+      }
     });
     
-    return articles;
+    return Array.from(articlesMap.values());
   } catch (error) {
     console.error('Error fetching articles:', error);
     return [];

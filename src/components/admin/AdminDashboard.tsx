@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { CalendarDays, FileText, MessageCircle, Users } from 'lucide-react';
@@ -5,6 +6,9 @@ import { getAppointmentCounts } from '@/services/appointmentService';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Link } from 'react-router-dom';
+import { getAllArticles } from '@/services/articleService';
+import { collection, getCountFromServer } from 'firebase/firestore';
+import { db } from '@/integrations/firebase/client';
 
 export function AdminDashboard() {
   const [appointmentStats, setAppointmentStats] = useState({ total: 0, pending: 0, confirmed: 0 });
@@ -20,11 +24,18 @@ export function AdminDashboard() {
         const apptCounts = await getAppointmentCounts();
         setAppointmentStats(apptCounts);
         
-        // Fetch article count
-        const { count: articlesCountData } = await supabase
-          .from('articles')
-          .select('*', { count: 'exact' });
-        setArticlesCount(articlesCountData || 0);
+        // Fetch article count from Firebase
+        try {
+          const articlesSnapshot = await getCountFromServer(collection(db, 'articles'));
+          setArticlesCount(articlesSnapshot.data().count);
+        } catch (error) {
+          console.error('Error fetching articles count:', error);
+          // Fallback: Fetch all articles and count them
+          const articles = await getAllArticles();
+          // Remove duplicates by creating a Set of IDs
+          const uniqueArticles = new Set(articles.map(article => article.id));
+          setArticlesCount(uniqueArticles.size);
+        }
         
         // Fetch comments count
         const { count: commentsCountData } = await supabase
