@@ -1,5 +1,6 @@
 
 import React from 'react';
-import Index from './Index';
+import IndexPage from './Index';
 
-export { Index };
+export default IndexPage;
+export { IndexPage };
