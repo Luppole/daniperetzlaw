@@ -2,18 +2,12 @@
 import { supabase } from '@/integrations/supabase/client';
 import { Appointment } from '@/types/appointments';
 
-// Type-safe approach to working with appointments
-type AppointmentResult = { data: Appointment[] | null; error: any };
-type AppointmentSingleResult = { data: Appointment | null; error: any };
-type AppointmentCountResult = { data: { total: number; pending: number; confirmed: number; } | null; error: any };
-type BookedSlotsResult = { data: string[] | null; error: any };
-
-// Fetch all appointments
+// Fetch all appointments using RPC only
 export async function getAllAppointments(): Promise<Appointment[]> {
   try {
     console.log('Fetching all appointments...');
     
-    // Use RPC only
+    // Use RPC call to get appointments
     const { data, error } = await supabase.rpc('get_all_appointments');
     
     if (error) {
@@ -21,7 +15,6 @@ export async function getAllAppointments(): Promise<Appointment[]> {
       return [];
     }
     
-    // Cast data to Appointment[] with type assertion
     return (data as Appointment[]) || [];
   } catch (error) {
     console.error('Error fetching appointments:', error);
@@ -57,7 +50,7 @@ export async function createAppointment(appointmentData: {
     }
     
     console.log('Appointment created successfully:', data);
-    return { success: true, id: data?.id };
+    return { success: true, id: data ? data.id : undefined };
   } catch (error) {
     console.error('Error creating appointment:', error);
     return { success: false };
