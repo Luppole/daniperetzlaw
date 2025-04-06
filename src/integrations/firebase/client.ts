@@ -20,10 +20,17 @@ const firebaseConfig = {
 export const firebaseApp = initializeApp(firebaseConfig);
 export const db = getFirestore(firebaseApp);
 export const auth = getAuth(firebaseApp);
-export const analytics = getAnalytics(firebaseApp);
 export const storage = getStorage(firebaseApp);
 
-// Initialize Firebase Analytics
+try {
+  // Only initialize analytics in browser environment
+  export const analytics = getAnalytics(firebaseApp);
+} catch (error) {
+  console.error("Failed to initialize analytics:", error);
+  export const analytics = null;
+}
+
+// Initialize Firebase and debug auth state
 export const initializeFirebase = () => {
   try {
     // Console log the auth state to debug

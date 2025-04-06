@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
@@ -16,7 +17,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Eye, Trash2, MailOpen, Loader2, AlertTriangle } from 'lucide-react';
+import { Eye, Trash2, MailOpen, Loader2, AlertTriangle, RefreshCw } from 'lucide-react';
 import { formatDistance } from 'date-fns';
 import { he } from 'date-fns/locale';
 import {
@@ -44,12 +45,14 @@ export function AdminMessages() {
   const [messageToDelete, setMessageToDelete] = useState<string | null>(null);
   const queryClient = useQueryClient();
 
-  // Fetch messages with error handling
+  // Fetch messages with improved error handling
   const { data: messages, isLoading, error, refetch } = useQuery({
     queryKey: ['contactMessages'],
     queryFn: fetchContactMessages,
-    retry: 1,  // Only retry once to avoid too many failed attempts
-    retryDelay: 1000
+    retry: 2,  // Increased retries
+    retryDelay: 1000,
+    staleTime: 30000, // 30 seconds
+    refetchOnWindowFocus: true
   });
 
   // Mark as read mutation
@@ -116,25 +119,39 @@ export function AdminMessages() {
     );
   }
 
-  if (error) {
+  // Handle empty state or error
+  if (!messages || messages.length === 0) {
     return (
       <div className="space-y-6">
         <div className="flex justify-between items-center">
           <h2 className="text-2xl font-bold text-law-navy">הודעות מטופס צור קשר</h2>
+          <Button variant="outline" onClick={() => refetch()} className="flex items-center gap-2">
+            <RefreshCw className="h-4 w-4" />
+            רענן
+          </Button>
         </div>
         
-        <div className="text-center py-10 bg-red-50 border border-red-200 rounded-lg">
-          <AlertTriangle className="h-10 w-10 text-red-500 mx-auto mb-2" />
-          <p className="text-red-600 font-medium mb-2">שגיאה בטעינת ההודעות</p>
-          <p className="text-sm text-red-500 mb-4">{String(error)}</p>
-          <Button 
-            variant="outline" 
-            onClick={() => refetch()}
-            className="mx-auto"
-          >
-            <Loader2 className={`h-4 w-4 ml-2 ${isLoading ? 'animate-spin' : ''}`} />
-            נסה שוב
-          </Button>
+        <div className="text-center py-10 bg-law-light/50 rounded-lg">
+          {error ? (
+            <>
+              <AlertTriangle className="h-10 w-10 text-orange-500 mx-auto mb-2" />
+              <p className="text-gray-600 font-medium mb-2">שגיאה בטעינת ההודעות</p>
+              <p className="text-sm text-gray-500 mb-4">{String(error)}</p>
+              <Button 
+                variant="outline" 
+                onClick={() => refetch()}
+                className="mx-auto"
+              >
+                <RefreshCw className="h-4 w-4 ml-2" />
+                נסה שוב
+              </Button>
+            </>
+          ) : (
+            <>
+              <MailOpen className="h-10 w-10 text-law-gray mx-auto mb-2" />
+              <p className="text-law-gray">אין הודעות</p>
+            </>
+          )}
         </div>
       </div>
     );

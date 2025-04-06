@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { CheckCircle, Loader, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -118,13 +119,19 @@ export function ContactForm() {
         } else {
           // Fall back to email if database save failed
           console.warn('Failed to save message to database, falling back to email');
-          await sendEmail(formData);
+          const emailSent = await sendEmail(formData);
           
           setIsSubmitting(false);
-          setSubmitted(true);
-          toast.success("הודעה נשלחה בהצלחה (באמצעות ��ייל)", {
-            description: "תודה על פנייתך, ניצור איתך קשר בהקדם",
-          });
+          if (emailSent) {
+            setSubmitted(true);
+            toast.success("הודעה נשלחה בהצלחה (באמצעות אימייל)", {
+              description: "תודה על פנייתך, ניצור איתך קשר בהקדם",
+            });
+          } else {
+            toast.error("שגיאה בשליחת ההודעה", {
+              description: "אנא נסה שוב או צור קשר בדרך אחרת",
+            });
+          }
         }
       } catch (error) {
         console.error("Error sending message:", error);

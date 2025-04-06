@@ -21,8 +21,9 @@ export const fetchContactMessages = async (): Promise<ContactMessage[]> => {
   try {
     console.log('Attempting to fetch contact messages from Firebase');
     
+    const contactMessagesRef = collection(db, COLLECTION_NAME);
     const contactMessagesQuery = query(
-      collection(db, COLLECTION_NAME),
+      contactMessagesRef,
       orderBy('created_at', 'desc')
     );
     
@@ -45,7 +46,8 @@ export const fetchContactMessages = async (): Promise<ContactMessage[]> => {
   } catch (error) {
     console.error('Error fetching contact messages:', error);
     toast.error('שגיאה בטעינת ההודעות');
-    throw error; // Re-throw to allow handling by the component
+    // Return empty array instead of throwing to prevent UI crashes
+    return [];
   }
 };
 
