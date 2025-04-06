@@ -28,7 +28,7 @@ interface SidebarLink {
 
 export function AdminLayout({ children }: AdminLayoutProps) {
   const location = useLocation();
-  const { logout } = useAuth();
+  const { signOut } = useAuth(); // Changed from logout to signOut
   const { toggleEditMode, isEditMode } = useTextEdit();
 
   const links: SidebarLink[] = [
@@ -92,7 +92,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
           <Button 
             variant="ghost" 
             size="sm"
-            onClick={() => logout ? logout() : null}
+            onClick={() => signOut ? signOut() : null}
           >
             <LogOut className="h-4 w-4 ml-2" />
             התנתק

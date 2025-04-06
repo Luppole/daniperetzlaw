@@ -42,7 +42,7 @@ import { ContactMessage } from '@/types/contact-message';
 
 export function AdminMessages() {
   const [selectedMessage, setSelectedMessage] = useState<ContactMessage | null>(null);
-  const [messageToDelete, setMessageToDelete] = useState<number | null>(null);
+  const [messageToDelete, setMessageToDelete] = useState<string | null>(null); // Changed from number to string
   const queryClient = useQueryClient();
 
   // Fetch messages
