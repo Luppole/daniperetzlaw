@@ -19,16 +19,20 @@ import {
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Eye, Loader2, Trash2 } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { collection, getDocs, deleteDoc, doc, query, orderBy, getDoc } from 'firebase/firestore';
+import { db } from '@/integrations/firebase/client';
 import { format } from 'date-fns';
 import { he } from 'date-fns/locale';
 import { toast } from 'sonner';
 import { Badge } from '@/components/ui/badge';
+import { getArticleById } from '@/services/articleService';
+import { FirebaseComment } from '@/integrations/firebase/types';
 
 type CommentWithArticle = {
   id: string;
   content: string;
   user_name: string;
+  user_id: string;
   created_at: string;
   article_id: string;
   article_title: string;
@@ -44,65 +48,62 @@ export function AdminComments() {
   const fetchComments = async () => {
     setIsLoading(true);
     try {
-      // Get comments first
-      const { data: commentsData, error: commentsError } = await supabase
-        .from('comments')
-        .select('id, content, user_id, created_at, article_id');
-
-      if (commentsError) throw commentsError;
+      // Fetch comments from Firestore
+      const commentsRef = collection(db, 'comments');
+      const commentsQuery = query(commentsRef, orderBy('created_at', 'desc'));
+      const querySnapshot = await getDocs(commentsQuery);
       
-      if (!commentsData || commentsData.length === 0) {
+      if (querySnapshot.empty) {
         setComments([]);
         setIsLoading(false);
         return;
       }
       
-      // Get article titles separately
-      const articleIds = [...new Set(commentsData.map(c => c.article_id) || [])];
-      const { data: articlesData, error: articlesError } = await supabase
-        .from('articles')
-        .select('id, title')
-        .in('id', articleIds);
+      // Process each comment
+      const commentsData: CommentWithArticle[] = [];
       
-      if (articlesError) throw articlesError;
-      
-      // Create a map of article id to title
-      const articleTitleMap = new Map();
-      articlesData?.forEach(article => {
-        articleTitleMap.set(article.id, article.title);
-      });
-      
-      // Get user details for each comment
-      const commentsWithUserNames = await Promise.all(
-        (commentsData || []).map(async (comment) => {
-          let userName = 'משתמש אנונימי';
-          
-          try {
-            const { data: profileData } = await supabase
-              .from('profiles')
-              .select('full_name')
-              .eq('id', comment.user_id)
-              .single();
-              
-            if (profileData && profileData.full_name) {
-              userName = profileData.full_name;
-            }
-          } catch (err) {
-            console.error('Error fetching user details:', err);
+      for (const commentDoc of querySnapshot.docs) {
+        const commentData = commentDoc.data() as FirebaseComment;
+        
+        // Get article title
+        let articleTitle = 'מאמר לא מזוהה';
+        try {
+          const article = await getArticleById(commentData.article_id);
+          if (article) {
+            articleTitle = article.title;
           }
-
-          return {
-            id: comment.id,
-            content: comment.content,
-            user_name: userName,
-            created_at: comment.created_at,
-            article_id: comment.article_id,
-            article_title: articleTitleMap.get(comment.article_id) || 'מאמר לא מזוהה',
-          };
-        })
-      );
-
-      setComments(commentsWithUserNames);
+        } catch (error) {
+          console.error('Error fetching article:', error);
+        }
+        
+        // Get user name
+        let userName = 'משתמש אנונימי';
+        try {
+          const userDoc = await getDoc(doc(db, 'profiles', commentData.user_id));
+          if (userDoc.exists()) {
+            userName = userDoc.data().full_name || 'משתמש אנונימי';
+          }
+        } catch (error) {
+          console.error('Error fetching user profile:', error);
+        }
+        
+        // Format the created_at timestamp
+        const createdAt = commentData.created_at instanceof Timestamp 
+          ? commentData.created_at.toDate().toISOString()
+          : new Date().toISOString();
+        
+        commentsData.push({
+          id: commentDoc.id,
+          content: commentData.content,
+          user_name: userName,
+          user_id: commentData.user_id,
+          created_at: createdAt,
+          article_id: commentData.article_id,
+          article_title: articleTitle,
+        });
+      }
+      
+      setComments(commentsData);
     } catch (error) {
       console.error('Error fetching comments:', error);
       toast.error('שגיאה בטעינת התגובות');
@@ -115,22 +116,15 @@ export function AdminComments() {
     fetchComments();
 
     // Set up realtime subscription
-    const channel = supabase
-      .channel('comments-changes')
-      .on('postgres_changes', 
-        { 
-          event: '*', 
-          schema: 'public', 
-          table: 'comments'
-        }, 
-        () => {
-          fetchComments();
-        }
-      )
-      .subscribe();
+    const commentsRef = collection(db, 'comments');
+    const commentsQuery = query(commentsRef, orderBy('created_at', 'desc'));
+    
+    const unsubscribe = onSnapshot(commentsQuery, () => {
+      fetchComments();
+    });
 
     return () => {
-      supabase.removeChannel(channel);
+      unsubscribe();
     };
   }, []);
 
@@ -139,12 +133,7 @@ export function AdminComments() {
     
     setIsDeleting(true);
     try {
-      const { error } = await supabase
-        .from('comments')
-        .delete()
-        .eq('id', commentToDelete.id);
-
-      if (error) throw error;
+      await deleteDoc(doc(db, 'comments', commentToDelete.id));
       
       setComments(comments.filter(comment => comment.id !== commentToDelete.id));
       toast.success('התגובה נמחקה בהצלחה');
@@ -280,3 +269,6 @@ export function AdminComments() {
     </div>
   );
 }
+
+// Import missing Timestamp and onSnapshot
+import { Timestamp, onSnapshot } from 'firebase/firestore';
