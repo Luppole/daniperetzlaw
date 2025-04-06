@@ -100,6 +100,29 @@ export function Navbar() {
     }
   };
 
+  const handlePracticeAreaClick = (areaId: string) => {
+    if (isHomePage) {
+      // Scroll to expertise section
+      document.getElementById('expertise')?.scrollIntoView({ behavior: 'smooth' });
+      
+      // Find the dialog trigger button for this practice area and click it
+      setTimeout(() => {
+        const dialogTrigger = document.querySelector(`[data-practice-area="${areaId}"]`) as HTMLButtonElement;
+        if (dialogTrigger) {
+          dialogTrigger.click();
+        }
+      }, 800);
+    } else {
+      // Navigate to home and then to expertise
+      navigate(`/#expertise`);
+      
+      // Set a flag in session storage to open the dialog after navigation
+      sessionStorage.setItem('openPracticeArea', areaId);
+    }
+    
+    if (isMenuOpen) setIsMenuOpen(false);
+  };
+
   return (
     <header className={cn(
       'fixed w-full z-50 transition-all duration-300 backdrop-blur-sm',
@@ -169,15 +192,11 @@ export function Navbar() {
                     {practiceAreas.map((area) => (
                       <NavigationMenuLink
                         key={area.id}
-                        className="block hover:bg-law-light rounded px-3 py-2 text-sm transition-colors"
-                        onClick={() => {
-                          scrollToExpertise();
-                          setTimeout(() => {
-                            document.getElementById(area.id)?.scrollIntoView({ behavior: 'smooth' });
-                          }, 500);
-                        }}
+                        className="block hover:bg-law-light rounded px-3 py-2 text-sm transition-colors flex items-center"
+                        onClick={() => handlePracticeAreaClick(area.id)}
                       >
-                        <span className="mr-2">{area.icon}</span> {area.title}
+                        <span className="inline-flex mr-2 w-5 h-5">{area.icon}</span> 
+                        <span>{area.title}</span>
                       </NavigationMenuLink>
                     ))}
                   </div>
@@ -261,16 +280,11 @@ export function Navbar() {
               {practiceAreas.map((area) => (
                 <button
                   key={area.id}
-                  className="text-right text-sm text-law-gray hover:text-law-navy transition-all duration-300 py-1"
-                  onClick={() => {
-                    scrollToExpertise();
-                    setIsMenuOpen(false);
-                    setTimeout(() => {
-                      document.getElementById(area.id)?.scrollIntoView({ behavior: 'smooth' });
-                    }, 500);
-                  }}
+                  className="text-right text-sm text-law-gray hover:text-law-navy transition-all duration-300 py-1 flex items-center"
+                  onClick={() => handlePracticeAreaClick(area.id)}
                 >
-                  <span className="mr-1">{area.icon}</span> {area.title}
+                  <span className="inline-flex mr-1 w-4 h-4">{area.icon}</span> 
+                  <span>{area.title}</span>
                 </button>
               ))}
             </div>

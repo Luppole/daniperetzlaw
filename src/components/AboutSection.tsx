@@ -41,9 +41,6 @@ export function AboutSection() {
             <p className="text-law-gray mb-4">
               דני פרץ- משרד עורכי דין, חרט על דגלו, מקצועיות בלתי מתפשרת, רגישות, יצירתיות, זמינות ושיתוף הלקוח בעת קבלת החלטות.
             </p>
-            <p className="text-law-gray mb-4">
-              משרדנו הציב וימשיך להציב במשרד סטנדרטים מקצועיים, במשרדנו שואפים לצמיחה התחדשות ושיפור מתמידים ודוגלים בהשקעה מקסימליח בכל מקרה ומקרה, ברמה המשפטית הגבוהה ביותר, עם נשמה יתירה ואנושיות.
-            </p>
             <p className="text-law-gray mb-6">
               המוטו במשרד דני פרץ - משרד עורכי דין הינו כי, "לנצח אין פירושו להביט" ניצחון הינו השנת התוצאה הטובה ביותר עבורכם מתוך ראיית הצרכים האישיים של לקוח ולקות. בין באמצעות הסכם הוגן, ובין אם צריך, באמצעות הליכים משפטיים אשר ינקטו על ידי משרדנו לצורך השגת המטרות שהוצבו בתיאום עם הלקות.
             </p>
@@ -57,13 +54,13 @@ export function AboutSection() {
             </div>
           </div>
           
-          <div className="relative h-[500px] overflow-hidden rounded-lg shadow-xl animate-on-scroll">
+          <div className="relative h-[600px] overflow-hidden rounded-lg shadow-xl animate-on-scroll">
             <img 
-              src="/lovable-uploads/1fb2b49f-442a-4d77-b6c0-9578f64c98ca.png" 
+              src="/lovable-uploads/d946344e-c289-4991-bd3a-121dffdabbbe.png" 
               alt="עורך דין דני פרץ" 
-              className="w-full h-full object-cover object-center transition-transform duration-700 hover:scale-105"
+              className="w-full h-full object-cover object-top transition-transform duration-700 hover:scale-105"
             />
-            <div className="absolute inset-0 bg-gradient-to-t from-law-navy/40 to-transparent"></div>
+            <div className="absolute inset-0 bg-gradient-to-t from-law-navy/30 to-transparent"></div>
           </div>
         </div>
       </div>

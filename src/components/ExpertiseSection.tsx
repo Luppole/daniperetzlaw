@@ -7,6 +7,23 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import practiceAreas from './PracticeAreaDescriptions';
 
 export function ExpertiseSection() {
+  React.useEffect(() => {
+    // Check if there's a practice area to open from session storage
+    const areaToOpen = sessionStorage.getItem('openPracticeArea');
+    if (areaToOpen) {
+      // Clear the storage item
+      sessionStorage.removeItem('openPracticeArea');
+      
+      // Give some time for the component to fully render
+      setTimeout(() => {
+        const dialogTrigger = document.querySelector(`[data-practice-area="${areaToOpen}"]`) as HTMLButtonElement;
+        if (dialogTrigger) {
+          dialogTrigger.click();
+        }
+      }, 1000);
+    }
+  }, []);
+
   return (
     <section id="expertise" className="section-wrapper animated-gradient parallax">
       <div className="container mx-auto">
@@ -38,7 +55,11 @@ export function ExpertiseSection() {
               <CardFooter className="flex justify-center">
                 <Dialog>
                   <DialogTrigger asChild>
-                    <Button variant="outline" className="text-law-navy border-law-navy hover:bg-law-navy hover:text-white transition-all duration-300 btn-pulse">
+                    <Button 
+                      variant="outline" 
+                      className="text-law-navy border-law-navy hover:bg-law-navy hover:text-white transition-all duration-300 btn-pulse"
+                      data-practice-area={area.id}
+                    >
                       קרא עוד
                     </Button>
                   </DialogTrigger>
