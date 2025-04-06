@@ -3,26 +3,31 @@ import { supabase } from '@/integrations/supabase/client';
 import { ContactMessage } from '@/types/contact-message';
 
 export const fetchContactMessages = async (): Promise<ContactMessage[]> => {
-  // Use a type assertion to tell TypeScript this is safe
+  // We need to use more explicit type assertions to make TypeScript happy
   const { data, error } = await supabase
-    .from('contact_messages')
+    .from('contact_messages' as any)
     .select('*')
-    .order('created_at', { ascending: false }) as any;
+    .order('created_at', { ascending: false }) as {
+      data: ContactMessage[] | null;
+      error: any;
+    };
 
   if (error) {
     console.error('Error fetching contact messages:', error);
     throw new Error(error.message);
   }
 
-  return (data || []) as ContactMessage[];
+  return data || [];
 };
 
 export const markMessageAsRead = async (id: string): Promise<void> => {
-  // Use a type assertion for the table
+  // More explicit type assertion for the update operation
   const { error } = await supabase
-    .from('contact_messages')
-    .update({ read: true })
-    .eq('id', id) as any;
+    .from('contact_messages' as any)
+    .update({ read: true } as any)
+    .eq('id', id) as {
+      error: any;
+    };
 
   if (error) {
     console.error('Error marking message as read:', error);
@@ -31,11 +36,13 @@ export const markMessageAsRead = async (id: string): Promise<void> => {
 };
 
 export const deleteMessage = async (id: string): Promise<void> => {
-  // Use a type assertion for the table
+  // More explicit type assertion for the delete operation
   const { error } = await supabase
-    .from('contact_messages')
+    .from('contact_messages' as any)
     .delete()
-    .eq('id', id) as any;
+    .eq('id', id) as {
+      error: any;
+    };
 
   if (error) {
     console.error('Error deleting message:', error);

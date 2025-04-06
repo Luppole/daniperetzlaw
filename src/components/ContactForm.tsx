@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { CheckCircle, Loader, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -54,7 +53,7 @@ export function ContactForm() {
 
   const saveMessageToDatabase = async (data: typeof formData) => {
     try {
-      // Use any type to bypass TypeScript restrictions
+      // Use more explicit type assertion to fix TypeScript errors
       const { error } = await supabase
         .from('contact_messages' as any)
         .insert([
@@ -66,7 +65,9 @@ export function ContactForm() {
             message: data.message,
             created_at: new Date().toISOString()
           }
-        ]) as any;
+        ]) as {
+          error: any;
+        };
 
       if (error) {
         console.error('Error saving message:', error);
