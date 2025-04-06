@@ -109,8 +109,6 @@ export const TextEditProvider = ({ children }: { children: ReactNode }) => {
     resetTexts
   };
 
-  console.log('TextEditContext state:', { isEditMode, editedTextsCount: Object.keys(editedTexts).length });
-
   return (
     <TextEditContext.Provider value={contextValue}>
       {children}

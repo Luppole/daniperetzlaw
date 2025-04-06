@@ -28,8 +28,8 @@ interface SidebarLink {
 
 export function AdminLayout({ children }: AdminLayoutProps) {
   const location = useLocation();
-  const { signOut } = useAuth(); // Changed from logout to signOut
-  const { toggleEditMode, isEditMode } = useTextEdit();
+  const { signOut } = useAuth();
+  const { toggleEditMode, isEditMode, resetTexts } = useTextEdit();
 
   const links: SidebarLink[] = [
     {
@@ -89,6 +89,16 @@ export function AdminLayout({ children }: AdminLayoutProps) {
           >
             {isEditMode ? 'סיום עריכת תוכן' : 'עריכת תוכן'}
           </Button>
+          {isEditMode && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={resetTexts}
+              className="text-red-500 hover:text-red-700 hover:bg-red-50"
+            >
+              אפס טקסטים
+            </Button>
+          )}
           <Button 
             variant="ghost" 
             size="sm"

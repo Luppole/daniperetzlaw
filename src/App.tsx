@@ -14,6 +14,7 @@ import { Toaster as Sonner } from 'sonner';
 import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { AdminProvider } from '@/contexts/AdminContext';
+import { TextEditProvider } from '@/contexts/TextEditContext';
 import Profile from '@/pages/Profile';
 
 const queryClient = new QueryClient();
@@ -24,20 +25,22 @@ function App() {
       <AdminProvider>
         <QueryClientProvider client={queryClient}>
           <ThemeProvider defaultTheme="light" storageKey="lawsite-theme">
-            <DraggableInfoProvider>
-              <Routes>
-                <Route path="/" element={<HomePage />} />
-                <Route path="/articles" element={<Articles />} />
-                <Route path="/articles/:id" element={<Article />} />
-                <Route path="/article/:id" element={<Article />} />
-                <Route path="/auth" element={<Auth />} />
-                <Route path="/profile" element={<Profile />} />
-                <Route path="/admin/*" element={<Admin />} />
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-              <Sonner />
-              <Toaster />
-            </DraggableInfoProvider>
+            <TextEditProvider>
+              <DraggableInfoProvider>
+                <Routes>
+                  <Route path="/" element={<HomePage />} />
+                  <Route path="/articles" element={<Articles />} />
+                  <Route path="/articles/:id" element={<Article />} />
+                  <Route path="/article/:id" element={<Article />} />
+                  <Route path="/auth" element={<Auth />} />
+                  <Route path="/profile" element={<Profile />} />
+                  <Route path="/admin/*" element={<Admin />} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+                <Sonner />
+                <Toaster />
+              </DraggableInfoProvider>
+            </TextEditProvider>
           </ThemeProvider>
         </QueryClientProvider>
       </AdminProvider>

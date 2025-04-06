@@ -114,25 +114,12 @@ const HomePage = () => {
     });
   };
 
-  // Custom toggle function to ensure saves are persisted
-  const handleToggleEditMode = () => {
-    if (isEditMode) {
-      // When exiting edit mode, force save to localStorage
-      const savedTexts = JSON.stringify(editedTexts);
-      localStorage.setItem('edited_texts', savedTexts);
-      console.log('Forced save of edited texts when exiting edit mode', savedTexts);
-    }
-    toggleEditMode();
-  };
-
   // Function to confirm text reset
   const handleResetTexts = () => {
     if (window.confirm('האם אתה בטוח שברצונך לאפס את כל הטקסטים המותאמים אישית?')) {
       resetTexts();
     }
   };
-
-  console.log('HomePage rendering, admin:', isAdmin, 'editMode:', isEditMode);
 
   return (
     <div className="min-h-screen overflow-x-hidden">
@@ -149,7 +136,7 @@ const HomePage = () => {
       {isAdmin && (
         <div className="fixed top-24 left-6 z-40 flex flex-col gap-2">
           <Button
-            onClick={handleToggleEditMode}
+            onClick={toggleEditMode}
             className={`shadow-lg transition-all duration-300 ${
               isEditMode ? 'bg-green-600 hover:bg-green-700' : 'bg-law-navy hover:bg-law-navy/90'
             }`}
