@@ -4,7 +4,7 @@ import { Route, Routes } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from './components/ui/theme-provider';
 import { DraggableInfoProvider } from './contexts/DraggableInfoContext';
-import { Sonner } from 'sonner';
+import { Toaster as SonnerToaster } from 'sonner';
 import { Toaster } from '@/components/ui/toaster';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { AdminProvider } from '@/contexts/AdminContext';
@@ -24,7 +24,7 @@ const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
       staleTime: 1000 * 60 * 5, // 5 minutes
-      cacheTime: 1000 * 60 * 30, // 30 minutes
+      gcTime: 1000 * 60 * 30, // 30 minutes (replaces cacheTime)
       retry: 1,
       refetchOnWindowFocus: false,
     },
@@ -84,7 +84,7 @@ function App() {
                     </Suspense>
                   } />
                 </Routes>
-                <Sonner />
+                <SonnerToaster />
                 <Toaster />
               </DraggableInfoProvider>
             </TextEditProvider>
