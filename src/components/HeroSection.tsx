@@ -68,16 +68,13 @@ export function HeroSection() {
         </div>
         
         <div className="order-1 md:order-2 flex justify-center animate-slide-in-right">
-          <div className="relative">
+          <div className="relative w-full">
             <div className="absolute -inset-4 bg-law-navy rounded-xl opacity-10 animate-pulse-light"></div>
             <img 
               src="/lovable-uploads/ad835b61-e4f6-490c-8e35-d5865c9cb250.png" 
               alt="עו״ד דני פרץ" 
-              className="rounded-lg shadow-xl max-w-full h-auto max-h-[450px] object-cover relative z-10 transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl"
+              className="rounded-lg shadow-xl w-full h-auto max-h-[600px] object-cover relative z-10 transition-all duration-500 hover:scale-[1.02] hover:shadow-2xl"
             />
-            <div className="absolute -bottom-4 -right-4 w-20 h-20 bg-law-navy rounded-full flex items-center justify-center text-white font-bold text-sm z-20 animate-float">
-              <span className="text-center">6 שנות<br />ניסיון</span>
-            </div>
           </div>
         </div>
       </div>

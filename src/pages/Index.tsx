@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Navbar } from '@/components/Navbar';
 import { HeroSection } from '@/components/HeroSection';
@@ -15,7 +16,8 @@ const sectionImages = [
   '/lovable-uploads/ad835b61-e4f6-490c-8e35-d5865c9cb250.png', // Hero image
   '/lovable-uploads/1fb2b49f-442a-4d77-b6c0-9578f64c98ca.png', // About section
   '/lovable-uploads/7d51b520-a305-4b68-9d5d-2d9f07241dae.png', // Expertise section
-  '/lovable-uploads/d4c52f89-de61-4c7e-b12b-62040c71d1fb.png'  // Contact section
+  '/lovable-uploads/d4c52f89-de61-4c7e-b12b-62040c71d1fb.png',  // Contact section
+  '/lovable-uploads/c54d0449-5cfd-4dca-9651-968dd859ac77.png'  // New lawyer image
 ];
 
 const Index = () => {
