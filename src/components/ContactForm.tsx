@@ -82,9 +82,10 @@ export function ContactForm() {
       setIsSubmitting(true);
       
       try {
-        // First try to save to database using our service - this now always succeeds 
-        // or falls back to email only
-        await saveContactMessage({
+        console.log('Submitting contact form data:', formData);
+        
+        // First try to save to Firebase
+        const savedToDatabase = await saveContactMessage({
           name: formData.name,
           phone: formData.phone,
           email: formData.email,
@@ -92,7 +93,13 @@ export function ContactForm() {
           message: formData.message
         });
         
-        // Then attempt to send email
+        if (savedToDatabase) {
+          console.log('Message successfully saved to Firebase');
+        } else {
+          console.warn('Failed to save message to Firebase, proceeding with email only');
+        }
+        
+        // Then attempt to send email as a backup/notification
         await sendEmail(formData);
         
         setIsSubmitting(false);
