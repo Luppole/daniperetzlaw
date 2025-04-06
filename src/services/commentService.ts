@@ -36,11 +36,12 @@ export async function getArticleComments(articleId: string): Promise<Comment[]> 
     if (error) throw error;
 
     // Process the data to match the Comment interface
+    // Use type assertion to fix the TypeScript error
     return (data?.map(item => ({
       id: item.id,
       article_id: item.article_id,
       user_id: item.user_id,
-      user_name: item.profiles?.full_name || 'Anonymous User',
+      user_name: (item.profiles as { full_name?: string } | null)?.full_name || 'Anonymous User',
       content: item.content,
       created_at: item.created_at
     })) as Comment[]) || [];
