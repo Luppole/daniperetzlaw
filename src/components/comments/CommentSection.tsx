@@ -51,6 +51,11 @@ const CommentSection: React.FC<CommentSectionProps> = ({ articleId }) => {
     setComments(freshComments);
   };
 
+  const handleCommentDeleted = async () => {
+    const freshComments = await getArticleComments(articleId);
+    setComments(freshComments);
+  };
+
   return (
     <div className="mt-12 pt-6 border-t border-gray-200">
       <h3 className="text-xl font-bold mb-6 text-law-navy">תגובות</h3>
@@ -59,7 +64,11 @@ const CommentSection: React.FC<CommentSectionProps> = ({ articleId }) => {
       <CommentForm articleId={articleId} onCommentAdded={handleCommentAdded} />
       
       {/* Comments List */}
-      <CommentList comments={comments} isLoading={isLoading} />
+      <CommentList 
+        comments={comments} 
+        isLoading={isLoading} 
+        onCommentDeleted={handleCommentDeleted}
+      />
     </div>
   );
 };

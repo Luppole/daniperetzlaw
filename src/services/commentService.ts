@@ -16,7 +16,6 @@ import { db, auth } from '@/integrations/firebase/client';
 import { Comment } from '@/types/comment';
 import { FirebaseComment } from '@/integrations/firebase/types';
 import { toast } from 'sonner';
-import { useAdmin } from '@/contexts/AdminContext';
 
 // Helper function to convert Firestore document to Comment type
 const convertFirestoreCommentToComment = async (
@@ -134,11 +133,10 @@ export async function deleteComment(commentId: string): Promise<boolean> {
     
     const commentData = commentDoc.data() as FirebaseComment;
     
-    // Check if current user is the owner of the comment or an admin
-    // Note: This client-side check is supplementary to Firestore security rules
+    // Check if current user is the owner of the comment
     if (commentData.user_id !== auth.currentUser.uid) {
-      // For admins, we'll bypass this check in the component and let Firestore rules take care of it
-      console.log('User is not the owner of this comment - will check admin status in the component');
+      toast.error('אין לך הרשאה למחוק תגובה זו');
+      return false;
     }
     
     await deleteDoc(commentRef);
