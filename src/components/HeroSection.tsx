@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
@@ -32,7 +31,12 @@ export function HeroSection() {
               <span className="text-3xl font-rubik font-bold text-white">DP</span>
             </div>
             <div className="mr-3 border-r-2 border-law-navy pr-3 cursor-pointer" onClick={scrollToTop}>
-              <EditableText id="hero-name" className="text-2xl font-rubik font-bold text-law-navy">דני פרץ</EditableText>
+              <EditableText 
+                id="hero-name" 
+                className="text-2xl font-rubik font-bold text-law-navy bg-law-navy/10 px-2 py-1 rounded-md"
+              >
+                דני פרץ
+              </EditableText>
               <EditableText id="hero-title" className="text-law-gray">עורך דין</EditableText>
             </div>
           </div>
