@@ -27,7 +27,7 @@ const Index = () => {
   const [showScrollTop, setShowScrollTop] = useState(false);
   const location = useLocation();
   const { isAdmin } = useAdmin();
-  const { isEditMode, toggleEditMode, resetTexts } = useTextEdit();
+  const { isEditMode, toggleEditMode, resetTexts, editedTexts } = useTextEdit();
 
   useEffect(() => {
     // Preload all uploaded images for better performance
@@ -90,11 +90,40 @@ const Index = () => {
     };
   }, [location]);
 
+  // Force save of edited texts before unload
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      if (isEditMode) {
+        // Force save edits to localStorage before page unload
+        const savedTexts = JSON.stringify(editedTexts);
+        localStorage.setItem('edited_texts', savedTexts);
+        console.log('Saved edited texts before unload', savedTexts);
+      }
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+    };
+  }, [isEditMode, editedTexts]);
+
   const scrollToTop = () => {
     window.scrollTo({
       top: 0,
       behavior: 'smooth'
     });
+  };
+
+  // Custom toggle function to ensure saves are persisted
+  const handleToggleEditMode = () => {
+    if (isEditMode) {
+      // When exiting edit mode, force save to localStorage
+      const savedTexts = JSON.stringify(editedTexts);
+      localStorage.setItem('edited_texts', savedTexts);
+      console.log('Forced save of edited texts when exiting edit mode', savedTexts);
+    }
+    toggleEditMode();
   };
 
   // Function to confirm text reset
@@ -121,7 +150,7 @@ const Index = () => {
       {isAdmin && (
         <div className="fixed top-24 left-6 z-40 flex flex-col gap-2">
           <Button
-            onClick={toggleEditMode}
+            onClick={handleToggleEditMode}
             className={`shadow-lg transition-all duration-300 ${
               isEditMode ? 'bg-green-600 hover:bg-green-700' : 'bg-law-navy hover:bg-law-navy/90'
             }`}

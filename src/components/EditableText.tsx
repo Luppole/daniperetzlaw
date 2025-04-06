@@ -33,7 +33,8 @@ export const EditableText: React.FC<EditableTextProps> = ({
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   // Get the current text content from either edited texts or children
-  const displayText = editedTexts[id] || 
+  const displayText = editedTexts[id] !== undefined ? 
+    editedTexts[id] : 
     (typeof children === 'string' ? children : '');
 
   // Setup the editor when entering edit mode
@@ -56,12 +57,13 @@ export const EditableText: React.FC<EditableTextProps> = ({
 
   // Save the edited text
   const handleSave = () => {
-    if (currentText.trim() !== displayText.trim()) {
+    if (currentText.trim() !== '') {
       updateText(id, currentText);
       console.log(`Saved text with ID: ${id}, new content: ${currentText}`);
       toast.success('הטקסט נשמר בהצלחה');
     } else {
       console.log(`No changes made to text with ID: ${id}`);
+      toast.error('לא ניתן לשמור טקסט ריק');
     }
     setIsEditing(false);
   };
@@ -115,7 +117,7 @@ export const EditableText: React.FC<EditableTextProps> = ({
               "group relative cursor-pointer border border-transparent hover:border-dashed hover:border-law-navy/50 hover:bg-law-navy/5 rounded-sm transition-all p-1"
             )}
           >
-            {editedTexts[id] !== undefined ? editedTexts[id] : children}
+            {displayText}
             <Button
               size="icon"
               variant="ghost"

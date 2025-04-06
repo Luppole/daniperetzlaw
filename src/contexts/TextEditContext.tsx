@@ -69,6 +69,8 @@ export const TextEditProvider = ({ children }: { children: ReactNode }) => {
       if (newMode) {
         toast.info('מצב עריכה פעיל. עבור עם העכבר מעל טקסט לעריכה.');
       } else {
+        // Force save to localStorage when exiting edit mode
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(editedTexts));
         toast.success('השינויים נשמרו בהצלחה.');
       }
       console.log('Edit mode toggled:', newMode);
@@ -85,6 +87,8 @@ export const TextEditProvider = ({ children }: { children: ReactNode }) => {
         ...prev,
         [id]: content
       };
+      // Immediately save to localStorage after each update
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(newTexts));
       return newTexts;
     });
   };
