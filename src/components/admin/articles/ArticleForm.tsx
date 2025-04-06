@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { z } from 'zod';
@@ -15,6 +14,8 @@ import { Article, getArticleById, createArticle, updateArticle } from '@/service
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '@/integrations/firebase/client';
 
 const formSchema = z.object({
   title: z.string().min(3, 'הכותרת חייבת להיות לפחות 3 תווים'),
@@ -34,6 +35,7 @@ export function ArticleForm() {
   const [isSaving, setIsSaving] = useState(false);
   const [imageUploading, setImageUploading] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [userProfile, setUserProfile] = useState<{ full_name?: string } | null>(null);
   
   const isEditing = !!id;
 
@@ -47,6 +49,23 @@ export function ArticleForm() {
       image_url: '',
     },
   });
+
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (user) {
+        try {
+          const profileDoc = await getDoc(doc(db, 'profiles', user.uid));
+          if (profileDoc.exists()) {
+            setUserProfile(profileDoc.data() as { full_name?: string });
+          }
+        } catch (error) {
+          console.error('Error fetching user profile:', error);
+        }
+      }
+    };
+
+    fetchUserProfile();
+  }, [user]);
 
   useEffect(() => {
     const fetchArticle = async () => {
@@ -89,13 +108,14 @@ export function ArticleForm() {
 
     setIsSaving(true);
     try {
-      // Ensure all required fields are present for the articleData
+      const authorName = userProfile?.full_name || user.displayName || user.email?.split('@')[0] || 'כותב לא ידוע';
+
       const articleData = {
         title: values.title,
         summary: values.summary,
         content: values.content,
         category: values.category,
-        author: user.user_metadata?.full_name || user.email?.split('@')[0] || 'כותב לא ידוע',
+        author: authorName,
         image_url: values.image_url || '',
       };
 
@@ -120,13 +140,11 @@ export function ArticleForm() {
     const file = e.target.files?.[0];
     if (!file) return;
     
-    // Check file size (max 5MB)
     if (file.size > 5 * 1024 * 1024) {
       toast.error('גודל הקובץ חייב להיות קטן מ-5MB');
       return;
     }
     
-    // Check file type
     if (!file.type.startsWith('image/')) {
       toast.error('יש להעלות קובץ תמונה בלבד');
       return;
@@ -141,7 +159,6 @@ export function ArticleForm() {
       
       if (error) throw error;
       
-      // Get public URL
       const { data: publicUrlData } = supabase
         .storage
         .from('article-images')
@@ -149,7 +166,6 @@ export function ArticleForm() {
       
       const imageUrl = publicUrlData.publicUrl;
       
-      // Update form
       form.setValue('image_url', imageUrl);
       setImagePreview(imageUrl);
       

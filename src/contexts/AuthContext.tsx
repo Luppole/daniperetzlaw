@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { 
   User, 
@@ -17,16 +16,16 @@ import { toast } from 'sonner';
 type AuthContextType = {
   user: User | null;
   isLoading: boolean;
-  signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string, fullName?: string) => Promise<void>;
+  signIn: (email: string, password: string) => Promise<User | null>;
+  signUp: (email: string, password: string, fullName?: string) => Promise<User | null>;
   signOut: () => Promise<void>;
 };
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   isLoading: true,
-  signIn: async () => {},
-  signUp: async () => {},
+  signIn: async () => null,
+  signUp: async () => null,
   signOut: async () => {},
 });
 
@@ -50,7 +49,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     return () => unsubscribe();
   }, []);
 
-  const signIn = async (email: string, password: string) => {
+  const signIn = async (email: string, password: string): Promise<User | null> => {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       toast.success('התחברת בהצלחה');
@@ -67,7 +66,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     email: string, 
     password: string, 
     fullName?: string
-  ) => {
+  ): Promise<User | null> => {
     try {
       // Create the user
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
