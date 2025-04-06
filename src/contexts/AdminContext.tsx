@@ -5,7 +5,7 @@ import { useAuth } from './AuthContext';
 // List of admin emails
 const ADMIN_EMAILS = [
   'itamarperetzofficial@gmail.com',
-  'danip05@gmail.com'
+  'daniperetz05@gmail.com'
 ];
 
 type AdminContextType = {
