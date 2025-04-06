@@ -38,7 +38,7 @@ export function Footer() {
           </div>
           
           <div className="animate-slide-up" style={{ animationDelay: '0.1s' }}>
-            <h3 className="text-xl font-bold mb-4 relative pb-2">
+            <h3 className="text-xl font-bold mb-4 relative pb-2 text-white">
               קישורים מהירים
               <span className="absolute bottom-0 right-0 w-12 h-0.5 bg-law-silver"></span>
             </h3>
@@ -77,7 +77,7 @@ export function Footer() {
           </div>
           
           <div className="animate-slide-up" style={{ animationDelay: '0.2s' }}>
-            <h3 className="text-xl font-bold mb-4 relative pb-2">
+            <h3 className="text-xl font-bold mb-4 relative pb-2 text-white">
               צור קשר
               <span className="absolute bottom-0 right-0 w-12 h-0.5 bg-law-silver"></span>
             </h3>
@@ -108,3 +108,4 @@ export function Footer() {
     </footer>
   );
 }
+
