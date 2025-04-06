@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
@@ -24,7 +23,7 @@ export function HeroSection() {
         <div className="absolute -inset-[10%] rounded-full bg-law-light/5 blur-3xl animate-[pulse_20s_ease-in-out_infinite] opacity-20 bottom-1/3 left-1/3" style={{ animationDelay: '5s' }}></div>
       </div>
       
-      <div className="container mx-auto px-4 pt-24 grid md:grid-cols-2 gap-8 items-center relative z-10">
+      <div className="container mx-auto px-4 pt-24 grid md:grid-cols-2 gap-8 items-center relative z-10 md:pl-16">
         <div className="order-2 md:order-1">
           <div className="flex items-center mb-4 animate-slide-in-left">
             <div className="bg-law-navy p-3 rounded-lg">
