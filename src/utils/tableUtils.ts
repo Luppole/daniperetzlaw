@@ -9,7 +9,7 @@ export async function ensureTableExists(tableName: string) {
     
     // Call edge function
     const { data, error } = await supabase.functions.invoke('check-table-exists', {
-      body: { tableName } 
+      body: { tableName } as { tableName: string }
     });
     
     if (error) {
@@ -33,7 +33,7 @@ export async function createAppointmentsTableIfNeeded() {
     try {
       // Try using functions API
       const { error } = await supabase.functions.invoke('create-appointments-table', {
-        body: {}
+        body: {} as Record<string, never>
       });
       
       if (error) {
@@ -41,7 +41,10 @@ export async function createAppointmentsTableIfNeeded() {
         
         // Fall back to RPC
         try {
-          const { error: rpcError } = await supabase.rpc('init_database');
+          const { error: rpcError } = await supabase.rpc('init_database') as { 
+            data: any; 
+            error: any 
+          };
           
           if (rpcError) {
             console.error('Failed to create appointments table via RPC:', rpcError);
