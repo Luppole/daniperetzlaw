@@ -27,9 +27,9 @@ export async function createArticle(articleData: {
       date: currentDate
     };
 
-    const { error } = await supabase.from('articles').insert(fullArticleData);
+    const response = await supabase.from('articles').insert(fullArticleData);
 
-    if (error) throw error;
+    if (response.error) throw response.error;
     return true;
   } catch (error) {
     console.error('Error creating article:', error);
@@ -40,13 +40,13 @@ export async function createArticle(articleData: {
 // Get all articles
 export async function getAllArticles(): Promise<Article[]> {
   try {
-    const { data, error } = await supabase
+    const response = await supabase
       .from('articles')
       .select('*')
       .order('created_at', { ascending: false });
 
-    if (error) throw error;
-    return data as Article[] || [];
+    if (response.error) throw response.error;
+    return response.data as Article[] || [];
   } catch (error) {
     console.error('Error fetching articles:', error);
     return [];
@@ -56,14 +56,14 @@ export async function getAllArticles(): Promise<Article[]> {
 // Get article by ID
 export async function getArticleById(id: string): Promise<Article | null> {
   try {
-    const { data, error } = await supabase
+    const response = await supabase
       .from('articles')
       .select('*')
       .eq('id', id)
       .single();
 
-    if (error) throw error;
-    return data as Article;
+    if (response.error) throw response.error;
+    return response.data as Article;
   } catch (error) {
     console.error('Error fetching article:', error);
     return null;
@@ -73,12 +73,12 @@ export async function getArticleById(id: string): Promise<Article | null> {
 // Delete an article
 export async function deleteArticle(id: string): Promise<boolean> {
   try {
-    const { error } = await supabase
+    const response = await supabase
       .from('articles')
       .delete()
       .eq('id', id);
 
-    if (error) throw error;
+    if (response.error) throw response.error;
     return true;
   } catch (error) {
     console.error('Error deleting article:', error);
@@ -89,12 +89,12 @@ export async function deleteArticle(id: string): Promise<boolean> {
 // Update an article
 export async function updateArticle(id: string, articleData: Partial<Article>): Promise<boolean> {
   try {
-    const { error } = await supabase
+    const response = await supabase
       .from('articles')
       .update(articleData)
       .eq('id', id);
 
-    if (error) throw error;
+    if (response.error) throw response.error;
     return true;
   } catch (error) {
     console.error('Error updating article:', error);

@@ -7,17 +7,17 @@ export async function ensureTableExists(tableName: string) {
     // Use edge function to check table existence
     console.log(`Checking if table ${tableName} exists...`);
     
-    // Call edge function
-    const { data, error } = await supabase.functions.invoke('check-table-exists', {
-      body: { tableName } as { tableName: string }
+    // Call edge function with explicit typing
+    const response = await supabase.functions.invoke('check-table-exists', {
+      body: { tableName } 
     });
     
-    if (error) {
-      console.log(`Error checking table existence via function:`, error);
+    if (response.error) {
+      console.log(`Error checking table existence via function:`, response.error);
       return false;
     }
     
-    return data?.exists || false;
+    return response.data?.exists || false;
   } catch (err) {
     console.error(`Error checking if table ${tableName} exists:`, err);
     return false;
@@ -31,23 +31,20 @@ export async function createAppointmentsTableIfNeeded() {
   if (!tableExists) {
     console.log('Attempting to create appointments table...');
     try {
-      // Try using functions API
-      const { error } = await supabase.functions.invoke('create-appointments-table', {
-        body: {} as Record<string, never>
+      // Try using functions API with proper typing
+      const response = await supabase.functions.invoke('create-appointments-table', {
+        body: {} 
       });
       
-      if (error) {
-        console.error('Failed to create appointments table via function:', error);
+      if (response.error) {
+        console.error('Failed to create appointments table via function:', response.error);
         
         // Fall back to RPC
         try {
-          const { error: rpcError } = await supabase.rpc('init_database') as { 
-            data: any; 
-            error: any 
-          };
+          const rpcResponse = await supabase.rpc('init_database');
           
-          if (rpcError) {
-            console.error('Failed to create appointments table via RPC:', rpcError);
+          if (rpcResponse.error) {
+            console.error('Failed to create appointments table via RPC:', rpcResponse.error);
             return false;
           }
           

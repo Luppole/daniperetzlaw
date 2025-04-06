@@ -10,12 +10,12 @@ export async function initializeDatabase() {
     
     // Try to create exec_sql function via edge function
     try {
-      const { error } = await supabase.functions.invoke('setup-database-functions', {
-        body: {} as Record<string, never>
+      const response = await supabase.functions.invoke('setup-database-functions', {
+        body: {} 
       });
       
-      if (error) {
-        console.error('Error setting up database functions:', error);
+      if (response.error) {
+        console.error('Error setting up database functions:', response.error);
       } else {
         console.log('Database functions set up successfully');
       }
