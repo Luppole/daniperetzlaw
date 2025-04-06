@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getAllArticles, deleteArticle, Article } from '@/services/articleService';
@@ -39,11 +38,7 @@ export function ArticlesList({ onImportArticles }: ArticlesListProps) {
     setIsLoading(true);
     try {
       const data = await getAllArticles();
-      // Remove duplicates by creating a Map keyed by article ID
-      const uniqueArticles = Array.from(
-        new Map(data.map(article => [article.id, article])).values()
-      );
-      setArticles(uniqueArticles);
+      setArticles(data);
     } catch (error) {
       console.error('Error fetching articles:', error);
       toast.error('שגיאה בטעינת המאמרים');
@@ -78,7 +73,6 @@ export function ArticlesList({ onImportArticles }: ArticlesListProps) {
     setIsImporting(true);
     try {
       await onImportArticles();
-      // Refresh articles list after import
       fetchArticles();
     } finally {
       setIsImporting(false);

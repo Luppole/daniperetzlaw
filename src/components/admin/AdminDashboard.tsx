@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { CalendarDays, FileText, MessageCircle, Users } from 'lucide-react';
@@ -26,15 +25,14 @@ export function AdminDashboard() {
         
         // Fetch article count from Firebase
         try {
+          // First try to get the count directly from Firestore
           const articlesSnapshot = await getCountFromServer(collection(db, 'articles'));
           setArticlesCount(articlesSnapshot.data().count);
         } catch (error) {
           console.error('Error fetching articles count:', error);
-          // Fallback: Fetch all articles and count them
+          // If direct count fails, fetch all articles and count unique IDs
           const articles = await getAllArticles();
-          // Remove duplicates by creating a Set of IDs
-          const uniqueArticles = new Set(articles.map(article => article.id));
-          setArticlesCount(uniqueArticles.size);
+          setArticlesCount(articles.length); // getAllArticles now returns deduplicated articles
         }
         
         // Fetch comments count
