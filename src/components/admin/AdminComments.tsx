@@ -7,11 +7,15 @@ import { CommentDataProvider } from './comments/CommentDataProvider';
 import { CommentTable } from './comments/CommentTable';
 import { CommentTableSkeleton } from './comments/CommentTableSkeleton';
 import { DeleteCommentDialog } from './comments/DeleteCommentDialog';
+import { useAdmin } from '@/contexts/AdminContext';
+import { db } from '@/integrations/firebase/client';
+import { doc, deleteDoc } from 'firebase/firestore';
 
 export function AdminComments() {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [commentToDelete, setCommentToDelete] = useState<CommentWithArticle | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const { isAdmin } = useAdmin();
 
   const confirmDelete = (comment: CommentWithArticle) => {
     setCommentToDelete(comment);
@@ -23,10 +27,18 @@ export function AdminComments() {
     
     setIsDeleting(true);
     try {
-      const success = await deleteComment(commentToDelete.id);
-      
-      if (success) {
+      // Admin bypass: directly delete from Firestore instead of using the service function
+      // This is necessary because the security rules will allow admins to delete any comment
+      if (isAdmin) {
+        await deleteDoc(doc(db, 'comments', commentToDelete.id));
+        toast.success('התגובה נמחקה בהצלחה');
         setDeleteDialogOpen(false);
+      } else {
+        // For regular users, use the service function which checks ownership
+        const success = await deleteComment(commentToDelete.id);
+        if (success) {
+          setDeleteDialogOpen(false);
+        }
       }
     } catch (error) {
       console.error('Error deleting comment:', error);

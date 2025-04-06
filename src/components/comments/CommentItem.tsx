@@ -39,7 +39,7 @@ const CommentItem: React.FC<CommentItemProps> = ({ comment }) => {
         </Avatar>
         <div className="flex-1">
           <div className="flex justify-between items-center mb-3">
-            <span className="font-medium text-law-navy text-lg">{comment.user_name || 'משתמש אנונימי'}</span>
+            <span className="font-medium text-law-navy text-lg">{comment.user_name}</span>
             <span className="text-sm text-gray-500">{formatDate(comment.created_at)}</span>
           </div>
           <p className="text-gray-700 font-heebo text-lg leading-relaxed">{comment.content}</p>

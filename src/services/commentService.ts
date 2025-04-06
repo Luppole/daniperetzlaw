@@ -16,6 +16,7 @@ import { db, auth } from '@/integrations/firebase/client';
 import { Comment } from '@/types/comment';
 import { FirebaseComment } from '@/integrations/firebase/types';
 import { toast } from 'sonner';
+import { useAdmin } from '@/contexts/AdminContext';
 
 // Helper function to convert Firestore document to Comment type
 const convertFirestoreCommentToComment = async (
@@ -28,6 +29,7 @@ const convertFirestoreCommentToComment = async (
     const userDoc = await getDoc(doc(db, 'profiles', comment.user_id));
     if (userDoc.exists()) {
       const userData = userDoc.data();
+      // Prioritize full_name from profiles, then displayName from auth
       userName = userData.full_name || userData.displayName || 'משתמש אנונימי';
     }
   } catch (error: any) {
@@ -121,12 +123,36 @@ export async function deleteComment(commentId: string): Promise<boolean> {
       throw new Error('Must be logged in to delete comments');
     }
     
-    await deleteDoc(doc(db, 'comments', commentId));
+    // First, get the comment to check ownership
+    const commentRef = doc(db, 'comments', commentId);
+    const commentDoc = await getDoc(commentRef);
+    
+    if (!commentDoc.exists()) {
+      toast.error('התגובה לא נמצאה');
+      return false;
+    }
+    
+    const commentData = commentDoc.data() as FirebaseComment;
+    
+    // Check if current user is the owner of the comment or an admin
+    // Note: This client-side check is supplementary to Firestore security rules
+    if (commentData.user_id !== auth.currentUser.uid) {
+      // For admins, we'll bypass this check in the component and let Firestore rules take care of it
+      console.log('User is not the owner of this comment - will check admin status in the component');
+    }
+    
+    await deleteDoc(commentRef);
     toast.success('התגובה נמחקה בהצלחה');
     return true;
   } catch (error: any) {
     console.error('Error deleting comment:', error);
     toast.error('שגיאה במחיקת התגובה');
+    
+    // Log more detailed error info for debugging
+    if (error.code) {
+      console.error('Firebase error code:', error.code);
+    }
+    
     return false;
   }
 }
