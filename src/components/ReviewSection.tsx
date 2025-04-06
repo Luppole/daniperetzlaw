@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
@@ -6,11 +5,24 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card';
 import { StarIcon } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { supabase } from '@/integrations/supabase/client';
 import { formatDistanceToNow } from 'date-fns';
 import { he } from 'date-fns/locale';
 import { Loader2 } from 'lucide-react';
 import { toast } from '@/components/ui/sonner';
+import { 
+  collection, 
+  addDoc, 
+  deleteDoc, 
+  getDocs, 
+  query, 
+  where, 
+  orderBy, 
+  serverTimestamp,
+  getDoc,
+  doc
+} from 'firebase/firestore';
+import { db } from '@/integrations/firebase/client';
+import { FirebaseReview, FirebaseProfile } from '@/integrations/firebase/types';
 
 type Review = {
   id: string;
@@ -18,9 +30,40 @@ type Review = {
   rating: number;
   user_id: string;
   created_at: string;
-  profiles?: {
+  user_profile?: {
     full_name: string | null;
     avatar_url: string | null;
+  };
+};
+
+const convertFirestoreReviewToReview = async (
+  review: FirebaseReview & { id: string }
+): Promise<Review> => {
+  let userProfile = {
+    full_name: null,
+    avatar_url: null
+  };
+  
+  try {
+    const userDoc = await getDoc(doc(db, 'profiles', review.user_id));
+    if (userDoc.exists()) {
+      const profileData = userDoc.data() as FirebaseProfile;
+      userProfile = {
+        full_name: profileData.full_name,
+        avatar_url: profileData.avatar_url
+      };
+    }
+  } catch (error) {
+    console.error('Error fetching user profile:', error);
+  }
+  
+  return {
+    id: review.id,
+    content: review.content,
+    rating: review.rating,
+    user_id: review.user_id,
+    created_at: review.created_at.toDate().toISOString(),
+    user_profile: userProfile
   };
 };
 
@@ -34,6 +77,32 @@ const ReviewSection: React.FC = () => {
   const [userHasReviewed, setUserHasReviewed] = useState(false);
   const { user } = useAuth();
 
+  const fetchReviews = async () => {
+    setIsLoading(true);
+    try {
+      const reviewsRef = collection(db, 'reviews');
+      const reviewsQuery = query(reviewsRef, orderBy('created_at', 'desc'));
+      const querySnapshot = await getDocs(reviewsQuery);
+      
+      const fetchedReviews: Review[] = [];
+      for (const doc of querySnapshot.docs) {
+        const data = doc.data() as FirebaseReview;
+        const review = await convertFirestoreReviewToReview({
+          ...data,
+          id: doc.id
+        });
+        fetchedReviews.push(review);
+      }
+      
+      setReviews(fetchedReviews);
+    } catch (error: any) {
+      console.error('Error fetching reviews:', error.message);
+      toast.error('אירעה שגיאה בטעינת חוות הדעת');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchReviews();
   }, []);
@@ -46,39 +115,9 @@ const ReviewSection: React.FC = () => {
     }
   }, [user, reviews]);
 
-  const fetchReviews = async () => {
-    setIsLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from('reviews')
-        .select(`
-          *,
-          profiles:user_id(full_name, avatar_url)
-        `)
-        .order('created_at', { ascending: false });
-
-      if (error) {
-        throw error;
-      }
-
-      // Cast the data with proper type handling for the profiles relation
-      const typedReviews = data.map(review => ({
-        ...review,
-        profiles: review.profiles as unknown as { full_name: string | null; avatar_url: string | null; }
-      })) as Review[];
-
-      setReviews(typedReviews);
-    } catch (error: any) {
-      console.error('Error fetching reviews:', error.message);
-      toast.error('אירעה שגיאה בטעינת חוות הדעת');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const checkUserReview = () => {
     if (!user) return;
-    const hasReviewed = reviews.some(review => review.user_id === user.id);
+    const hasReviewed = reviews.some(review => review.user_id === user.uid);
     setUserHasReviewed(hasReviewed);
   };
 
@@ -103,15 +142,12 @@ const ReviewSection: React.FC = () => {
 
     setIsSubmitting(true);
     try {
-      const { error } = await supabase
-        .from('reviews')
-        .insert({
-          content: newReview.trim(),
-          rating: rating,
-          user_id: user.id
-        });
-
-      if (error) throw error;
+      await addDoc(collection(db, 'reviews'), {
+        content: newReview.trim(),
+        rating: rating,
+        user_id: user.uid,
+        created_at: serverTimestamp()
+      });
 
       toast.success('חוות הדעת נוספה בהצלחה');
       setNewReview('');
@@ -129,14 +165,7 @@ const ReviewSection: React.FC = () => {
     if (!user) return;
 
     try {
-      const { error } = await supabase
-        .from('reviews')
-        .delete()
-        .eq('id', reviewId)
-        .eq('user_id', user.id);
-
-      if (error) throw error;
-
+      await deleteDoc(doc(db, 'reviews', reviewId));
       toast.success('חוות הדעת נמחקה בהצלחה');
       fetchReviews();
       setUserHasReviewed(false);
@@ -227,13 +256,13 @@ const ReviewSection: React.FC = () => {
               <CardContent className="pt-6">
                 <div className="flex items-start gap-4">
                   <Avatar className="h-10 w-10 border">
-                    <AvatarImage src={review.profiles?.avatar_url || undefined} alt={review.profiles?.full_name || 'משתמש'} />
-                    <AvatarFallback>{review.profiles?.full_name?.[0] || 'U'}</AvatarFallback>
+                    <AvatarImage src={review.user_profile?.avatar_url || undefined} alt={review.user_profile?.full_name || 'משתמש'} />
+                    <AvatarFallback>{review.user_profile?.full_name?.[0] || 'U'}</AvatarFallback>
                   </Avatar>
                   <div className="flex-1">
                     <div className="flex justify-between items-center mb-2">
                       <div>
-                        <p className="font-medium">{review.profiles?.full_name || 'משתמש אנונימי'}</p>
+                        <p className="font-medium">{review.user_profile?.full_name || 'משתמש אנונימי'}</p>
                         <div className="flex items-center gap-2">
                           <StarRating value={review.rating} />
                           <span className="text-sm text-muted-foreground">
@@ -241,7 +270,7 @@ const ReviewSection: React.FC = () => {
                           </span>
                         </div>
                       </div>
-                      {user && user.id === review.user_id && (
+                      {user && user.uid === review.user_id && (
                         <Button 
                           variant="ghost" 
                           size="sm" 

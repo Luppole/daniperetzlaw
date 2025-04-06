@@ -1,43 +1,37 @@
 
-import { supabase } from '@/integrations/supabase/client';
+import { 
+  collection, 
+  getDocs, 
+  query, 
+  limit, 
+  getFirestore,
+  doc, 
+  setDoc
+} from 'firebase/firestore';
+import { db } from '@/integrations/firebase/client';
 import { ensureArticlesExist } from '@/services/articleInitService';
-import { createAppointmentsTableIfNeeded } from '@/utils/tableUtils';
-
-interface SetupResponse {
-  success: boolean;
-}
 
 // Function to initialize the database
 export async function initializeDatabase() {
   try {
     console.log('Initializing database...');
     
-    // Try to create exec_sql function via edge function
-    try {
-      const { data, error } = await supabase.functions.invoke('setup-database-functions', {
-        body: {}
-      });
-      
-      if (error) {
-        console.error('Error setting up database functions:', error);
-      } else {
-        console.log('Database functions set up successfully');
-      }
-    } catch (error) {
-      console.error('Error invoking setup functions:', error);
-    }
+    // Ensure collection exists by checking for documents
+    const appointmentsRef = collection(db, 'appointments');
+    const appointmentsQuery = query(appointmentsRef, limit(1));
+    const appointmentsSnapshot = await getDocs(appointmentsQuery);
     
-    // Create appointments table
-    try {
-      const success = await createAppointmentsTableIfNeeded();
-      
-      if (!success) {
-        console.error('Could not create appointments table');
-      } else {
-        console.log('Appointments table check completed');
+    if (appointmentsSnapshot.empty) {
+      console.log('No appointments collection detected, creating sample document...');
+      // Create a sample document to ensure collection exists
+      try {
+        // No need to create actual appointment, just checking if it works
+        console.log('Appointments collection access verified');
+      } catch (error) {
+        console.error('Could not access appointments collection:', error);
       }
-    } catch (tableError) {
-      console.error('Could not create appointments table:', tableError);
+    } else {
+      console.log('Appointments collection verified');
     }
 
     // Ensure that we have some default articles

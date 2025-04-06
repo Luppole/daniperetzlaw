@@ -39,8 +39,11 @@ export function UserMenu() {
 
   // Get the user's initials for the avatar fallback
   const getUserInitials = () => {
-    const email = user.email || '';
-    return email.substring(0, 2).toUpperCase();
+    const displayName = user.displayName || user.email || '';
+    if (user.displayName) {
+      return displayName.substring(0, 2).toUpperCase();
+    }
+    return user.email ? user.email.substring(0, 2).toUpperCase() : 'U';
   };
 
   return (
@@ -48,7 +51,7 @@ export function UserMenu() {
       <DropdownMenuTrigger asChild>
         <Button variant="ghost" className="relative h-10 w-10 rounded-full">
           <Avatar className="h-10 w-10 border-2 border-law-navy cursor-pointer">
-            <AvatarImage src={user.user_metadata.avatar_url} alt={user.email || ''} />
+            <AvatarImage src={user.photoURL || undefined} alt={user.displayName || user.email || ''} />
             <AvatarFallback className="bg-law-navy text-white">
               {getUserInitials()}
             </AvatarFallback>

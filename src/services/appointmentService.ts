@@ -1,28 +1,56 @@
 
-import { supabase } from '@/integrations/supabase/client';
+import { 
+  collection, 
+  addDoc, 
+  doc, 
+  updateDoc, 
+  deleteDoc, 
+  getDocs, 
+  query, 
+  where, 
+  orderBy, 
+  serverTimestamp 
+} from 'firebase/firestore';
+import { db } from '@/integrations/firebase/client';
 import { Appointment } from '@/types/appointments';
+import { FirebaseAppointment } from '@/integrations/firebase/types';
 
-// Define interfaces for RPC functions' response types
-interface AppointmentRPCResponse {
-  id?: string;
-  success?: boolean;
-  [key: string]: any;
-}
+// Helper function to convert Firestore document to Appointment type
+const convertFirestoreAppointmentToAppointment = (
+  doc: FirebaseAppointment & { id: string }
+): Appointment => {
+  return {
+    id: doc.id,
+    name: doc.name,
+    email: doc.email,
+    phone: doc.phone,
+    date: doc.date,
+    time: doc.time,
+    details: doc.details,
+    status: doc.status,
+    created_at: doc.created_at.toDate().toISOString()
+  };
+};
 
-// Fetch all appointments using RPC
+// Fetch all appointments
 export async function getAllAppointments(): Promise<Appointment[]> {
   try {
     console.log('Fetching all appointments...');
     
-    // Use the supabase.rpc with proper type parameters
-    const { data, error } = await supabase.rpc('get_all_appointments');
+    const appointmentsRef = collection(db, 'appointments');
+    const appointmentsQuery = query(appointmentsRef, orderBy('date', 'asc'));
+    const querySnapshot = await getDocs(appointmentsQuery);
     
-    if (error) {
-      console.error('Error fetching appointments:', error);
-      return [];
-    }
+    const appointments: Appointment[] = [];
+    querySnapshot.forEach((doc) => {
+      const data = doc.data() as FirebaseAppointment;
+      appointments.push(convertFirestoreAppointmentToAppointment({
+        ...data,
+        id: doc.id
+      }));
+    });
     
-    return data as Appointment[] || [];
+    return appointments;
   } catch (error) {
     console.error('Error fetching appointments:', error);
     return [];
@@ -41,27 +69,16 @@ export async function createAppointment(appointmentData: {
   try {
     console.log('Creating appointment with data:', appointmentData);
     
-    // Use supabase.rpc with proper type parameters
-    const { data, error } = await supabase.rpc('insert_appointment', {
-      p_name: appointmentData.name,
-      p_email: appointmentData.email,
-      p_phone: appointmentData.phone,
-      p_date: appointmentData.date,
-      p_time: appointmentData.time,
-      p_details: appointmentData.details || ''
-    });
-
-    if (error) {
-      console.error('Error creating appointment:', error);
-      return { success: false };
-    }
+    const firestoreAppointment: Omit<FirebaseAppointment, 'id'> = {
+      ...appointmentData,
+      status: 'pending',
+      created_at: serverTimestamp() as any
+    };
     
-    console.log('Appointment created successfully:', data);
-    // Type guard to ensure data has the expected shape
-    if (data && typeof data === 'object' && 'id' in data) {
-      return { success: true, id: data.id as string };
-    }
-    return { success: true };
+    const docRef = await addDoc(collection(db, 'appointments'), firestoreAppointment);
+    
+    console.log('Appointment created successfully:', docRef.id);
+    return { success: true, id: docRef.id };
   } catch (error) {
     console.error('Error creating appointment:', error);
     return { success: false };
@@ -73,16 +90,8 @@ export async function updateAppointmentStatus(id: string, status: 'pending' | 'c
   try {
     console.log(`Updating appointment ${id} status to ${status}`);
     
-    // Use supabase.rpc with the correct parameters
-    const { data, error } = await supabase.rpc('update_appointment_status', {
-      p_id: id,
-      p_status: status
-    });
-    
-    if (error) {
-      console.error('Error updating appointment status:', error);
-      return false;
-    }
+    const appointmentRef = doc(db, 'appointments', id);
+    await updateDoc(appointmentRef, { status });
     
     return true;
   } catch (error) {
@@ -96,15 +105,7 @@ export async function deleteAppointment(id: string): Promise<boolean> {
   try {
     console.log(`Deleting appointment ${id}`);
     
-    // Use supabase.rpc with proper parameters
-    const { data, error } = await supabase.rpc('delete_appointment', {
-      p_id: id
-    });
-    
-    if (error) {
-      console.error('Error deleting appointment:', error);
-      return false;
-    }
+    await deleteDoc(doc(db, 'appointments', id));
     
     return true;
   } catch (error) {
@@ -116,15 +117,25 @@ export async function deleteAppointment(id: string): Promise<boolean> {
 // Get appointment counts for dashboard
 export async function getAppointmentCounts(): Promise<{ total: number; pending: number; confirmed: number; }> {
   try {
-    // Use supabase.rpc with proper parameters
-    const { data, error } = await supabase.rpc('get_appointment_counts');
+    const appointmentsRef = collection(db, 'appointments');
+    const querySnapshot = await getDocs(appointmentsRef);
     
-    if (error) {
-      console.error('Error getting appointment counts:', error);
-      return { total: 0, pending: 0, confirmed: 0 };
-    }
+    let total = 0;
+    let pending = 0;
+    let confirmed = 0;
     
-    return data as { total: number; pending: number; confirmed: number; } || { total: 0, pending: 0, confirmed: 0 };
+    querySnapshot.forEach((doc) => {
+      const appointment = doc.data() as FirebaseAppointment;
+      total++;
+      
+      if (appointment.status === 'pending') {
+        pending++;
+      } else if (appointment.status === 'confirmed') {
+        confirmed++;
+      }
+    });
+    
+    return { total, pending, confirmed };
   } catch (error) {
     console.error('Error getting appointment counts:', error);
     return { total: 0, pending: 0, confirmed: 0 };
@@ -136,22 +147,23 @@ export async function getBookedSlots(date: string): Promise<string[]> {
   try {
     console.log('Fetching booked slots for date:', date);
     
-    // Use supabase.rpc with proper parameters
-    const { data, error } = await supabase.rpc('get_booked_slots', {
-      date_param: date
+    const appointmentsRef = collection(db, 'appointments');
+    const appointmentsQuery = query(
+      appointmentsRef, 
+      where('date', '==', date),
+      where('status', 'in', ['pending', 'confirmed'])
+    );
+    
+    const querySnapshot = await getDocs(appointmentsQuery);
+    
+    const bookedSlots: string[] = [];
+    querySnapshot.forEach((doc) => {
+      const appointment = doc.data() as FirebaseAppointment;
+      if (appointment.time) {
+        bookedSlots.push(appointment.time);
+      }
     });
     
-    if (error) {
-      console.error('Error fetching booked slots:', error);
-      return [];
-    }
-    
-    // Safe handling if data is null or undefined
-    if (!data) return [];
-    
-    // Extract time values safely with proper type assertion
-    const typedData = data as Array<{ time: string }>;
-    const bookedSlots = typedData.map(item => item.time || '').filter(Boolean);
     console.log('Booked slots:', bookedSlots);
     return bookedSlots;
   } catch (error) {

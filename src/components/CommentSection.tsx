@@ -1,12 +1,13 @@
-
 import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { getArticleComments, addComment, Comment } from '@/services/articleService';
 import { Loader2 } from 'lucide-react';
+import { collection, onSnapshot, query, where, orderBy } from 'firebase/firestore';
+import { db } from '@/integrations/firebase/client';
 
 interface CommentSectionProps {
   articleId: string;
@@ -17,33 +18,10 @@ const CommentSection: React.FC<CommentSectionProps> = ({ articleId }) => {
   const [newComment, setNewComment] = useState('');
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [user, setUser] = useState<any>(null);
+  const { user } = useAuth();
   const { toast } = useToast();
 
-  // Check authentication status
-  useEffect(() => {
-    const checkAuth = async () => {
-      const { data } = await supabase.auth.getSession();
-      if (data?.session?.user) {
-        setUser(data.session.user);
-      }
-    };
-
-    checkAuth();
-
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setUser(session?.user || null);
-      }
-    );
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
-
-  // Fetch comments
+  // Fetch comments and set up listener
   useEffect(() => {
     const fetchComments = async () => {
       setIsLoading(true);
@@ -55,23 +33,20 @@ const CommentSection: React.FC<CommentSectionProps> = ({ articleId }) => {
     fetchComments();
 
     // Set up realtime subscription for comments
-    const channel = supabase
-      .channel('comments-changes')
-      .on('postgres_changes', 
-        { 
-          event: '*', 
-          schema: 'public', 
-          table: 'comments',
-          filter: `article_id=eq.${articleId}`
-        }, 
-        () => {
-          fetchComments();
-        }
-      )
-      .subscribe();
+    const commentsRef = collection(db, 'comments');
+    const commentsQuery = query(
+      commentsRef, 
+      where('article_id', '==', articleId),
+      orderBy('created_at', 'desc')
+    );
+    
+    const unsubscribe = onSnapshot(commentsQuery, async () => {
+      const freshComments = await getArticleComments(articleId);
+      setComments(freshComments);
+    });
 
     return () => {
-      supabase.removeChannel(channel);
+      unsubscribe();
     };
   }, [articleId]);
 
@@ -99,7 +74,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({ articleId }) => {
     setIsSubmitting(true);
     
     try {
-      const result = await addComment(articleId, user.id, newComment);
+      const result = await addComment(articleId, user.uid, newComment);
       
       if (result) {
         setNewComment('');

@@ -1,6 +1,20 @@
 
+import { 
+  collection, 
+  doc, 
+  getDocs, 
+  getDoc, 
+  addDoc, 
+  updateDoc, 
+  deleteDoc, 
+  query, 
+  orderBy, 
+  where,
+  serverTimestamp 
+} from 'firebase/firestore';
+import { db } from '@/integrations/firebase/client';
+import { FirebaseArticle } from '@/integrations/firebase/types';
 import { Article } from '@/types/article';
-import { supabase } from '@/integrations/supabase/client';
 import { ensureArticlesExist } from './articleInitService';
 
 // Re-export types and functions from modular services
@@ -9,6 +23,22 @@ export type { Comment } from '@/types/comment';
 export * from './articleInitService';
 export * from './commentService';
 export * from './likeService';
+
+// Helper function to convert Firestore document to Article type
+const convertFirestoreArticleToArticle = (doc: FirebaseArticle & { id: string }): Article => {
+  return {
+    id: doc.id,
+    title: doc.title,
+    summary: doc.summary,
+    content: doc.content,
+    category: doc.category,
+    author: doc.author,
+    image_url: doc.image_url,
+    date: doc.date,
+    created_at: doc.created_at.toDate().toISOString(),
+    updated_at: doc.updated_at ? doc.updated_at.toDate().toISOString() : undefined
+  };
+};
 
 // Create a new article
 export async function createArticle(articleData: {
@@ -22,15 +52,15 @@ export async function createArticle(articleData: {
   try {
     const currentDate = new Date().toISOString().split('T')[0];
     
-    const fullArticleData = {
+    const firestoreArticle: Omit<FirebaseArticle, 'id'> = {
       ...articleData,
-      date: currentDate
+      date: currentDate,
+      created_at: serverTimestamp() as any,
+      updated_at: null
     };
 
-    const response = await supabase.from('articles').insert(fullArticleData);
-
-    if (response.error) throw response.error;
-    return true;
+    const docRef = await addDoc(collection(db, 'articles'), firestoreArticle);
+    return !!docRef.id;
   } catch (error) {
     console.error('Error creating article:', error);
     return false;
@@ -40,13 +70,20 @@ export async function createArticle(articleData: {
 // Get all articles
 export async function getAllArticles(): Promise<Article[]> {
   try {
-    const response = await supabase
-      .from('articles')
-      .select('*')
-      .order('created_at', { ascending: false });
-
-    if (response.error) throw response.error;
-    return response.data as Article[] || [];
+    const articlesRef = collection(db, 'articles');
+    const articlesQuery = query(articlesRef, orderBy('created_at', 'desc'));
+    const querySnapshot = await getDocs(articlesQuery);
+    
+    const articles: Article[] = [];
+    querySnapshot.forEach((doc) => {
+      const data = doc.data() as FirebaseArticle;
+      articles.push(convertFirestoreArticleToArticle({
+        ...data,
+        id: doc.id
+      }));
+    });
+    
+    return articles;
   } catch (error) {
     console.error('Error fetching articles:', error);
     return [];
@@ -56,14 +93,18 @@ export async function getAllArticles(): Promise<Article[]> {
 // Get article by ID
 export async function getArticleById(id: string): Promise<Article | null> {
   try {
-    const response = await supabase
-      .from('articles')
-      .select('*')
-      .eq('id', id)
-      .single();
-
-    if (response.error) throw response.error;
-    return response.data as Article;
+    const docRef = doc(db, 'articles', id);
+    const docSnap = await getDoc(docRef);
+    
+    if (docSnap.exists()) {
+      const data = docSnap.data() as FirebaseArticle;
+      return convertFirestoreArticleToArticle({
+        ...data,
+        id: docSnap.id
+      });
+    }
+    
+    return null;
   } catch (error) {
     console.error('Error fetching article:', error);
     return null;
@@ -73,12 +114,7 @@ export async function getArticleById(id: string): Promise<Article | null> {
 // Delete an article
 export async function deleteArticle(id: string): Promise<boolean> {
   try {
-    const response = await supabase
-      .from('articles')
-      .delete()
-      .eq('id', id);
-
-    if (response.error) throw response.error;
+    await deleteDoc(doc(db, 'articles', id));
     return true;
   } catch (error) {
     console.error('Error deleting article:', error);
@@ -89,12 +125,18 @@ export async function deleteArticle(id: string): Promise<boolean> {
 // Update an article
 export async function updateArticle(id: string, articleData: Partial<Article>): Promise<boolean> {
   try {
-    const response = await supabase
-      .from('articles')
-      .update(articleData)
-      .eq('id', id);
-
-    if (response.error) throw response.error;
+    const articleRef = doc(db, 'articles', id);
+    
+    // Remove properties that should not be updated directly
+    const { id: _, created_at, updated_at, ...updateData } = articleData;
+    
+    // Add server timestamp for updated_at
+    const firestoreData = {
+      ...updateData,
+      updated_at: serverTimestamp()
+    };
+    
+    await updateDoc(articleRef, firestoreData);
     return true;
   } catch (error) {
     console.error('Error updating article:', error);

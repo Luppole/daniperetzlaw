@@ -1,5 +1,14 @@
 
-import { supabase } from '@/integrations/supabase/client';
+import { 
+  collection, 
+  query, 
+  where, 
+  getDocs, 
+  addDoc, 
+  serverTimestamp 
+} from 'firebase/firestore';
+import { db } from '@/integrations/firebase/client';
+import { FirebaseArticle } from '@/integrations/firebase/types';
 
 // Function to ensure default articles exist
 export async function ensureArticlesExist() {
@@ -27,25 +36,20 @@ export async function ensureArticlesExist() {
   try {
     for (const article of defaultArticles) {
       // Check if article with this title already exists
-      const { data, error: checkError } = await supabase
-        .from('articles')
-        .select('*')
-        .eq('title', article.title);
-
-      if (checkError) {
-        console.error('Error checking article existence:', checkError);
-        continue;
-      }
-
+      const articlesRef = collection(db, 'articles');
+      const q = query(articlesRef, where('title', '==', article.title));
+      const querySnapshot = await getDocs(q);
+      
       // Only create if it doesn't exist
-      if (data && data.length === 0) {
-        const { error: insertError } = await supabase.from('articles').insert([article]);
-
-        if (insertError) {
-          console.error('Error creating article:', insertError);
-        } else {
-          console.log(`Article "${article.title}" created successfully`);
-        }
+      if (querySnapshot.empty) {
+        const firestoreArticle: Omit<FirebaseArticle, 'id'> = {
+          ...article,
+          created_at: serverTimestamp() as any,
+          updated_at: null
+        };
+        
+        const docRef = await addDoc(collection(db, 'articles'), firestoreArticle);
+        console.log(`Article "${article.title}" created successfully with ID: ${docRef.id}`);
       } else {
         console.log(`Article "${article.title}" already exists`);
       }

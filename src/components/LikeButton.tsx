@@ -3,8 +3,10 @@ import React, { useState, useEffect } from 'react';
 import { ThumbsUp } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useToast } from '@/hooks/use-toast';
-import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 import { getArticleLikeCount, toggleArticleLike, hasUserLikedArticle } from '@/services/articleService';
+import { collection, onSnapshot, query, where } from 'firebase/firestore';
+import { db } from '@/integrations/firebase/client';
 
 interface LikeButtonProps {
   articleId: string;
@@ -13,38 +15,15 @@ interface LikeButtonProps {
 const LikeButton: React.FC<LikeButtonProps> = ({ articleId }) => {
   const [liked, setLiked] = useState(false);
   const [likeCount, setLikeCount] = useState(0);
-  const [user, setUser] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
-
-  // Check authentication status
-  useEffect(() => {
-    const checkAuth = async () => {
-      const { data } = await supabase.auth.getSession();
-      if (data?.session?.user) {
-        setUser(data.session.user);
-      }
-    };
-
-    checkAuth();
-
-    // Set up auth state listener
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        setUser(session?.user || null);
-      }
-    );
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, []);
+  const { user } = useAuth();
 
   // Check if user has liked the article
   useEffect(() => {
     const checkLikeStatus = async () => {
       if (user) {
-        const hasLiked = await hasUserLikedArticle(articleId, user.id);
+        const hasLiked = await hasUserLikedArticle(articleId, user.uid);
         setLiked(hasLiked);
       }
     };
@@ -52,7 +31,7 @@ const LikeButton: React.FC<LikeButtonProps> = ({ articleId }) => {
     checkLikeStatus();
   }, [articleId, user]);
 
-  // Get like count
+  // Get like count and listen for changes
   useEffect(() => {
     const getLikeCount = async () => {
       const count = await getArticleLikeCount(articleId);
@@ -62,23 +41,15 @@ const LikeButton: React.FC<LikeButtonProps> = ({ articleId }) => {
     getLikeCount();
     
     // Set up realtime subscription for likes
-    const channel = supabase
-      .channel('likes-changes')
-      .on('postgres_changes', 
-        { 
-          event: '*', 
-          schema: 'public', 
-          table: 'likes',
-          filter: `article_id=eq.${articleId}`
-        }, 
-        () => {
-          getLikeCount();
-        }
-      )
-      .subscribe();
+    const likesRef = collection(db, 'likes');
+    const likesQuery = query(likesRef, where('article_id', '==', articleId));
+    
+    const unsubscribe = onSnapshot(likesQuery, (snapshot) => {
+      setLikeCount(snapshot.size);
+    });
 
     return () => {
-      supabase.removeChannel(channel);
+      unsubscribe();
     };
   }, [articleId]);
 
@@ -95,11 +66,11 @@ const LikeButton: React.FC<LikeButtonProps> = ({ articleId }) => {
     setIsLoading(true);
     
     try {
-      const isLiked = await toggleArticleLike(articleId, user.id);
-      setLiked(isLiked);
+      const result = await toggleArticleLike(articleId, user.uid);
+      setLiked(!liked); // Toggle the liked state
       
       toast({
-        title: isLiked ? 'סימנת לייק' : 'הסרת לייק',
+        title: liked ? 'הסרת לייק' : 'סימנת לייק',
         variant: 'default'
       });
     } catch (error) {

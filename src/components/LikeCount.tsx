@@ -2,7 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import { ThumbsUp } from 'lucide-react';
 import { getArticleLikeCount } from '@/services/articleService';
-import { supabase } from '@/integrations/supabase/client';
+import { collection, onSnapshot, query, where } from 'firebase/firestore';
+import { db } from '@/integrations/firebase/client';
 
 interface LikeCountProps {
   articleId: string;
@@ -19,24 +20,16 @@ const LikeCount: React.FC<LikeCountProps> = ({ articleId }) => {
 
     getLikeCount();
     
-    // Set up realtime subscription
-    const channel = supabase
-      .channel('likes-changes')
-      .on('postgres_changes', 
-        { 
-          event: '*', 
-          schema: 'public', 
-          table: 'likes',
-          filter: `article_id=eq.${articleId}`
-        }, 
-        () => {
-          getLikeCount();
-        }
-      )
-      .subscribe();
+    // Set up realtime subscription for likes
+    const likesRef = collection(db, 'likes');
+    const likesQuery = query(likesRef, where('article_id', '==', articleId));
+    
+    const unsubscribe = onSnapshot(likesQuery, (snapshot) => {
+      setLikeCount(snapshot.size);
+    });
 
     return () => {
-      supabase.removeChannel(channel);
+      unsubscribe();
     };
   }, [articleId]);
 

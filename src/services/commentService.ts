@@ -1,50 +1,68 @@
 
-import { supabase } from '@/integrations/supabase/client';
+import { 
+  collection, 
+  addDoc, 
+  query, 
+  where, 
+  orderBy, 
+  getDocs, 
+  getDoc, 
+  doc, 
+  serverTimestamp 
+} from 'firebase/firestore';
+import { db } from '@/integrations/firebase/client';
 import { Comment } from '@/types/comment';
+import { FirebaseComment } from '@/integrations/firebase/types';
+
+// Helper function to convert Firestore document to Comment type
+const convertFirestoreCommentToComment = async (
+  comment: FirebaseComment & { id: string }
+): Promise<Comment> => {
+  let userName = 'Anonymous User';
+  
+  try {
+    // Get user profile data
+    const userDoc = await getDoc(doc(db, 'profiles', comment.user_id));
+    if (userDoc.exists()) {
+      userName = userDoc.data().full_name || 'Anonymous User';
+    }
+  } catch (error) {
+    console.error('Error fetching user profile:', error);
+  }
+  
+  return {
+    id: comment.id,
+    article_id: comment.article_id,
+    user_id: comment.user_id,
+    user_name: userName,
+    content: comment.content,
+    created_at: comment.created_at.toDate().toISOString()
+  };
+};
 
 // Get comments for an article
 export async function getArticleComments(articleId: string): Promise<Comment[]> {
   try {
-    // First try the RPC function
-    try {
-      // Cast to any to bypass TypeScript's type checking for RPC functions
-      const { data, error } = await (supabase.rpc as any)('get_article_comments', { 
-        article_id_param: articleId 
+    const commentsRef = collection(db, 'comments');
+    const commentsQuery = query(
+      commentsRef, 
+      where('article_id', '==', articleId),
+      orderBy('created_at', 'desc')
+    );
+    
+    const querySnapshot = await getDocs(commentsQuery);
+    
+    const comments: Comment[] = [];
+    for (const doc of querySnapshot.docs) {
+      const data = doc.data() as FirebaseComment;
+      const comment = await convertFirestoreCommentToComment({
+        ...data,
+        id: doc.id
       });
-
-      if (!error && data) {
-        return data as Comment[];
-      }
-    } catch (rpcError) {
-      console.log('RPC function not available, falling back to direct query');
+      comments.push(comment);
     }
-
-    // Fallback to direct query
-    const { data, error } = await supabase
-      .from('comments')
-      .select(`
-        id,
-        article_id,
-        user_id,
-        content,
-        created_at,
-        profiles:user_id (full_name)
-      `)
-      .eq('article_id', articleId)
-      .order('created_at', { ascending: false });
-
-    if (error) throw error;
-
-    // Process the data to match the Comment interface
-    // Use type assertion to fix the TypeScript error
-    return (data?.map(item => ({
-      id: item.id,
-      article_id: item.article_id,
-      user_id: item.user_id,
-      user_name: (item.profiles as { full_name?: string } | null)?.full_name || 'Anonymous User',
-      content: item.content,
-      created_at: item.created_at
-    })) as Comment[]) || [];
+    
+    return comments;
   } catch (error) {
     console.error('Error fetching comments:', error);
     return [];
@@ -54,31 +72,15 @@ export async function getArticleComments(articleId: string): Promise<Comment[]> 
 // Add a comment to an article
 export async function addComment(articleId: string, userId: string, content: string): Promise<boolean> {
   try {
-    // First try the RPC function
-    try {
-      // Cast to any to bypass TypeScript's type checking for RPC functions
-      const { error } = await (supabase.rpc as any)('add_comment', {
-        p_article_id: articleId,
-        p_user_id: userId,
-        p_content: content
-      });
-
-      if (!error) {
-        return true;
-      }
-    } catch (rpcError) {
-      console.log('RPC function not available, falling back to direct insert');
-    }
-
-    // Fallback to direct insert
-    const { error } = await supabase.from('comments').insert([{
+    const firestoreComment: Omit<FirebaseComment, 'id'> = {
       article_id: articleId,
       user_id: userId,
-      content: content
-    }]);
-
-    if (error) throw error;
-    return true;
+      content: content,
+      created_at: serverTimestamp() as any
+    };
+    
+    const docRef = await addDoc(collection(db, 'comments'), firestoreComment);
+    return !!docRef.id;
   } catch (error) {
     console.error('Error adding comment:', error);
     return false;
