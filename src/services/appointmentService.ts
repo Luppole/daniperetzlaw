@@ -11,18 +11,34 @@ interface GetBookedSlotsResponse { time: string }
 // Fetch all appointments
 export async function getAllAppointments(): Promise<Appointment[]> {
   try {
-    // Cast to any to bypass TypeScript's type checking for RPC functions
-    const { data, error } = await (supabase.rpc as any)('get_all_appointments');
+    // First try the RPC function
+    try {
+      // Cast to any to bypass TypeScript's type checking for RPC functions
+      const { data, error } = await (supabase.rpc as any)('get_all_appointments');
+      
+      if (!error && data) {
+        return (data as GetAllAppointmentsResponse[]) || [];
+      }
+    } catch (rpcError) {
+      console.log('RPC function not available, falling back to direct query');
+    }
+    
+    // Fallback to direct query
+    const { data, error } = await (supabase as any)
+      .from('appointments')
+      .select('*')
+      .order('date', { ascending: true })
+      .order('time', { ascending: true });
     
     if (error) throw error;
-    return (data as GetAllAppointmentsResponse[]) || [];
+    return (data as Appointment[]) || [];
   } catch (error) {
     console.error('Error fetching appointments:', error);
     return [];
   }
 }
 
-// Create a new appointment
+// Create a new appointment - using direct insert instead of RPC
 export async function createAppointment(appointmentData: {
   name: string;
   email: string;
@@ -34,16 +50,20 @@ export async function createAppointment(appointmentData: {
   try {
     console.log('Creating appointment with data:', appointmentData);
     
-    // Cast to any to bypass TypeScript's type checking for RPC functions
-    const { data, error } = await (supabase.rpc as any)('insert_appointment', {
-      p_name: appointmentData.name,
-      p_email: appointmentData.email,
-      p_phone: appointmentData.phone,
-      p_date: appointmentData.date,
-      p_time: appointmentData.time,
-      p_details: appointmentData.details,
-      p_status: 'pending'
-    });
+    // First try direct insert to the appointments table
+    const { data, error } = await (supabase as any)
+      .from('appointments')
+      .insert([{
+        name: appointmentData.name,
+        email: appointmentData.email,
+        phone: appointmentData.phone,
+        date: appointmentData.date,
+        time: appointmentData.time,
+        details: appointmentData.details,
+        status: 'pending'
+      }])
+      .select('id')
+      .single();
 
     if (error) {
       console.error('Supabase error creating appointment:', error);
@@ -51,8 +71,7 @@ export async function createAppointment(appointmentData: {
     }
     
     console.log('Appointment created successfully:', data);
-    const resultData = data as InsertAppointmentResponse;
-    return { success: true, id: resultData?.id };
+    return { success: true, id: data?.id };
   } catch (error) {
     console.error('Error creating appointment:', error);
     return { success: false };
@@ -62,11 +81,26 @@ export async function createAppointment(appointmentData: {
 // Update appointment status
 export async function updateAppointmentStatus(id: string, status: 'pending' | 'confirmed' | 'cancelled'): Promise<boolean> {
   try {
-    // Cast to any to bypass TypeScript's type checking for RPC functions
-    const { error } = await (supabase.rpc as any)('update_appointment_status', {
-      p_id: id,
-      p_status: status
-    });
+    // First try the RPC function
+    try {
+      // Cast to any to bypass TypeScript's type checking for RPC functions
+      const { error } = await (supabase.rpc as any)('update_appointment_status', {
+        p_id: id,
+        p_status: status
+      });
+      
+      if (!error) {
+        return true;
+      }
+    } catch (rpcError) {
+      console.log('RPC function not available, falling back to direct update');
+    }
+    
+    // Fallback to direct update
+    const { error } = await (supabase as any)
+      .from('appointments')
+      .update({ status })
+      .eq('id', id);
     
     if (error) throw error;
     return true;
@@ -79,10 +113,25 @@ export async function updateAppointmentStatus(id: string, status: 'pending' | 'c
 // Delete an appointment
 export async function deleteAppointment(id: string): Promise<boolean> {
   try {
-    // Cast to any to bypass TypeScript's type checking for RPC functions
-    const { error } = await (supabase.rpc as any)('delete_appointment', {
-      p_id: id
-    });
+    // First try the RPC function
+    try {
+      // Cast to any to bypass TypeScript's type checking for RPC functions
+      const { error } = await (supabase.rpc as any)('delete_appointment', {
+        p_id: id
+      });
+      
+      if (!error) {
+        return true;
+      }
+    } catch (rpcError) {
+      console.log('RPC function not available, falling back to direct delete');
+    }
+    
+    // Fallback to direct delete
+    const { error } = await (supabase as any)
+      .from('appointments')
+      .delete()
+      .eq('id', id);
     
     if (error) throw error;
     return true;
@@ -95,11 +144,38 @@ export async function deleteAppointment(id: string): Promise<boolean> {
 // Get appointment counts for dashboard
 export async function getAppointmentCounts(): Promise<{ total: number; pending: number; confirmed: number; }> {
   try {
-    // Cast to any to bypass TypeScript's type checking for RPC functions
-    const { data, error } = await (supabase.rpc as any)('get_appointment_counts');
+    // First try the RPC function
+    try {
+      // Cast to any to bypass TypeScript's type checking for RPC functions
+      const { data, error } = await (supabase.rpc as any)('get_appointment_counts');
+      
+      if (!error && data) {
+        return (data as GetAppointmentCountsResponse) || { total: 0, pending: 0, confirmed: 0 };
+      }
+    } catch (rpcError) {
+      console.log('RPC function not available, falling back to direct queries');
+    }
     
-    if (error) throw error;
-    return (data as GetAppointmentCountsResponse) || { total: 0, pending: 0, confirmed: 0 };
+    // Fallback to direct queries
+    const { count: total } = await (supabase as any)
+      .from('appointments')
+      .count();
+      
+    const { count: pending } = await (supabase as any)
+      .from('appointments')
+      .count()
+      .eq('status', 'pending');
+      
+    const { count: confirmed } = await (supabase as any)
+      .from('appointments')
+      .count()
+      .eq('status', 'confirmed');
+    
+    return { 
+      total: total || 0, 
+      pending: pending || 0, 
+      confirmed: confirmed || 0 
+    };
   } catch (error) {
     console.error('Error getting appointment counts:', error);
     return { total: 0, pending: 0, confirmed: 0 };
@@ -111,14 +187,27 @@ export async function getBookedSlots(date: string): Promise<string[]> {
   try {
     console.log('Fetching booked slots for date:', date);
     
-    // First, directly query the appointments table to get booked slots
-    // since the RPC function might not be available yet
-    // Cast to any to bypass TypeScript's type checking
+    // First try the RPC function
+    try {
+      // Cast to any to bypass TypeScript's type checking for RPC functions
+      const { data, error } = await (supabase.rpc as any)('get_booked_slots', {
+        date_param: date
+      });
+      
+      if (!error && data) {
+        console.log('RPC returned booked slots:', data);
+        return (data as GetBookedSlotsResponse[]).map(slot => slot.time);
+      }
+    } catch (rpcError) {
+      console.log('RPC function not available, falling back to direct query');
+    }
+    
+    // Fallback to direct query to the appointments table
     const { data, error } = await (supabase as any)
       .from('appointments')
       .select('time')
       .eq('date', date)
-      .eq('status', 'confirmed');
+      .in('status', ['confirmed', 'pending']);
     
     if (error) {
       console.error('Supabase error fetching booked slots:', error);
