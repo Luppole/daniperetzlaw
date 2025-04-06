@@ -24,6 +24,19 @@ export function ExpertiseSection() {
     }
   }, []);
 
+  const handleContactClick = () => {
+    // Close the dialog programmatically by clicking any close button
+    const closeButton = document.querySelector('[data-radix-collection-item]') as HTMLElement;
+    if (closeButton) {
+      closeButton.click();
+    }
+    
+    // Scroll to contact section
+    setTimeout(() => {
+      document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' });
+    }, 100);
+  };
+
   return (
     <section id="expertise" className="section-wrapper animated-gradient parallax">
       <div className="container mx-auto">
@@ -71,15 +84,13 @@ export function ExpertiseSection() {
                       </DialogDescription>
                     </DialogHeader>
                     <DialogFooter className="flex justify-between mt-6 space-x-6 space-x-reverse">
-                      <DialogClose asChild>
-                        <Button
-                          variant="outline"
-                          className="text-law-navy border-law-navy hover:bg-law-navy hover:text-white transition-all duration-300"
-                          onClick={() => document.getElementById('contact')?.scrollIntoView({ behavior: 'smooth' })}
-                        >
-                          צור קשר בנושא {area.title}
-                        </Button>
-                      </DialogClose>
+                      <Button
+                        variant="outline"
+                        className="text-law-navy border-law-navy hover:bg-law-navy hover:text-white transition-all duration-300"
+                        onClick={handleContactClick}
+                      >
+                        צור קשר בנושא {area.title}
+                      </Button>
                       <Link to={`/articles?expertise=${area.id}`}>
                         <Button
                           className="bg-law-navy hover:bg-law-navy/80 text-white transition-all duration-300"
