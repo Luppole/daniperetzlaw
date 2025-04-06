@@ -1,23 +1,27 @@
 
 import { supabase } from '@/integrations/supabase/client';
 
+// Define proper types for functions
+interface TableExistsResponse {
+  exists: boolean;
+}
+
 // Function to safely check if a table exists using edge functions
-export async function ensureTableExists(tableName: string) {
+export async function ensureTableExists(tableName: string): Promise<boolean> {
   try {
-    // Use edge function to check table existence
     console.log(`Checking if table ${tableName} exists...`);
     
-    // Call edge function with explicit typing
-    const response = await supabase.functions.invoke('check-table-exists', {
-      body: { tableName } 
+    // Use proper typing with generic parameters
+    const { data, error } = await supabase.functions.invoke<TableExistsResponse>('check-table-exists', {
+      body: { tableName } as { tableName: string }
     });
     
-    if (response.error) {
-      console.log(`Error checking table existence via function:`, response.error);
+    if (error) {
+      console.log(`Error checking table existence via function:`, error);
       return false;
     }
     
-    return response.data?.exists || false;
+    return data?.exists || false;
   } catch (err) {
     console.error(`Error checking if table ${tableName} exists:`, err);
     return false;
@@ -25,26 +29,26 @@ export async function ensureTableExists(tableName: string) {
 }
 
 // Function to safely create the appointments table if it doesn't exist
-export async function createAppointmentsTableIfNeeded() {
+export async function createAppointmentsTableIfNeeded(): Promise<boolean> {
   const tableExists = await ensureTableExists('appointments');
   
   if (!tableExists) {
     console.log('Attempting to create appointments table...');
     try {
-      // Try using functions API with proper typing
-      const response = await supabase.functions.invoke('create-appointments-table', {
-        body: {} 
+      // Use proper typing with generic parameters
+      const { data, error } = await supabase.functions.invoke<{ success: boolean }>('create-appointments-table', {
+        body: {} as Record<string, never>
       });
       
-      if (response.error) {
-        console.error('Failed to create appointments table via function:', response.error);
+      if (error) {
+        console.error('Failed to create appointments table via function:', error);
         
         // Fall back to RPC
         try {
-          const rpcResponse = await supabase.rpc('init_database');
+          const { data: rpcData, error: rpcError } = await supabase.rpc('init_database');
           
-          if (rpcResponse.error) {
-            console.error('Failed to create appointments table via RPC:', rpcResponse.error);
+          if (rpcError) {
+            console.error('Failed to create appointments table via RPC:', rpcError);
             return false;
           }
           

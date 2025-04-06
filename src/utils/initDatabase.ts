@@ -3,6 +3,10 @@ import { supabase } from '@/integrations/supabase/client';
 import { ensureArticlesExist } from '@/services/articleInitService';
 import { createAppointmentsTableIfNeeded } from '@/utils/tableUtils';
 
+interface SetupResponse {
+  success: boolean;
+}
+
 // Function to initialize the database
 export async function initializeDatabase() {
   try {
@@ -10,12 +14,12 @@ export async function initializeDatabase() {
     
     // Try to create exec_sql function via edge function
     try {
-      const response = await supabase.functions.invoke('setup-database-functions', {
-        body: {} 
+      const { data, error } = await supabase.functions.invoke<SetupResponse>('setup-database-functions', {
+        body: {} as Record<string, never>
       });
       
-      if (response.error) {
-        console.error('Error setting up database functions:', response.error);
+      if (error) {
+        console.error('Error setting up database functions:', error);
       } else {
         console.log('Database functions set up successfully');
       }
