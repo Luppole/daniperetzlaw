@@ -61,7 +61,10 @@ export function UserMenu() {
       <DropdownMenuContent align="end" className="w-56">
         <DropdownMenuLabel>החשבון שלי</DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem className="cursor-pointer">
+        <DropdownMenuItem 
+          className="cursor-pointer"
+          onClick={() => navigate('/profile')}
+        >
           <User className="ml-2 h-4 w-4" />
           <span>הפרופיל שלי</span>
         </DropdownMenuItem>

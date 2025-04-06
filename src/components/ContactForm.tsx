@@ -6,7 +6,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { toast } from '@/components/ui/use-toast';
 import { EditableText } from '@/components/EditableText';
-import { supabase } from '@/integrations/supabase/client';
+import { saveContactMessage } from '@/services/contactMessageService';
 
 export function ContactForm() {
   const [formData, setFormData] = useState({
@@ -51,36 +51,6 @@ export function ContactForm() {
     }
   };
 
-  const saveMessageToDatabase = async (data: typeof formData) => {
-    try {
-      // Use more explicit type assertion to fix TypeScript errors
-      const { error } = await supabase
-        .from('contact_messages' as any)
-        .insert([
-          {
-            name: data.name,
-            phone: data.phone,
-            email: data.email,
-            subject: data.subject,
-            message: data.message,
-            created_at: new Date().toISOString()
-          }
-        ]) as {
-          error: any;
-        };
-
-      if (error) {
-        console.error('Error saving message:', error);
-        return false;
-      }
-      
-      return true;
-    } catch (error) {
-      console.error('Error saving message to database:', error);
-      return false;
-    }
-  };
-
   const sendEmail = async (data: typeof formData) => {
     try {
       // Create a mailto URL with the form data
@@ -111,40 +81,41 @@ export function ContactForm() {
       setIsSubmitting(true);
       
       try {
-        // First save to database
-        const savedToDatabase = await saveMessageToDatabase(formData);
+        // First save to database using our service
+        const savedToDatabase = await saveContactMessage({
+          name: formData.name,
+          phone: formData.phone,
+          email: formData.email,
+          subject: formData.subject,
+          message: formData.message
+        });
+        
+        if (!savedToDatabase) {
+          throw new Error("Failed to save message to database");
+        }
         
         // Then attempt to send email
-        const success = await sendEmail(formData);
+        const emailSent = await sendEmail(formData);
         
-        if (success) {
-          setIsSubmitting(false);
-          setSubmitted(true);
-          toast({
-            title: "הודעה נשלחה בהצלחה",
-            description: "תודה על פנייתך, ניצור איתך קשר בהקדם",
-            variant: "default",
+        setIsSubmitting(false);
+        setSubmitted(true);
+        toast({
+          title: "הודעה נשלחה בהצלחה",
+          description: "תודה על פנייתך, ניצור איתך קשר בהקדם",
+          variant: "default",
+        });
+        
+        // Reset form after delay
+        setTimeout(() => {
+          setFormData({
+            name: '',
+            phone: '',
+            email: '',
+            subject: '',
+            message: ''
           });
-          
-          // Reset form after delay
-          setTimeout(() => {
-            setFormData({
-              name: '',
-              phone: '',
-              email: '',
-              subject: '',
-              message: ''
-            });
-            setSubmitted(false);
-          }, 3000);
-        } else {
-          setIsSubmitting(false);
-          toast({
-            title: "שגיאה בשליחת ההודעה",
-            description: "אירעה שגיאה בשליחת ההודעה. אנא נסה שוב מאוחר יותר או צור קשר ישירות.",
-            variant: "destructive",
-          });
-        }
+          setSubmitted(false);
+        }, 3000);
       } catch (error) {
         setIsSubmitting(false);
         toast({
