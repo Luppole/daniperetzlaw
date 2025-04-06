@@ -22,13 +22,15 @@ export const db = getFirestore(firebaseApp);
 export const auth = getAuth(firebaseApp);
 export const storage = getStorage(firebaseApp);
 
+// Initialize analytics safely
+let analyticsInstance = null;
 try {
   // Only initialize analytics in browser environment
-  export const analytics = getAnalytics(firebaseApp);
+  analyticsInstance = getAnalytics(firebaseApp);
 } catch (error) {
   console.error("Failed to initialize analytics:", error);
-  export const analytics = null;
 }
+export const analytics = analyticsInstance;
 
 // Initialize Firebase and debug auth state
 export const initializeFirebase = () => {
