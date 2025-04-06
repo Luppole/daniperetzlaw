@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Navbar } from '@/components/Navbar';
 import { HeroSection } from '@/components/HeroSection';
@@ -95,10 +94,10 @@ const Index = () => {
     <div className="min-h-screen overflow-x-hidden">
       <Navbar />
       <HeroSection />
-      <AboutSection imageSrc={sectionImages[1]} />
+      <AboutSection />
       <ExpertiseSection />
       <ArticlesSection />
-      <FaqSection imageSrc={sectionImages[2]} />
+      <FaqSection />
       <ContactSection />
       <Footer />
       
