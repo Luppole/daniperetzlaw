@@ -60,13 +60,7 @@ const CommentSection: React.FC<CommentSectionProps> = ({ articleId }) => {
       <CommentForm articleId={articleId} onCommentAdded={handleCommentAdded} />
       
       {/* Comments List */}
-      {isLoading ? (
-        <div className="flex justify-center py-8">
-          <Loader2 className="h-8 w-8 animate-spin text-law-navy" />
-        </div>
-      ) : (
-        <CommentList comments={comments} />
-      )}
+      <CommentList comments={comments} isLoading={isLoading} />
     </div>
   );
 };
