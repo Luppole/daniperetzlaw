@@ -1,11 +1,15 @@
 
 import React, { useEffect } from 'react';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { Navigate, Route, Routes, useNavigate } from 'react-router-dom';
 import { useAdmin } from '@/contexts/AdminContext';
 import { useAuth } from '@/contexts/AuthContext';
-import AdminLayout from '@/components/admin/AdminLayout';
+import { AdminLayout } from '@/components/admin/AdminLayout';
+import { AdminDashboard } from '@/components/admin/AdminDashboard';
+import { AdminArticles } from '@/components/admin/AdminArticles';
+import { AdminAppointments } from '@/components/admin/AdminAppointments';
+import { AdminComments } from '@/components/admin/AdminComments';
+import { AdminMessages } from '@/components/admin/AdminMessages';
 import { Loader2 } from 'lucide-react';
-import { SidebarProvider } from '@/components/ui/sidebar';
 
 const Admin = () => {
   const { isAdmin, isLoading: adminLoading } = useAdmin();
@@ -36,13 +40,17 @@ const Admin = () => {
     return <Navigate to="/" replace />;
   }
 
-  // Wrap AdminLayout with SidebarProvider to fix the context error
   return (
-    <SidebarProvider>
-      <div className="flex min-h-screen w-full">
-        <AdminLayout />
-      </div>
-    </SidebarProvider>
+    <AdminLayout>
+      <Routes>
+        <Route index element={<AdminDashboard />} />
+        <Route path="articles/*" element={<AdminArticles />} />
+        <Route path="appointments" element={<AdminAppointments />} />
+        <Route path="comments" element={<AdminComments />} />
+        <Route path="messages" element={<AdminMessages />} />
+        <Route path="*" element={<Navigate to="/admin" replace />} />
+      </Routes>
+    </AdminLayout>
   );
 }
 

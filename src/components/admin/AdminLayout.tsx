@@ -1,126 +1,151 @@
 
 import React from 'react';
-import { Route, Routes, Link, useLocation, Navigate } from 'react-router-dom';
-import { Sidebar } from '@/components/ui/sidebar';
-import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils';
-import { 
-  LayoutDashboard, 
-  FileText, 
-  Calendar, 
-  MessageSquare, 
+import { Link, useLocation } from 'react-router-dom';
+import {
+  LayoutDashboard,
+  FileText,
+  Calendar,
   MessageCircle,
-  Star
+  Mail,
+  ChevronLeft,
+  LogOut
 } from 'lucide-react';
-import { AdminDashboard } from './AdminDashboard';
-import { AdminArticles } from './AdminArticles';
-import { AdminAppointments } from './AdminAppointments';
-import { AdminMessages } from './AdminMessages';
-import { AdminComments } from './AdminComments';
-import ReviewManagement from './reviews/ReviewManagement';
+import { Button } from '@/components/ui/button';
+import { Separator } from '@/components/ui/separator';
 import { useAuth } from '@/contexts/AuthContext';
-import { useAdmin } from '@/contexts/AdminContext';
+import { useTextEdit } from '@/contexts/TextEditContext';
 
-const AdminLayout: React.FC = () => {
+interface AdminLayoutProps {
+  children: React.ReactNode;
+}
+
+interface SidebarLink {
+  title: string;
+  path: string;
+  icon: React.ReactNode;
+  badge?: number;
+}
+
+export function AdminLayout({ children }: AdminLayoutProps) {
   const location = useLocation();
-  const { user } = useAuth();
-  const { isAdmin, isLoading } = useAdmin();
+  const { signOut } = useAuth();
+  const { toggleEditMode, isEditMode, resetTexts } = useTextEdit();
 
-  if (isLoading) {
-    return (
-      <div className="flex justify-center items-center h-screen">
-        <div className="w-10 h-10 border-4 border-law-navy border-t-transparent rounded-full animate-spin"></div>
-      </div>
-    );
-  }
-
-  if (!user || !isAdmin) {
-    return <Navigate to="/auth" replace />;
-  }
-
-  const items = [
+  const links: SidebarLink[] = [
     {
-      title: 'דף הבית',
-      icon: <LayoutDashboard className="h-5 w-5" />,
-      href: '/admin',
-      active: location.pathname === '/admin'
+      title: 'לוח בקרה',
+      path: '/admin',
+      icon: <LayoutDashboard className="h-5 w-5" />
     },
     {
       title: 'מאמרים',
-      icon: <FileText className="h-5 w-5" />,
-      href: '/admin/articles',
-      active: location.pathname.startsWith('/admin/articles')
+      path: '/admin/articles',
+      icon: <FileText className="h-5 w-5" />
     },
     {
       title: 'פגישות',
-      icon: <Calendar className="h-5 w-5" />,
-      href: '/admin/appointments',
-      active: location.pathname === '/admin/appointments'
-    },
-    {
-      title: 'הודעות',
-      icon: <MessageSquare className="h-5 w-5" />,
-      href: '/admin/messages',
-      active: location.pathname === '/admin/messages'
+      path: '/admin/appointments',
+      icon: <Calendar className="h-5 w-5" />
     },
     {
       title: 'תגובות',
-      icon: <MessageCircle className="h-5 w-5" />,
-      href: '/admin/comments',
-      active: location.pathname === '/admin/comments'
+      path: '/admin/comments',
+      icon: <MessageCircle className="h-5 w-5" />
     },
     {
-      title: 'חוות דעת',
-      icon: <Star className="h-5 w-5" />,
-      href: '/admin/reviews',
-      active: location.pathname === '/admin/reviews'
+      title: 'הודעות',
+      path: '/admin/messages',
+      icon: <Mail className="h-5 w-5" />
     }
   ];
 
-  return (
-    <div className="flex min-h-screen bg-gray-50 w-full">
-      <Sidebar className="hidden md:block border-l pt-6">
-        <div className="space-y-4 py-4">
-          <div className="px-4 py-2 mb-8">
-            <h2 className="px-2 mb-2 text-lg font-semibold tracking-tight text-law-navy">
-              פאנל ניהול
-            </h2>
-          </div>
-          <nav className="flex flex-col gap-2 px-2">
-            {items.map((item, index) => (
-              <Link 
-                key={index} 
-                to={item.href}
-              >
-                <Button 
-                  variant={item.active ? "secondary" : "ghost"} 
-                  className={cn(
-                    "w-full justify-start", 
-                    item.active ? "bg-gray-100 text-law-navy font-medium" : ""
-                  )}
-                >
-                  {item.icon}
-                  <span className="mr-2">{item.title}</span>
-                </Button>
-              </Link>
-            ))}
-          </nav>
-        </div>
-      </Sidebar>
+  const currentPath = location.pathname;
+  
+  const isActive = (path: string) => {
+    if (path === '/admin') {
+      return currentPath === '/admin';
+    }
+    return currentPath.startsWith(path);
+  };
 
-      <div className="flex-1 p-8 pr-4 bg-white dark:bg-gray-950 shadow-sm rounded-tr-lg overflow-auto">
-        <Routes>
-          <Route path="/" element={<AdminDashboard />} />
-          <Route path="/articles/*" element={<AdminArticles />} />
-          <Route path="/appointments" element={<AdminAppointments />} />
-          <Route path="/messages" element={<AdminMessages />} />
-          <Route path="/comments" element={<AdminComments />} />
-          <Route path="/reviews" element={<ReviewManagement />} />
-          <Route path="*" element={<Navigate to="/admin" replace />} />
-        </Routes>
+  return (
+    <div className="min-h-screen bg-law-light/30 flex flex-col">
+      <div className="bg-white p-4 shadow flex justify-between items-center">
+        <div className="flex items-center">
+          <Link to="/admin" className="text-2xl font-bold text-law-navy">
+            ממשק ניהול
+          </Link>
+          <Separator orientation="vertical" className="h-6 mx-4" />
+          <Link to="/" className="text-law-gray hover:text-law-navy flex items-center text-sm">
+            <ChevronLeft className="h-4 w-4 ml-1" />
+            חזרה לאתר
+          </Link>
+        </div>
+        <div className="flex items-center gap-4">
+          <Button
+            variant={isEditMode ? "default" : "outline"}
+            size="sm"
+            onClick={toggleEditMode}
+          >
+            {isEditMode ? 'סיום עריכת תוכן' : 'עריכת תוכן'}
+          </Button>
+          {isEditMode && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={resetTexts}
+              className="text-red-500 hover:text-red-700 hover:bg-red-50"
+            >
+              אפס טקסטים
+            </Button>
+          )}
+          <Button 
+            variant="ghost" 
+            size="sm"
+            onClick={() => signOut ? signOut() : null}
+          >
+            <LogOut className="h-4 w-4 ml-2" />
+            התנתק
+          </Button>
+        </div>
+      </div>
+      
+      <div className="flex flex-1">
+        <aside className="w-64 bg-white shadow-md">
+          <nav className="p-4">
+            <ul className="space-y-2">
+              {links.map((link) => (
+                <li key={link.path}>
+                  <Link 
+                    to={link.path}
+                    className={`
+                      flex items-center p-3 rounded-md transition-colors
+                      ${isActive(link.path) 
+                        ? 'bg-law-navy text-white' 
+                        : 'text-law-gray hover:bg-law-light hover:text-law-navy'
+                      }
+                    `}
+                  >
+                    <span className="ml-3">{link.icon}</span>
+                    <span>{link.title}</span>
+                    {link.badge && (
+                      <span className="mr-auto bg-law-navy text-white px-2 py-0.5 rounded-full text-xs">
+                        {link.badge}
+                      </span>
+                    )}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        </aside>
+        
+        <main className="flex-1 p-6 overflow-auto">
+          <div className="bg-white rounded-lg shadow-sm p-6 min-h-[calc(100vh-120px)]">
+            {children}
+          </div>
+        </main>
       </div>
     </div>
   );
-};
-
-export default AdminLayout;
+}
