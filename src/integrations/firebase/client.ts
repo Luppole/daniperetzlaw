@@ -1,7 +1,7 @@
 
 import { initializeApp } from "firebase/app";
 import { getFirestore, connectFirestoreEmulator } from "firebase/firestore";
-import { getAuth, connectAuthEmulator } from "firebase/auth";
+import { getAuth, connectAuthEmulator, setPersistence, browserLocalPersistence } from "firebase/auth";
 import { getAnalytics } from "firebase/analytics";
 import { getStorage } from "firebase/storage";
 
@@ -38,6 +38,11 @@ export const analytics = analyticsInstance;
 export const initializeFirebase = () => {
   try {
     // Set persistence to local for better user experience
+    setPersistence(auth, browserLocalPersistence)
+      .catch(error => {
+        console.error("Error setting persistence:", error);
+      });
+      
     auth.onAuthStateChanged((user) => {
       console.log('Auth state changed:', user ? 'Logged in as ' + user.email : 'Not logged in');
     });

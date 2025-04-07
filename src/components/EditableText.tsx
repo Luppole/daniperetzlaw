@@ -32,6 +32,7 @@ export const EditableText: React.FC<EditableTextProps> = ({
   const { editedTexts, isEditMode, updateText } = useTextEdit();
   const [isEditing, setIsEditing] = useState(false);
   const [currentText, setCurrentText] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const isMobile = useIsMobile();
 
@@ -51,6 +52,9 @@ export const EditableText: React.FC<EditableTextProps> = ({
     }
   }, [isEditing, displayText, id]);
 
+  // Check authentication status
+  const isAuthenticated = !!auth.currentUser;
+
   // Cancel editing and reset
   const handleCancel = () => {
     setIsEditing(false);
@@ -66,21 +70,23 @@ export const EditableText: React.FC<EditableTextProps> = ({
     }
     
     // Check if the user is authenticated before saving
-    if (!auth.currentUser) {
+    if (!isAuthenticated) {
       toast.error('יש להתחבר כדי לשמור טקסטים');
       setIsEditing(false);
       return;
     }
 
     try {
+      setIsSaving(true);
       await updateText(id, currentText);
       console.log(`Saved text with ID: ${id}, new content: ${currentText}`);
     } catch (error) {
       console.error(`Error saving text with ID: ${id}`, error);
       toast.error('שגיאה בשמירת הטקסט');
+    } finally {
+      setIsSaving(false);
+      setIsEditing(false);
     }
-    
-    setIsEditing(false);
   };
 
   // Start editing
@@ -89,7 +95,7 @@ export const EditableText: React.FC<EditableTextProps> = ({
     e.stopPropagation(); // Prevent triggering parent click events
     
     // Check if the user is authenticated before editing
-    if (!auth.currentUser) {
+    if (!isAuthenticated) {
       toast.error('יש להתחבר כדי לערוך טקסטים');
       return;
     }
@@ -108,6 +114,7 @@ export const EditableText: React.FC<EditableTextProps> = ({
             value={currentText}
             onChange={(e) => setCurrentText(e.target.value)}
             className="min-h-[100px] w-full resize-y"
+            disabled={isSaving}
           />
           <div className="flex justify-end gap-2 mt-2">
             <Button 
@@ -115,6 +122,7 @@ export const EditableText: React.FC<EditableTextProps> = ({
               variant="ghost" 
               onClick={handleCancel}
               className="text-red-500 hover:text-red-700 hover:bg-red-100"
+              disabled={isSaving}
             >
               <X className="h-4 w-4 mr-1" /> ביטול
             </Button>
@@ -122,8 +130,18 @@ export const EditableText: React.FC<EditableTextProps> = ({
               size="sm" 
               onClick={handleSave}
               className="bg-law-navy hover:bg-law-navy/90"
+              disabled={isSaving}
             >
-              <Check className="h-4 w-4 mr-1" /> שמור
+              {isSaving ? (
+                <>
+                  <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-l-transparent"></span>
+                  שומר...
+                </>
+              ) : (
+                <>
+                  <Check className="h-4 w-4 mr-1" /> שמור
+                </>
+              )}
             </Button>
           </div>
         </div>

@@ -2,7 +2,7 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { useAdmin } from './AdminContext';
 import { toast } from 'sonner';
-import { collection, doc, setDoc, getDocs, deleteDoc, serverTimestamp } from 'firebase/firestore';
+import { collection, doc, setDoc, getDocs, deleteDoc, serverTimestamp, getDoc } from 'firebase/firestore';
 import { db, auth } from '@/integrations/firebase/client';
 
 // Type for edited text items
@@ -16,7 +16,7 @@ interface TextEditContextType {
   editedTexts: Record<string, string>;
   isEditMode: boolean;
   toggleEditMode: () => void;
-  updateText: (id: string, content: string) => void;
+  updateText: (id: string, content: string) => Promise<void>;
   resetTexts: () => void;
 }
 
@@ -25,7 +25,7 @@ const TextEditContext = createContext<TextEditContextType>({
   editedTexts: {},
   isEditMode: false,
   toggleEditMode: () => {},
-  updateText: () => {},
+  updateText: async () => {},
   resetTexts: () => {},
 });
 
@@ -80,7 +80,7 @@ export const TextEditProvider = ({ children }: { children: ReactNode }) => {
       if (newMode) {
         toast.info('מצב עריכה פעיל. עבור עם העכבר מעל טקסט לעריכה.');
       } else {
-        toast.success('השינויים נשמרו בהצלחה.');
+        toast.success('מצב עריכה כובה.');
       }
       console.log('Edit mode toggled:', newMode);
     } else {
@@ -102,7 +102,7 @@ export const TextEditProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
-    // Verify user is admin
+    // Verify user is admin for client-side check (server enforces via rules)
     if (!isAdmin) {
       toast.error('רק מנהלים רשאים לשמור טקסטים');
       return;
@@ -111,12 +111,17 @@ export const TextEditProvider = ({ children }: { children: ReactNode }) => {
     console.log(`Updating text with ID: ${id}, content: ${content}`);
     
     try {
-      // Update in Firestore with server timestamp
-      await setDoc(doc(db, COLLECTION_NAME, id), { 
+      const docRef = doc(db, COLLECTION_NAME, id);
+      
+      // First check if the document exists to determine if this is an update or create
+      const docSnap = await getDoc(docRef);
+      
+      // Update in Firestore with server timestamp and minimal data
+      await setDoc(docRef, { 
         content,
         updated_at: serverTimestamp(),
-        updated_by: auth.currentUser.uid,
-      });
+        updated_by: auth.currentUser.uid
+      }, { merge: true });
       
       // Update local state
       setEditedTexts(prev => ({
@@ -124,6 +129,7 @@ export const TextEditProvider = ({ children }: { children: ReactNode }) => {
         [id]: content
       }));
       
+      console.log(`Saved text with ID: ${id}, new content: ${content}`);
       toast.success('הטקסט נשמר בהצלחה');
     } catch (error) {
       console.error('Error saving text to Firebase:', error);
