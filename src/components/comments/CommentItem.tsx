@@ -51,18 +51,25 @@ const CommentItem: React.FC<CommentItemProps> = ({ comment, onDelete }) => {
     }
   };
 
+  // Get display name or fallback
+  const displayName = comment.user_name && comment.user_name !== 'משתמש אנונימי' 
+    ? comment.user_name 
+    : (user && user.uid === comment.user_id && user.displayName) 
+      ? user.displayName 
+      : comment.user_name;
+
   return (
     <div className="bg-gray-50 p-6 rounded-lg hover:bg-gray-100 transition-colors duration-200 border border-gray-100 shadow-sm">
       <div className="flex items-start gap-4">
         <Avatar className="h-12 w-12 border-2 border-white shadow-sm">
           <AvatarImage src="" alt="" />
           <AvatarFallback className="bg-law-navy text-white text-lg">
-            {comment.user_name ? getInitials(comment.user_name) : 'אנ'}
+            {displayName ? getInitials(displayName) : 'אנ'}
           </AvatarFallback>
         </Avatar>
         <div className="flex-1">
           <div className="flex justify-between items-center mb-3">
-            <span className="font-medium text-law-navy text-lg">{comment.user_name}</span>
+            <span className="font-medium text-law-navy text-lg">{displayName}</span>
             <div className="flex items-center gap-2">
               <span className="text-sm text-gray-500">{formatDate(comment.created_at)}</span>
               {isOwner && (
