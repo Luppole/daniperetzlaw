@@ -8,10 +8,11 @@ import {
   getDocs, 
   query, 
   orderBy, 
-  serverTimestamp 
+  serverTimestamp,
+  updateDoc
 } from 'firebase/firestore';
 import { db } from '@/integrations/firebase/client';
-import { Loader2, Star, Trash2, Plus } from 'lucide-react';
+import { Loader2, Star, Trash2, Plus, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -38,6 +39,7 @@ import {
   AlertDialogTrigger,
 } from '@/components/ui/alert-dialog';
 import { useAuth } from '@/contexts/AuthContext';
+import { Badge } from '@/components/ui/badge';
 
 interface Review {
   id: string;
@@ -55,6 +57,7 @@ const ReviewManagement: React.FC = () => {
   const [content, setContent] = useState('');
   const [rating, setRating] = useState(5);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const { user } = useAuth();
 
   const fetchReviews = async () => {
@@ -72,8 +75,8 @@ const ReviewManagement: React.FC = () => {
           author: data.author,
           content: data.content,
           rating: data.rating,
-          created_at: data.created_at.toDate(),
-          approved: data.approved
+          created_at: data.created_at?.toDate() || new Date(),
+          approved: data.approved ?? false
         });
       });
       
@@ -116,6 +119,7 @@ const ReviewManagement: React.FC = () => {
       setAuthor('');
       setContent('');
       setRating(5);
+      setIsAddDialogOpen(false);
       fetchReviews();
     } catch (error) {
       console.error('Error adding review:', error);
@@ -133,6 +137,19 @@ const ReviewManagement: React.FC = () => {
     } catch (error) {
       console.error('Error deleting review:', error);
       toast.error('שגיאה במחיקת חוות הדעת');
+    }
+  };
+
+  const handleToggleApproval = async (reviewId: string, currentApproval: boolean) => {
+    try {
+      await updateDoc(doc(db, 'reviews', reviewId), {
+        approved: !currentApproval
+      });
+      toast.success(currentApproval ? 'חוות הדעת בוטלה' : 'חוות הדעת אושרה');
+      fetchReviews();
+    } catch (error) {
+      console.error('Error updating review approval:', error);
+      toast.error('שגיאה בעדכון אישור חוות הדעת');
     }
   };
 
@@ -178,7 +195,7 @@ const ReviewManagement: React.FC = () => {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold text-law-navy">ניהול חוות דעת</h2>
-        <Dialog>
+        <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
           <DialogTrigger asChild>
             <Button>
               <Plus className="ml-2 h-4 w-4" /> הוסף חוות דעת
@@ -216,9 +233,9 @@ const ReviewManagement: React.FC = () => {
               </div>
             </div>
             <DialogFooter className="sm:justify-start">
-              <DialogClose asChild>
-                <Button type="button" variant="secondary">ביטול</Button>
-              </DialogClose>
+              <Button type="button" variant="secondary" onClick={() => setIsAddDialogOpen(false)}>
+                ביטול
+              </Button>
               <Button 
                 onClick={handleAddReview} 
                 disabled={isSubmitting}
@@ -245,7 +262,12 @@ const ReviewManagement: React.FC = () => {
             <Card key={review.id} className="overflow-hidden">
               <CardHeader className="pb-2">
                 <CardTitle className="flex justify-between items-center text-base font-medium">
-                  <div>{review.author}</div>
+                  <div className="flex items-center">
+                    {review.author}
+                    <Badge className={`mr-2 ${review.approved ? 'bg-green-500' : 'bg-gray-400'}`}>
+                      {review.approved ? 'מאושר' : 'לא מאושר'}
+                    </Badge>
+                  </div>
                   <div className="text-sm text-gray-500">{formatDate(review.created_at)}</div>
                 </CardTitle>
               </CardHeader>
@@ -255,7 +277,16 @@ const ReviewManagement: React.FC = () => {
                 </div>
                 <p className="text-gray-700">{review.content}</p>
               </CardContent>
-              <CardFooter className="flex justify-end pt-0">
+              <CardFooter className="flex justify-end pt-0 gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => handleToggleApproval(review.id, review.approved)}
+                  className={review.approved ? 'text-orange-500' : 'text-green-500'}
+                >
+                  <CheckCircle2 className="h-4 w-4 ml-2" />
+                  {review.approved ? 'בטל אישור' : 'אשר'}
+                </Button>
                 <AlertDialog>
                   <AlertDialogTrigger asChild>
                     <Button 
