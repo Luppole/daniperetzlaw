@@ -52,13 +52,12 @@ service cloud.firestore {
       allow update, delete: if request.auth != null && isAdmin();
     }
     
-    // Updated rules for edited_texts collection with more permissive rules for debugging
+    // Updated rules for edited_texts collection - temporarily allow any authenticated user to write
     match /edited_texts/{textId} {
       // Anyone can read the edited texts
       allow read: if true;
       
-      // Allow any authenticated user to create, update, or delete edited texts temporarily
-      // After confirming functionality, you can restrict this to admins only
+      // Allow any authenticated user to write to edited_texts
       allow write: if request.auth != null;
     }
   }

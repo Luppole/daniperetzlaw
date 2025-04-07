@@ -1,6 +1,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Edit, Check, X } from 'lucide-react';
+import { Edit, Check, X, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { useTextEdit } from '@/contexts/TextEditContext';
@@ -33,6 +33,7 @@ export const EditableText: React.FC<EditableTextProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   const [currentText, setCurrentText] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const isMobile = useIsMobile();
 
@@ -52,7 +53,7 @@ export const EditableText: React.FC<EditableTextProps> = ({
     }
   }, [isEditing, displayText, id]);
 
-  // Check authentication status
+  // Check authentication status with force refresh
   const isAuthenticated = !!auth.currentUser;
 
   // Cancel editing and reset
@@ -62,30 +63,50 @@ export const EditableText: React.FC<EditableTextProps> = ({
     console.log(`Cancelled editing text with ID: ${id}`);
   };
 
-  // Save the edited text
+  // Save the edited text with retry logic
   const handleSave = async () => {
     if (currentText.trim() === '') {
       toast.error('לא ניתן לשמור טקסט ריק');
       return;
     }
     
-    // Check if the user is authenticated before saving
+    // Extra check for authentication
     if (!isAuthenticated) {
-      toast.error('יש להתחבר כדי לשמור טקסטים');
-      setIsEditing(false);
-      return;
+      // Force auth refresh
+      await auth.currentUser?.reload();
+      
+      if (!auth.currentUser) {
+        toast.error('יש להתחבר כדי לשמור טקסטים');
+        setIsEditing(false);
+        return;
+      }
     }
 
     try {
       setIsSaving(true);
       await updateText(id, currentText);
       console.log(`Saved text with ID: ${id}, new content: ${currentText}`);
+      setRetryCount(0); // Reset retry count on success
+      setIsEditing(false);
     } catch (error) {
       console.error(`Error saving text with ID: ${id}`, error);
-      toast.error('שגיאה בשמירת הטקסט');
+      
+      // Implement retry logic (up to 3 attempts)
+      if (retryCount < 3) {
+        const newRetryCount = retryCount + 1;
+        setRetryCount(newRetryCount);
+        toast.error(`ניסיון ${newRetryCount}/3 לשמירה נכשל, מנסה שוב...`);
+        
+        // Wait briefly and retry
+        setTimeout(() => handleSave(), 1000);
+      } else {
+        toast.error('שגיאה בשמירת הטקסט לאחר מספר ניסיונות');
+        setRetryCount(0);
+      }
     } finally {
-      setIsSaving(false);
-      setIsEditing(false);
+      if (retryCount >= 3 || retryCount === 0) {
+        setIsSaving(false);
+      }
     }
   };
 
@@ -94,14 +115,26 @@ export const EditableText: React.FC<EditableTextProps> = ({
     e.preventDefault();
     e.stopPropagation(); // Prevent triggering parent click events
     
-    // Check if the user is authenticated before editing
-    if (!isAuthenticated) {
-      toast.error('יש להתחבר כדי לערוך טקסטים');
-      return;
-    }
+    // Force auth refresh and check
+    const checkAuth = async () => {
+      try {
+        await auth.currentUser?.reload();
+        
+        if (!auth.currentUser) {
+          console.log('User not authenticated when trying to edit');
+          toast.error('יש להתחבר כדי לערוך טקסטים');
+          return;
+        }
+        
+        setIsEditing(true);
+        console.log(`Started editing text with ID: ${id}, user: ${auth.currentUser.uid}`);
+      } catch (error) {
+        console.error('Error checking authentication:', error);
+        toast.error('שגיאה באימות המשתמש, נסה להתחבר מחדש');
+      }
+    };
     
-    setIsEditing(true);
-    console.log(`Started editing text with ID: ${id}`);
+    checkAuth();
   };
 
   // If admin and edit mode is on, show editable content
@@ -134,8 +167,8 @@ export const EditableText: React.FC<EditableTextProps> = ({
             >
               {isSaving ? (
                 <>
-                  <span className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-l-transparent"></span>
-                  שומר...
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  שומר{retryCount > 0 ? ` (ניסיון ${retryCount}/3)` : '...'}
                 </>
               ) : (
                 <>

@@ -1,7 +1,7 @@
 
 import { initializeApp } from "firebase/app";
 import { getFirestore, connectFirestoreEmulator } from "firebase/firestore";
-import { getAuth, connectAuthEmulator, setPersistence, browserLocalPersistence } from "firebase/auth";
+import { getAuth, connectAuthEmulator, setPersistence, browserLocalPersistence, browserSessionPersistence } from "firebase/auth";
 import { getAnalytics } from "firebase/analytics";
 import { getStorage } from "firebase/storage";
 
@@ -37,17 +37,33 @@ export const analytics = analyticsInstance;
 // Initialize Firebase and debug auth state
 export const initializeFirebase = () => {
   try {
-    // Set persistence to local for better user experience
-    setPersistence(auth, browserLocalPersistence)
+    // Try both persistence methods for better compatibility
+    const setPersistencePromise = setPersistence(auth, browserLocalPersistence)
       .catch(error => {
-        console.error("Error setting persistence:", error);
+        console.warn("Error setting local persistence, trying session persistence:", error);
+        return setPersistence(auth, browserSessionPersistence);
+      })
+      .catch(error => {
+        console.error("All persistence methods failed:", error);
       });
       
     auth.onAuthStateChanged((user) => {
       console.log('Auth state changed:', user ? 'Logged in as ' + user.email : 'Not logged in');
+      
+      // Debug user details to help with debugging
+      if (user) {
+        console.log('User details:', {
+          uid: user.uid,
+          email: user.email,
+          emailVerified: user.emailVerified,
+          isAnonymous: user.isAnonymous,
+          displayName: user.displayName
+        });
+      }
     });
     
     console.log('Firebase initialization complete');
+    return setPersistencePromise;
   } catch (error) {
     console.error("Firebase initialization error:", error);
   }

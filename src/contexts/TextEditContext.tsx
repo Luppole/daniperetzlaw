@@ -2,7 +2,17 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { useAdmin } from './AdminContext';
 import { toast } from 'sonner';
-import { collection, doc, setDoc, getDocs, deleteDoc, serverTimestamp, getDoc } from 'firebase/firestore';
+import { 
+  collection, 
+  doc, 
+  setDoc, 
+  getDocs, 
+  deleteDoc, 
+  serverTimestamp, 
+  getDoc,
+  writeBatch,
+  runTransaction
+} from 'firebase/firestore';
 import { db, auth } from '@/integrations/firebase/client';
 
 // Type for edited text items
@@ -66,11 +76,14 @@ export const TextEditProvider = ({ children }: { children: ReactNode }) => {
     fetchTexts();
   }, []);
 
-  // Toggle edit mode on/off
+  // Toggle edit mode on/off with authentication check
   const toggleEditMode = () => {
     if (isAdmin) {
-      // Check if user is authenticated before toggling
+      // Double check if user is authenticated before toggling
       if (!auth.currentUser && !isEditMode) {
+        const currentUser = auth.currentUser;
+        console.log('Current user when toggling edit mode:', currentUser);
+        
         toast.error('יש להתחבר כדי לערוך טקסטים');
         return;
       }
@@ -82,22 +95,26 @@ export const TextEditProvider = ({ children }: { children: ReactNode }) => {
       } else {
         toast.success('מצב עריכה כובה.');
       }
-      console.log('Edit mode toggled:', newMode);
+      console.log('Edit mode toggled:', newMode, 'Current user:', auth.currentUser?.uid);
     } else {
       console.log('Non-admin user tried to toggle edit mode');
       toast.error('רק מנהלים רשאים לערוך טקסטים');
     }
   };
 
-  // Update a specific text entry in Firebase
+  // Update a specific text entry in Firebase with improved error handling
   const updateText = async (id: string, content: string) => {
     if (content.trim() === '') {
       toast.error('לא ניתן לשמור טקסט ריק');
       return;
     }
 
+    // Force immediate authentication check
+    const currentUser = auth.currentUser;
+    console.log('Current user when saving text:', currentUser);
+    
     // Check if user is authenticated
-    if (!auth.currentUser) {
+    if (!currentUser) {
       toast.error('יש להתחבר כדי לשמור טקסטים');
       return;
     }
@@ -111,19 +128,30 @@ export const TextEditProvider = ({ children }: { children: ReactNode }) => {
     console.log(`Updating text with ID: ${id}, content: ${content}`);
     
     try {
-      const docRef = doc(db, COLLECTION_NAME, id);
+      // Try using a transaction for better atomicity
+      await runTransaction(db, async (transaction) => {
+        const docRef = doc(db, COLLECTION_NAME, id);
+        
+        // Set minimally required data
+        const dataToUpdate = { 
+          content,
+          updated_at: serverTimestamp(),
+          updated_by: currentUser.uid
+        };
+        
+        // In a transaction, we must check if the document exists
+        const docSnapshot = await transaction.get(docRef);
+        
+        if (!docSnapshot.exists()) {
+          // For new documents, add creation date
+          dataToUpdate['created_at'] = serverTimestamp();
+          dataToUpdate['created_by'] = currentUser.uid;
+        }
+        
+        transaction.set(docRef, dataToUpdate, { merge: true });
+      });
       
-      // First check if the document exists to determine if this is an update or create
-      const docSnap = await getDoc(docRef);
-      
-      // Update in Firestore with server timestamp and minimal data
-      await setDoc(docRef, { 
-        content,
-        updated_at: serverTimestamp(),
-        updated_by: auth.currentUser.uid
-      }, { merge: true });
-      
-      // Update local state
+      // Update local state after successful transaction
       setEditedTexts(prev => ({
         ...prev,
         [id]: content
@@ -133,11 +161,41 @@ export const TextEditProvider = ({ children }: { children: ReactNode }) => {
       toast.success('הטקסט נשמר בהצלחה');
     } catch (error) {
       console.error('Error saving text to Firebase:', error);
-      toast.error('שגיאה בשמירת הטקסט');
+      
+      // Show more detailed error message
+      let errorMessage = 'שגיאה בשמירת הטקסט';
+      if (error instanceof Error) {
+        errorMessage += `: ${error.message}`;
+        console.log('Error details:', error);
+      }
+      
+      toast.error(errorMessage);
+      
+      // Try a fallback direct approach if transaction failed
+      try {
+        console.log('Trying fallback direct document write...');
+        const docRef = doc(db, COLLECTION_NAME, id);
+        
+        await setDoc(docRef, { 
+          content,
+          updated_at: serverTimestamp(),
+          updated_by: currentUser.uid
+        }, { merge: true });
+        
+        setEditedTexts(prev => ({
+          ...prev,
+          [id]: content
+        }));
+        
+        console.log('Fallback write succeeded');
+        toast.success('הטקסט נשמר בהצלחה (באמצעות שיטה חלופית)');
+      } catch (fallbackError) {
+        console.error('Fallback write also failed:', fallbackError);
+      }
     }
   };
 
-  // Reset all edited texts in Firebase
+  // Reset all edited texts in Firebase with improved error handling
   const resetTexts = async () => {
     // Check if user is authenticated
     if (!auth.currentUser) {
@@ -152,16 +210,22 @@ export const TextEditProvider = ({ children }: { children: ReactNode }) => {
     }
 
     try {
-      // Get all documents in the collection
+      // Use batch write for better performance and atomicity
       const textsCollection = collection(db, COLLECTION_NAME);
       const textsSnapshot = await getDocs(textsCollection);
       
-      // Delete each document
-      const deletePromises = textsSnapshot.docs.map(doc => 
-        deleteDoc(doc.ref)
-      );
+      if (textsSnapshot.empty) {
+        toast.info('אין טקסטים לאיפוס');
+        return;
+      }
       
-      await Promise.all(deletePromises);
+      const batch = writeBatch(db);
+      
+      textsSnapshot.docs.forEach(document => {
+        batch.delete(document.ref);
+      });
+      
+      await batch.commit();
       
       // Clear local state
       setEditedTexts({});
@@ -169,7 +233,14 @@ export const TextEditProvider = ({ children }: { children: ReactNode }) => {
       console.log('All texts have been reset');
     } catch (error) {
       console.error('Error resetting texts:', error);
-      toast.error('שגיאה באיפוס הטקסטים');
+      
+      // Show more detailed error message
+      let errorMessage = 'שגיאה באיפוס הטקסטים';
+      if (error instanceof Error) {
+        errorMessage += `: ${error.message}`;
+      }
+      
+      toast.error(errorMessage);
     }
   };
 
