@@ -127,7 +127,12 @@ const ReviewCarousel: React.FC = () => {
           <CarouselContent>
             {reviews.map((review) => (
               <CarouselItem key={review.id} className="md:basis-1/2 lg:basis-1/3 pl-4 py-6">
-                <div className="h-full">
+                <motion.div 
+                  className="h-full"
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5 }}
+                >
                   <Card className="border border-gray-100 shadow-md h-full hover:shadow-lg transition-shadow duration-300">
                     <CardContent className="p-6 flex flex-col h-full">
                       <div className="flex items-center gap-3 mb-3">
@@ -149,7 +154,7 @@ const ReviewCarousel: React.FC = () => {
                       </p>
                     </CardContent>
                   </Card>
-                </div>
+                </motion.div>
               </CarouselItem>
             ))}
           </CarouselContent>

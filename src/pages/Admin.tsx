@@ -9,6 +9,7 @@ import { AdminArticles } from '@/components/admin/AdminArticles';
 import { AdminAppointments } from '@/components/admin/AdminAppointments';
 import { AdminComments } from '@/components/admin/AdminComments';
 import { AdminMessages } from '@/components/admin/AdminMessages';
+import ReviewManagement from '@/components/admin/reviews/ReviewManagement';
 import { Loader2 } from 'lucide-react';
 
 const Admin = () => {
@@ -40,17 +41,11 @@ const Admin = () => {
     return <Navigate to="/" replace />;
   }
 
+  // The issue appears to be here: we're rendering AdminLayout incorrectly
   return (
-    <AdminLayout>
-      <Routes>
-        <Route index element={<AdminDashboard />} />
-        <Route path="articles/*" element={<AdminArticles />} />
-        <Route path="appointments" element={<AdminAppointments />} />
-        <Route path="comments" element={<AdminComments />} />
-        <Route path="messages" element={<AdminMessages />} />
-        <Route path="*" element={<Navigate to="/admin" replace />} />
-      </Routes>
-    </AdminLayout>
+    <div className="flex min-h-screen">
+      <AdminLayout />
+    </div>
   );
 }
 

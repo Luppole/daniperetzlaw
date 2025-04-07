@@ -49,7 +49,7 @@ const AdminLayout: React.FC = () => {
       title: 'מאמרים',
       icon: <FileText className="h-5 w-5" />,
       href: '/admin/articles',
-      active: location.pathname === '/admin/articles'
+      active: location.pathname.startsWith('/admin/articles')
     },
     {
       title: 'פגישות',
@@ -78,7 +78,7 @@ const AdminLayout: React.FC = () => {
   ];
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen bg-gray-50 w-full">
       <Sidebar className="hidden md:block border-l pt-6">
         <div className="space-y-4 py-4">
           <div className="px-4 py-2 mb-8">
@@ -111,11 +111,12 @@ const AdminLayout: React.FC = () => {
       <div className="flex-1 p-8 pr-4 bg-white dark:bg-gray-950 shadow-sm rounded-tr-lg overflow-auto">
         <Routes>
           <Route path="/" element={<AdminDashboard />} />
-          <Route path="/articles" element={<AdminArticles />} />
+          <Route path="/articles/*" element={<AdminArticles />} />
           <Route path="/appointments" element={<AdminAppointments />} />
           <Route path="/messages" element={<AdminMessages />} />
           <Route path="/comments" element={<AdminComments />} />
           <Route path="/reviews" element={<ReviewManagement />} />
+          <Route path="*" element={<Navigate to="/admin" replace />} />
         </Routes>
       </div>
     </div>
