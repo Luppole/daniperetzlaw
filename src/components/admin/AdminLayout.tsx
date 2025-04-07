@@ -37,7 +37,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   const { toggleEditMode, isEditMode, resetTexts } = useTextEdit();
   const isMobile = useIsMobile();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const { expanded, setExpanded } = useSidebar();
+  const { open, setOpen } = useSidebar();
 
   useEffect(() => {
     // Close mobile menu when changing routes
@@ -46,8 +46,8 @@ export function AdminLayout({ children }: AdminLayoutProps) {
 
   // Set sidebar expanded state based on mobile state
   useEffect(() => {
-    setExpanded(!isMobile);
-  }, [isMobile, setExpanded]);
+    setOpen(!isMobile);
+  }, [isMobile, setOpen]);
 
   const links: SidebarLink[] = [
     {
