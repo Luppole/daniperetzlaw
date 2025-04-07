@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Navbar } from '@/components/Navbar';
@@ -10,6 +11,12 @@ import CommentSection from '@/components/comments/CommentSection';
 import { Loader2 } from 'lucide-react';
 import { getArticleById, Article as ArticleType, getAllArticles } from '@/services/articleService';
 import { toast } from 'sonner';
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 // Legal-themed high-quality images
 const LEGAL_IMAGES = [
@@ -27,6 +34,7 @@ const Article = () => {
   const [article, setArticle] = useState<ArticleType | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [relatedArticles, setRelatedArticles] = useState<ArticleType[]>([]);
+  const [isSaved, setIsSaved] = useState(false);
 
   useEffect(() => {
     const fetchArticleData = async () => {
@@ -52,6 +60,10 @@ const Article = () => {
               return article;
             });
           setRelatedArticles(filtered);
+          
+          // Check if this article is saved in localStorage
+          const savedArticles = JSON.parse(localStorage.getItem('savedArticles') || '[]');
+          setIsSaved(savedArticles.some((item: string) => item === id));
         } else {
           toast.error('המאמר לא נמצא');
         }
@@ -62,6 +74,86 @@ const Article = () => {
     fetchArticleData();
     window.scrollTo(0, 0);
   }, [id]);
+
+  // Share article functionality
+  const handleShare = () => {
+    if (navigator.share && article) {
+      navigator.share({
+        title: article.title,
+        text: article.summary,
+        url: window.location.href,
+      })
+      .then(() => {
+        toast.success('המאמר שותף בהצלחה');
+      })
+      .catch((error) => {
+        console.error('Error sharing:', error);
+        handleManualShare();
+      });
+    } else {
+      handleManualShare();
+    }
+  };
+
+  // Fallback share functionality
+  const handleManualShare = () => {
+    navigator.clipboard.writeText(window.location.href)
+      .then(() => {
+        toast.success('הקישור הועתק ללוח');
+      })
+      .catch((error) => {
+        console.error('Failed to copy:', error);
+        toast.error('לא ניתן להעתיק את הקישור');
+      });
+  };
+
+  // Save article functionality
+  const handleSave = () => {
+    if (!id) return;
+    
+    const savedArticles = JSON.parse(localStorage.getItem('savedArticles') || '[]');
+    
+    if (isSaved) {
+      // Remove from saved
+      const updatedSavedArticles = savedArticles.filter((articleId: string) => articleId !== id);
+      localStorage.setItem('savedArticles', JSON.stringify(updatedSavedArticles));
+      setIsSaved(false);
+      toast.success('המאמר הוסר מהמאמרים השמורים');
+    } else {
+      // Add to saved
+      savedArticles.push(id);
+      localStorage.setItem('savedArticles', JSON.stringify(savedArticles));
+      setIsSaved(true);
+      toast.success('המאמר נשמר בהצלחה');
+    }
+  };
+
+  // Print article functionality
+  const handlePrint = () => {
+    window.print();
+    toast.success('מדפיס מאמר...');
+  };
+
+  // Social media share handlers
+  const handleShareToFacebook = () => {
+    const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`;
+    window.open(url, '_blank', 'width=600,height=400');
+  };
+
+  const handleShareToWhatsApp = () => {
+    const url = `https://api.whatsapp.com/send?text=${encodeURIComponent(article?.title || '')} - ${encodeURIComponent(window.location.href)}`;
+    window.open(url, '_blank');
+  };
+
+  const handleShareToTwitter = () => {
+    const url = `https://twitter.com/intent/tweet?text=${encodeURIComponent(article?.title || '')}&url=${encodeURIComponent(window.location.href)}`;
+    window.open(url, '_blank', 'width=600,height=400');
+  };
+
+  const handleShareToLinkedIn = () => {
+    const url = `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}`;
+    window.open(url, '_blank', 'width=600,height=400');
+  };
 
   if (isLoading) {
     return (
@@ -193,15 +285,31 @@ const Article = () => {
               <div className="mt-16 pt-10 border-t border-gray-200">
                 <h4 className="text-lg font-bold mb-6 text-law-navy">שתף את המאמר</h4>
                 <div className="flex gap-4">
-                  <Button variant="outline" size="sm" className="flex items-center">
-                    <Share2 className="ml-2 h-4 w-4" />
-                    שתף
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="sm" className="flex items-center">
+                        <Share2 className="ml-2 h-4 w-4" />
+                        שתף
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem onClick={handleShareToWhatsApp}>WhatsApp</DropdownMenuItem>
+                      <DropdownMenuItem onClick={handleShareToFacebook}>Facebook</DropdownMenuItem>
+                      <DropdownMenuItem onClick={handleShareToTwitter}>Twitter</DropdownMenuItem>
+                      <DropdownMenuItem onClick={handleShareToLinkedIn}>LinkedIn</DropdownMenuItem>
+                      <DropdownMenuItem onClick={handleManualShare}>העתק קישור</DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className={`flex items-center ${isSaved ? 'bg-law-light text-law-navy' : ''}`} 
+                    onClick={handleSave}
+                  >
+                    <Bookmark className={`ml-2 h-4 w-4 ${isSaved ? 'fill-law-navy' : ''}`} />
+                    {isSaved ? 'שמור' : 'שמור'}
                   </Button>
-                  <Button variant="outline" size="sm" className="flex items-center">
-                    <Bookmark className="ml-2 h-4 w-4" />
-                    שמור
-                  </Button>
-                  <Button variant="outline" size="sm" className="flex items-center">
+                  <Button variant="outline" size="sm" className="flex items-center" onClick={handlePrint}>
                     <Printer className="ml-2 h-4 w-4" />
                     הדפס
                   </Button>
