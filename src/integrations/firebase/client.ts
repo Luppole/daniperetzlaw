@@ -26,7 +26,9 @@ export const storage = getStorage(firebaseApp);
 let analyticsInstance = null;
 try {
   // Only initialize analytics in browser environment
-  analyticsInstance = getAnalytics(firebaseApp);
+  if (typeof window !== 'undefined') {
+    analyticsInstance = getAnalytics(firebaseApp);
+  }
 } catch (error) {
   console.error("Failed to initialize analytics:", error);
 }
@@ -35,8 +37,11 @@ export const analytics = analyticsInstance;
 // Initialize Firebase and debug auth state
 export const initializeFirebase = () => {
   try {
-    // Console log the auth state to debug
-    console.log('Current auth state:', auth.currentUser ? 'Logged in' : 'Not logged in');
+    // Set persistence to local for better user experience
+    auth.onAuthStateChanged((user) => {
+      console.log('Auth state changed:', user ? 'Logged in as ' + user.email : 'Not logged in');
+    });
+    
     console.log('Firebase initialization complete');
   } catch (error) {
     console.error("Firebase initialization error:", error);

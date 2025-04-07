@@ -13,6 +13,7 @@ import {
 } from '@/components/ui/hover-card';
 import { toast } from 'sonner';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { auth } from '@/integrations/firebase/client';
 
 interface EditableTextProps {
   id: string;
@@ -58,14 +59,27 @@ export const EditableText: React.FC<EditableTextProps> = ({
   };
 
   // Save the edited text
-  const handleSave = () => {
-    if (currentText.trim() !== '') {
-      updateText(id, currentText);
-      console.log(`Saved text with ID: ${id}, new content: ${currentText}`);
-    } else {
-      console.log(`No changes made to text with ID: ${id}`);
+  const handleSave = async () => {
+    if (currentText.trim() === '') {
       toast.error('לא ניתן לשמור טקסט ריק');
+      return;
     }
+    
+    // Check if the user is authenticated before saving
+    if (!auth.currentUser) {
+      toast.error('יש להתחבר כדי לשמור טקסטים');
+      setIsEditing(false);
+      return;
+    }
+
+    try {
+      await updateText(id, currentText);
+      console.log(`Saved text with ID: ${id}, new content: ${currentText}`);
+    } catch (error) {
+      console.error(`Error saving text with ID: ${id}`, error);
+      toast.error('שגיאה בשמירת הטקסט');
+    }
+    
     setIsEditing(false);
   };
 
@@ -73,6 +87,13 @@ export const EditableText: React.FC<EditableTextProps> = ({
   const handleEdit = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation(); // Prevent triggering parent click events
+    
+    // Check if the user is authenticated before editing
+    if (!auth.currentUser) {
+      toast.error('יש להתחבר כדי לערוך טקסטים');
+      return;
+    }
+    
     setIsEditing(true);
     console.log(`Started editing text with ID: ${id}`);
   };

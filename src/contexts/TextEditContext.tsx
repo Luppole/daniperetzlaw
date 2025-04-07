@@ -2,8 +2,8 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { useAdmin } from './AdminContext';
 import { toast } from 'sonner';
-import { collection, doc, setDoc, getDocs, deleteDoc } from 'firebase/firestore';
-import { db } from '@/integrations/firebase/client';
+import { collection, doc, setDoc, getDocs, deleteDoc, serverTimestamp } from 'firebase/firestore';
+import { db, auth } from '@/integrations/firebase/client';
 
 // Type for edited text items
 interface EditedText {
@@ -69,6 +69,12 @@ export const TextEditProvider = ({ children }: { children: ReactNode }) => {
   // Toggle edit mode on/off
   const toggleEditMode = () => {
     if (isAdmin) {
+      // Check if user is authenticated before toggling
+      if (!auth.currentUser && !isEditMode) {
+        toast.error('יש להתחבר כדי לערוך טקסטים');
+        return;
+      }
+      
       const newMode = !isEditMode;
       setIsEditMode(newMode);
       if (newMode) {
@@ -79,6 +85,7 @@ export const TextEditProvider = ({ children }: { children: ReactNode }) => {
       console.log('Edit mode toggled:', newMode);
     } else {
       console.log('Non-admin user tried to toggle edit mode');
+      toast.error('רק מנהלים רשאים לערוך טקסטים');
     }
   };
 
@@ -89,13 +96,26 @@ export const TextEditProvider = ({ children }: { children: ReactNode }) => {
       return;
     }
 
+    // Check if user is authenticated
+    if (!auth.currentUser) {
+      toast.error('יש להתחבר כדי לשמור טקסטים');
+      return;
+    }
+
+    // Verify user is admin
+    if (!isAdmin) {
+      toast.error('רק מנהלים רשאים לשמור טקסטים');
+      return;
+    }
+
     console.log(`Updating text with ID: ${id}, content: ${content}`);
     
     try {
-      // Update in Firestore
+      // Update in Firestore with server timestamp
       await setDoc(doc(db, COLLECTION_NAME, id), { 
         content,
-        updated_at: new Date().toISOString(),
+        updated_at: serverTimestamp(),
+        updated_by: auth.currentUser.uid,
       });
       
       // Update local state
@@ -113,6 +133,18 @@ export const TextEditProvider = ({ children }: { children: ReactNode }) => {
 
   // Reset all edited texts in Firebase
   const resetTexts = async () => {
+    // Check if user is authenticated
+    if (!auth.currentUser) {
+      toast.error('יש להתחבר כדי לאפס טקסטים');
+      return;
+    }
+
+    // Verify user is admin
+    if (!isAdmin) {
+      toast.error('רק מנהלים רשאים לאפס טקסטים');
+      return;
+    }
+
     try {
       // Get all documents in the collection
       const textsCollection = collection(db, COLLECTION_NAME);

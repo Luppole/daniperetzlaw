@@ -51,5 +51,14 @@ service cloud.firestore {
       // Only admins can update or delete messages
       allow update, delete: if request.auth != null && isAdmin();
     }
+    
+    // Add rules for edited_texts collection
+    match /edited_texts/{textId} {
+      // Anyone can read the edited texts
+      allow read: if true;
+      
+      // Only admins can create, update, or delete edited texts
+      allow create, update, delete: if request.auth != null && isAdmin();
+    }
   }
 }
