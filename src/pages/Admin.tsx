@@ -1,16 +1,11 @@
 
 import React, { useEffect } from 'react';
-import { Navigate, Route, Routes, useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { useAdmin } from '@/contexts/AdminContext';
 import { useAuth } from '@/contexts/AuthContext';
 import AdminLayout from '@/components/admin/AdminLayout';
-import { AdminDashboard } from '@/components/admin/AdminDashboard';
-import { AdminArticles } from '@/components/admin/AdminArticles';
-import { AdminAppointments } from '@/components/admin/AdminAppointments';
-import { AdminComments } from '@/components/admin/AdminComments';
-import { AdminMessages } from '@/components/admin/AdminMessages';
-import ReviewManagement from '@/components/admin/reviews/ReviewManagement';
 import { Loader2 } from 'lucide-react';
+import { SidebarProvider } from '@/components/ui/sidebar';
 
 const Admin = () => {
   const { isAdmin, isLoading: adminLoading } = useAdmin();
@@ -41,11 +36,13 @@ const Admin = () => {
     return <Navigate to="/" replace />;
   }
 
-  // The issue appears to be here: we're rendering AdminLayout incorrectly
+  // Wrap AdminLayout with SidebarProvider to fix the context error
   return (
-    <div className="flex min-h-screen">
-      <AdminLayout />
-    </div>
+    <SidebarProvider>
+      <div className="flex min-h-screen w-full">
+        <AdminLayout />
+      </div>
+    </SidebarProvider>
   );
 }
 
