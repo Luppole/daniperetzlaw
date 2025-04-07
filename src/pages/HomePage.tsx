@@ -13,6 +13,7 @@ import { useLocation } from 'react-router-dom';
 import { useAdmin } from '@/contexts/AdminContext';
 import { useTextEdit } from '@/contexts/TextEditContext';
 import { Button } from '@/components/ui/button';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 // Define images for different sections and prepare them for lazy loading
 const sectionImages = [
@@ -26,7 +27,7 @@ const sectionImages = [
 const ScrollTopButton = memo(({ show, onClick }: { show: boolean; onClick: () => void }) => (
   <button
     onClick={onClick}
-    className={`fixed bottom-6 left-6 bg-law-navy text-white p-3 rounded-full shadow-lg transition-all duration-300 ${
+    className={`fixed bottom-6 left-6 bg-law-navy text-white p-3 rounded-full shadow-lg transition-all duration-300 z-30 ${
       show ? 'opacity-80 transform translate-y-0 hover:opacity-100' : 'opacity-0 transform translate-y-10 pointer-events-none'
     }`}
     aria-label="Scroll to top"
@@ -36,6 +37,56 @@ const ScrollTopButton = memo(({ show, onClick }: { show: boolean; onClick: () =>
 ));
 ScrollTopButton.displayName = 'ScrollTopButton';
 
+// Admin action buttons for mobile
+const AdminActionButtons = memo(({ isEditMode, toggleEditMode, handleResetTexts }: { 
+  isEditMode: boolean;
+  toggleEditMode: () => void;
+  handleResetTexts: () => void;
+}) => {
+  const isMobile = useIsMobile();
+  
+  return (
+    <div className={`fixed ${isMobile ? 'top-auto bottom-20 right-4' : 'top-24 left-6'} z-40 flex ${isMobile ? 'flex-row-reverse' : 'flex-col'} gap-2`}>
+      <Button
+        onClick={toggleEditMode}
+        size={isMobile ? "icon" : "default"}
+        className={`rounded-full shadow-lg transition-all duration-300 ${
+          isEditMode ? 'bg-green-600 hover:bg-green-700' : 'bg-law-navy hover:bg-law-navy/90'
+        }`}
+      >
+        {isEditMode ? (
+          isMobile ? <Save className="h-4 w-4" /> : (
+            <>
+              <Save className="h-4 w-4 ml-2" />
+              סיים עריכה
+            </>
+          )
+        ) : (
+          isMobile ? <Edit className="h-4 w-4" /> : (
+            <>
+              <Edit className="h-4 w-4 ml-2" />
+              עריכת תוכן
+            </>
+          )
+        )}
+      </Button>
+      
+      {isEditMode && (
+        <Button 
+          variant="destructive" 
+          onClick={handleResetTexts}
+          size={isMobile ? "icon" : "default"}
+          className="rounded-full shadow-lg"
+        >
+          <RotateCcw className={`h-4 w-4 ${!isMobile && 'ml-2'}`} />
+          {!isMobile && "אפס טקסטים"}
+        </Button>
+      )}
+    </div>
+  );
+});
+AdminActionButtons.displayName = 'AdminActionButtons';
+
 // Optimized HomePage component
 const HomePage = () => {
   const [showScrollTop, setShowScrollTop] = useState(false);
@@ -43,6 +94,7 @@ const HomePage = () => {
   const { isAdmin } = useAdmin();
   const { isEditMode, toggleEditMode, resetTexts, editedTexts } = useTextEdit();
   const observerRef = useRef<IntersectionObserver | null>(null);
+  const isMobile = useIsMobile();
 
   // Performance optimization: Throttled scroll handler
   useEffect(() => {
@@ -162,9 +214,8 @@ const HomePage = () => {
   // Force save of edited texts before unload
   useEffect(() => {
     const handleBeforeUnload = () => {
-      if (isEditMode && Object.keys(editedTexts).length > 0) {
-        localStorage.setItem('edited_texts', JSON.stringify(editedTexts));
-      }
+      // With the new Firebase implementation, we don't need to save on unload
+      // as changes are saved automatically
     };
 
     window.addEventListener('beforeunload', handleBeforeUnload);
@@ -197,39 +248,13 @@ const HomePage = () => {
       <ContactSection />
       <Footer />
       
-      {/* Admin edit mode toggle button with enhanced visibility */}
+      {/* Admin edit mode toggle button with enhanced visibility for both mobile and desktop */}
       {isAdmin && (
-        <div className="fixed top-24 left-6 z-40 flex flex-col gap-2">
-          <Button
-            onClick={toggleEditMode}
-            className={`shadow-lg transition-all duration-300 ${
-              isEditMode ? 'bg-green-600 hover:bg-green-700' : 'bg-law-navy hover:bg-law-navy/90'
-            }`}
-          >
-            {isEditMode ? (
-              <>
-                <Save className="h-4 w-4 ml-2" />
-                סיים עריכה
-              </>
-            ) : (
-              <>
-                <Edit className="h-4 w-4 ml-2" />
-                עריכת תוכן
-              </>
-            )}
-          </Button>
-          
-          {isEditMode && (
-            <Button 
-              variant="destructive" 
-              onClick={handleResetTexts}
-              className="shadow-lg"
-            >
-              <RotateCcw className="h-4 w-4 ml-2" />
-              אפס טקסטים
-            </Button>
-          )}
-        </div>
+        <AdminActionButtons 
+          isEditMode={isEditMode} 
+          toggleEditMode={toggleEditMode} 
+          handleResetTexts={handleResetTexts} 
+        />
       )}
       
       {/* Optimized scroll to top button */}

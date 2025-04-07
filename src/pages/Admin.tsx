@@ -10,6 +10,7 @@ import { AdminAppointments } from '@/components/admin/AdminAppointments';
 import { AdminComments } from '@/components/admin/AdminComments';
 import { AdminMessages } from '@/components/admin/AdminMessages';
 import { Loader2 } from 'lucide-react';
+import { SidebarProvider } from '@/components/ui/sidebar';
 
 const Admin = () => {
   const { isAdmin, isLoading: adminLoading } = useAdmin();
@@ -41,16 +42,18 @@ const Admin = () => {
   }
 
   return (
-    <AdminLayout>
-      <Routes>
-        <Route index element={<AdminDashboard />} />
-        <Route path="articles/*" element={<AdminArticles />} />
-        <Route path="appointments" element={<AdminAppointments />} />
-        <Route path="comments" element={<AdminComments />} />
-        <Route path="messages" element={<AdminMessages />} />
-        <Route path="*" element={<Navigate to="/admin" replace />} />
-      </Routes>
-    </AdminLayout>
+    <SidebarProvider>
+      <AdminLayout>
+        <Routes>
+          <Route index element={<AdminDashboard />} />
+          <Route path="articles/*" element={<AdminArticles />} />
+          <Route path="appointments" element={<AdminAppointments />} />
+          <Route path="comments" element={<AdminComments />} />
+          <Route path="messages" element={<AdminMessages />} />
+          <Route path="*" element={<Navigate to="/admin" replace />} />
+        </Routes>
+      </AdminLayout>
+    </SidebarProvider>
   );
 }
 

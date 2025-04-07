@@ -2,6 +2,8 @@
 import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { useAdmin } from './AdminContext';
 import { toast } from 'sonner';
+import { collection, doc, setDoc, getDocs, deleteDoc } from 'firebase/firestore';
+import { db } from '@/integrations/firebase/client';
 
 // Type for edited text items
 interface EditedText {
@@ -29,37 +31,40 @@ const TextEditContext = createContext<TextEditContextType>({
 
 export const useTextEdit = () => useContext(TextEditContext);
 
-// Storage key for saved texts
-const STORAGE_KEY = 'edited_texts';
+// Firebase collection name for edited texts
+const COLLECTION_NAME = 'edited_texts';
 
 export const TextEditProvider = ({ children }: { children: ReactNode }) => {
   const { isAdmin } = useAdmin();
   const [isEditMode, setIsEditMode] = useState(false);
   const [editedTexts, setEditedTexts] = useState<Record<string, string>>({});
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Load saved texts from localStorage on initial render
+  // Load texts from Firebase on initial render
   useEffect(() => {
-    const savedTexts = localStorage.getItem(STORAGE_KEY);
-    if (savedTexts) {
+    const fetchTexts = async () => {
+      setIsLoading(true);
       try {
-        const parsedTexts = JSON.parse(savedTexts);
-        setEditedTexts(parsedTexts);
-        console.log('Loaded edited texts from localStorage:', parsedTexts);
+        const textsCollection = collection(db, COLLECTION_NAME);
+        const textsSnapshot = await getDocs(textsCollection);
+        
+        const textsData: Record<string, string> = {};
+        textsSnapshot.forEach((doc) => {
+          textsData[doc.id] = doc.data().content;
+        });
+        
+        setEditedTexts(textsData);
+        console.log('Loaded edited texts from Firebase:', textsData);
       } catch (error) {
-        console.error('Failed to parse saved texts', error);
-        // Clear corrupted data
-        localStorage.removeItem(STORAGE_KEY);
+        console.error('Failed to fetch edited texts from Firebase', error);
+        toast.error('שגיאה בטעינת הטקסטים המותאמים');
+      } finally {
+        setIsLoading(false);
       }
-    }
-  }, []);
+    };
 
-  // Save texts to localStorage whenever they change
-  useEffect(() => {
-    if (Object.keys(editedTexts).length > 0) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(editedTexts));
-      console.log('Saved edited texts to localStorage:', editedTexts);
-    }
-  }, [editedTexts]);
+    fetchTexts();
+  }, []);
 
   // Toggle edit mode on/off
   const toggleEditMode = () => {
@@ -69,8 +74,6 @@ export const TextEditProvider = ({ children }: { children: ReactNode }) => {
       if (newMode) {
         toast.info('מצב עריכה פעיל. עבור עם העכבר מעל טקסט לעריכה.');
       } else {
-        // Force save to localStorage when exiting edit mode
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(editedTexts));
         toast.success('השינויים נשמרו בהצלחה.');
       }
       console.log('Edit mode toggled:', newMode);
@@ -79,26 +82,57 @@ export const TextEditProvider = ({ children }: { children: ReactNode }) => {
     }
   };
 
-  // Update a specific text entry
-  const updateText = (id: string, content: string) => {
+  // Update a specific text entry in Firebase
+  const updateText = async (id: string, content: string) => {
+    if (content.trim() === '') {
+      toast.error('לא ניתן לשמור טקסט ריק');
+      return;
+    }
+
     console.log(`Updating text with ID: ${id}, content: ${content}`);
-    setEditedTexts(prev => {
-      const newTexts = {
+    
+    try {
+      // Update in Firestore
+      await setDoc(doc(db, COLLECTION_NAME, id), { 
+        content,
+        updated_at: new Date().toISOString(),
+      });
+      
+      // Update local state
+      setEditedTexts(prev => ({
         ...prev,
         [id]: content
-      };
-      // Immediately save to localStorage after each update
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(newTexts));
-      return newTexts;
-    });
+      }));
+      
+      toast.success('הטקסט נשמר בהצלחה');
+    } catch (error) {
+      console.error('Error saving text to Firebase:', error);
+      toast.error('שגיאה בשמירת הטקסט');
+    }
   };
 
-  // Reset all edited texts
-  const resetTexts = () => {
-    setEditedTexts({});
-    localStorage.removeItem(STORAGE_KEY);
-    toast.success('כל הטקסטים אופסו בהצלחה');
-    console.log('All texts have been reset');
+  // Reset all edited texts in Firebase
+  const resetTexts = async () => {
+    try {
+      // Get all documents in the collection
+      const textsCollection = collection(db, COLLECTION_NAME);
+      const textsSnapshot = await getDocs(textsCollection);
+      
+      // Delete each document
+      const deletePromises = textsSnapshot.docs.map(doc => 
+        deleteDoc(doc.ref)
+      );
+      
+      await Promise.all(deletePromises);
+      
+      // Clear local state
+      setEditedTexts({});
+      toast.success('כל הטקסטים אופסו בהצלחה');
+      console.log('All texts have been reset');
+    } catch (error) {
+      console.error('Error resetting texts:', error);
+      toast.error('שגיאה באיפוס הטקסטים');
+    }
   };
 
   const contextValue = {
@@ -108,6 +142,11 @@ export const TextEditProvider = ({ children }: { children: ReactNode }) => {
     updateText,
     resetTexts
   };
+
+  // Show loading indicator while fetching texts
+  if (isLoading) {
+    return <>{children}</>;
+  }
 
   return (
     <TextEditContext.Provider value={contextValue}>

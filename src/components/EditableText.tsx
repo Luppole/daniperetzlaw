@@ -12,6 +12,7 @@ import {
   HoverCardContent
 } from '@/components/ui/hover-card';
 import { toast } from 'sonner';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface EditableTextProps {
   id: string;
@@ -31,6 +32,7 @@ export const EditableText: React.FC<EditableTextProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   const [currentText, setCurrentText] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const isMobile = useIsMobile();
 
   // Get the current text content from either edited texts or children
   const displayText = editedTexts[id] !== undefined ? 
@@ -60,7 +62,6 @@ export const EditableText: React.FC<EditableTextProps> = ({
     if (currentText.trim() !== '') {
       updateText(id, currentText);
       console.log(`Saved text with ID: ${id}, new content: ${currentText}`);
-      toast.success('הטקסט נשמר בהצלחה');
     } else {
       console.log(`No changes made to text with ID: ${id}`);
       toast.error('לא ניתן לשמור טקסט ריק');
@@ -105,6 +106,30 @@ export const EditableText: React.FC<EditableTextProps> = ({
             </Button>
           </div>
         </div>
+      );
+    }
+
+    // Different UI for mobile vs desktop
+    if (isMobile) {
+      return (
+        <Component 
+          className={cn(
+            className,
+            "group relative cursor-pointer border border-dashed border-law-navy/70 bg-law-navy/5 rounded-sm p-2"
+          )}
+          onClick={handleEdit}
+        >
+          <div className="flex items-start gap-2">
+            <div className="flex-1">{displayText}</div>
+            <Button
+              size="icon"
+              variant="outline"
+              className="h-6 w-6 rounded-full shrink-0 border-law-navy text-law-navy"
+            >
+              <Edit className="h-3 w-3" />
+            </Button>
+          </div>
+        </Component>
       );
     }
 
