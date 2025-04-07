@@ -1,4 +1,3 @@
-
 import { 
   collection, 
   addDoc, 
@@ -17,19 +16,24 @@ import { Comment } from '@/types/comment';
 import { FirebaseComment } from '@/integrations/firebase/types';
 import { toast } from 'sonner';
 
-// Helper function to convert Firestore document to Comment type
+// Update the conversion function to prefer display name from Firebase auth
 const convertFirestoreCommentToComment = async (
   comment: FirebaseComment & { id: string }
 ): Promise<Comment> => {
   let userName = 'משתמש אנונימי';
   
   try {
-    // Get user profile data
-    const userDoc = await getDoc(doc(db, 'profiles', comment.user_id));
-    if (userDoc.exists()) {
-      const userData = userDoc.data();
-      // Prioritize full_name from profiles, then displayName from auth
-      userName = userData.full_name || userData.displayName || 'משתמש אנונימי';
+    // First, check if the current user matches the comment's user_id
+    if (auth.currentUser && auth.currentUser.uid === comment.user_id) {
+      // Prefer display name, then email
+      userName = auth.currentUser.displayName || auth.currentUser.email || 'משתמש אנונימי';
+    } else {
+      // If not the current user, fetch from profiles collection
+      const userDoc = await getDoc(doc(db, 'profiles', comment.user_id));
+      if (userDoc.exists()) {
+        const userData = userDoc.data();
+        userName = userData.full_name || userData.displayName || 'משתמש אנונימי';
+      }
     }
   } catch (error: any) {
     console.error('Error fetching user profile:', error.message);
@@ -78,7 +82,6 @@ export async function getArticleComments(articleId: string): Promise<Comment[]> 
   }
 }
 
-// Add a comment to an article
 export async function addComment(articleId: string, userId: string, content: string): Promise<boolean> {
   try {
     // Verify the user is logged in
@@ -92,6 +95,9 @@ export async function addComment(articleId: string, userId: string, content: str
       toast.error('שגיאת אימות משתמש');
       throw new Error('User ID does not match the authenticated user');
     }
+    
+    // Set the user name from the current user's profile
+    const userName = auth.currentUser.displayName || auth.currentUser.email || 'משתמש אנונימי';
     
     console.log(`Adding comment for article ID: ${articleId}, user ID: ${userId}`);
     
