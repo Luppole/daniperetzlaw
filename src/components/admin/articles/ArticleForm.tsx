@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { z } from 'zod';
@@ -12,11 +11,11 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { Card, CardContent } from '@/components/ui/card';
 import { ArrowRight, Loader2, Save, FileTextIcon, ImageIcon, EyeIcon } from 'lucide-react';
 import { Article, getArticleById, createArticle, updateArticle } from '@/services/articleService';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { doc, getDoc } from 'firebase/firestore';
-import { db } from '@/integrations/firebase/client';
+import { db, storage } from '@/integrations/firebase/client';
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ReactMarkdown from 'react-markdown';
 
@@ -75,8 +74,7 @@ const markdownTemplates = {
 ---
 
 *המידע אינו מהווה ייעוץ משפטי. יש להיוועץ בעורך דין לקבלת ייעוץ פרטני.*
-`
-};
+`;
 
 export function ArticleForm() {
   const { id } = useParams();
@@ -213,42 +211,25 @@ export function ArticleForm() {
     
     setImageUploading(true);
     try {
-      // Create a unique filename to prevent collisions
       const timestamp = Date.now();
       const filename = `article-${timestamp}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
       
       console.log('Uploading file:', filename);
       
-      // Upload to Supabase storage
-      const { data, error } = await supabase.storage
-        .from('article-images')
-        .upload(filename, file, {
-          cacheControl: '3600',
-          upsert: false
-        });
+      const storageRef = ref(storage, `article-images/${filename}`);
       
-      if (error) {
-        console.error('Supabase upload error:', error);
-        throw error;
-      }
+      const uploadResult = await uploadBytes(storageRef, file);
+      console.log('File uploaded successfully:', uploadResult);
       
-      console.log('File uploaded successfully:', data);
+      const downloadURL = await getDownloadURL(storageRef);
+      console.log('Image download URL:', downloadURL);
       
-      // Get public URL
-      const { data: publicUrlData } = supabase
-        .storage
-        .from('article-images')
-        .getPublicUrl(data.path);
-      
-      const imageUrl = publicUrlData.publicUrl;
-      console.log('Image public URL:', imageUrl);
-      
-      form.setValue('image_url', imageUrl);
-      setImagePreview(imageUrl);
+      form.setValue('image_url', downloadURL);
+      setImagePreview(downloadURL);
       
       toast.success('התמונה הועלתה בהצלחה');
     } catch (error: any) {
-      console.error('Error uploading image:', error);
+      console.error('Error uploading image to Firebase Storage:', error);
       setUploadError(`שגיאה בהעלאת התמונה: ${error.message || error}`);
       toast.error(`שגיאה בהעלאת התמונה: ${error.message || error}`);
     } finally {

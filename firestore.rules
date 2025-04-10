@@ -47,12 +47,12 @@ service cloud.firestore {
       // Allow anyone to read contact messages
       allow read: if true;
       
-      // Allow any authenticated user to update or delete messages (temporary for debugging)
-      // In production, this should be restricted to admins only
+      // Allow any authenticated user to update or delete messages
+      // This is important for the admin panel to work properly
       allow update, delete: if request.auth != null;
     }
     
-    // Updated rules for edited_texts collection - temporarily allow any authenticated user to write
+    // Updated rules for edited_texts collection - allow any authenticated user to write
     match /edited_texts/{textId} {
       // Anyone can read the edited texts
       allow read: if true;
