@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { z } from 'zod';
@@ -29,7 +28,6 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-// Example markdown templates
 const markdownTemplates = {
   basic: `# כותרת ראשית
 
@@ -252,6 +250,15 @@ export function ArticleForm() {
 
   const currentContent = form.watch('content');
 
+  const previewComponents = {
+    p: ({ children }: { children: React.ReactNode }) => (
+      <p className="mb-4 whitespace-pre-line">{children}</p>
+    ),
+    li: ({ children }: { children: React.ReactNode }) => (
+      <li className="mb-2 whitespace-pre-line">{children}</li>
+    ),
+  };
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -453,7 +460,7 @@ export function ArticleForm() {
                   <TabsContent value="preview">
                     <div className="border rounded-md p-4 min-h-[300px] bg-white overflow-auto">
                       <div className="prose prose-lg max-w-none">
-                        <ReactMarkdown>
+                        <ReactMarkdown components={previewComponents}>
                           {currentContent || 'אין תוכן להצגה'}
                         </ReactMarkdown>
                       </div>

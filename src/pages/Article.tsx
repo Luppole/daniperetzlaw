@@ -193,6 +193,18 @@ const Article = () => {
 
   const articleImage = imageError || !article.image_url ? getFallbackImage() : article.image_url;
 
+  // Custom components for ReactMarkdown to preserve whitespace and line breaks
+  const components = {
+    // Add extra spacing between paragraphs
+    p: ({ children }: { children: React.ReactNode }) => (
+      <p className="mb-14 whitespace-pre-line">{children}</p>
+    ),
+    // Preserve spacing in list items
+    li: ({ children }: { children: React.ReactNode }) => (
+      <li className="mb-6 whitespace-pre-line">{children}</li>
+    ),
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -253,7 +265,12 @@ const Article = () => {
                              prose-p:text-gray-700 prose-p:leading-relaxed prose-p:mb-14 prose-ul:text-gray-700 
                              prose-li:mb-6 prose-a:text-law-navy prose-a:font-medium prose-a:no-underline 
                              hover:prose-a:underline">
-                <ReactMarkdown className="text-gray-700 leading-relaxed mb-12 text-lg">{article.content}</ReactMarkdown>
+                <ReactMarkdown 
+                  className="text-gray-700 leading-relaxed mb-12 text-lg whitespace-pre-line"
+                  components={components}
+                >
+                  {article.content}
+                </ReactMarkdown>
               </div>
               
               <div className="mt-28 pt-10 border-t border-gray-200">
@@ -285,7 +302,7 @@ const Article = () => {
                     onClick={handleSave}
                   >
                     <Bookmark className={`ml-2 h-4 w-4 ${isSaved ? 'fill-law-navy' : ''}`} />
-                    {isSaved ? 'שמ��ר' : 'שמור'}
+                    {isSaved ? 'שמור' : 'שמור'}
                   </Button>
                   <Button variant="outline" size="sm" className="flex items-center" onClick={handlePrint}>
                     <Printer className="ml-2 h-4 w-4" />
