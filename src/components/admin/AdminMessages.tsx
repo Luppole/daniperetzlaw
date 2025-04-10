@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   fetchContactMessages, 
@@ -40,11 +40,20 @@ import {
 import { toast } from 'sonner';
 import { ContactMessage } from '@/types/contact-message';
 import { auth } from '@/integrations/firebase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 export function AdminMessages() {
   const [selectedMessage, setSelectedMessage] = useState<ContactMessage | null>(null);
   const [messageToDelete, setMessageToDelete] = useState<string | null>(null);
   const queryClient = useQueryClient();
+  const { user } = useAuth();
+
+  // Check if user is authenticated
+  useEffect(() => {
+    if (!user) {
+      toast.error("עליך להתחבר כדי לצפות בהודעות ולנהל אותן");
+    }
+  }, [user]);
 
   // Fetch messages with improved error handling
   const { data: messages, isLoading, error, refetch } = useQuery({
@@ -53,7 +62,8 @@ export function AdminMessages() {
     retry: 2,
     retryDelay: 1000,
     staleTime: 30000,
-    refetchOnWindowFocus: true
+    refetchOnWindowFocus: true,
+    enabled: !!user // Only fetch if user is authenticated
   });
 
   // Mark as read mutation
@@ -119,6 +129,17 @@ export function AdminMessages() {
       return dateString;
     }
   };
+
+  // If no user is authenticated, show a message
+  if (!user) {
+    return (
+      <div className="text-center py-10 bg-law-light/50 rounded-lg">
+        <AlertTriangle className="h-10 w-10 text-orange-500 mx-auto mb-2" />
+        <p className="text-gray-600 font-medium mb-2">יש להתחבר כדי לצפות בהודעות</p>
+        <p className="text-sm text-gray-500">עליך להיות מחובר כדי לנהל את הודעות הקשר</p>
+      </div>
+    );
+  }
 
   if (isLoading) {
     return (

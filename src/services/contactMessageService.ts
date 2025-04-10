@@ -9,8 +9,7 @@ import {
   doc, 
   query, 
   orderBy, 
-  serverTimestamp,
-  runTransaction
+  serverTimestamp
 } from 'firebase/firestore';
 import { FirebaseContactMessage } from '@/integrations/firebase/types';
 import { ContactMessage } from '@/types/contact-message';
@@ -68,9 +67,11 @@ export const markMessageAsRead = async (id: string): Promise<void> => {
 export const deleteMessage = async (id: string): Promise<void> => {
   try {
     console.log(`Attempting to delete message with ID: ${id}`);
-    // Use a direct approach for deletion
+    
+    // Simple direct deletion approach
     const messageRef = doc(db, COLLECTION_NAME, id);
     await deleteDoc(messageRef);
+    
     console.log(`Message with ID: ${id} deleted successfully`);
   } catch (error) {
     console.error('Error deleting message:', error);
