@@ -1,9 +1,9 @@
 
 import { initializeApp } from "firebase/app";
 import { getFirestore, connectFirestoreEmulator } from "firebase/firestore";
-import { getAuth, connectAuthEmulator, setPersistence, browserLocalPersistence, browserSessionPersistence } from "firebase/auth";
+import { getAuth, connectAuthEmulator, setPersistence, browserLocalPersistence, browserSessionPersistence, inMemoryPersistence } from "firebase/auth";
 import { getAnalytics } from "firebase/analytics";
-import { getStorage } from "firebase/storage";
+import { getStorage, connectStorageEmulator } from "firebase/storage";
 
 // Firebase configuration
 const firebaseConfig = {
@@ -34,23 +34,26 @@ try {
 }
 export const analytics = analyticsInstance;
 
-// Initialize Firebase and debug auth state
-export const initializeFirebase = () => {
+// Initialize Firebase and debug auth state with improved persistence
+export const initializeFirebase = async () => {
   try {
-    // Try both persistence methods for better compatibility
-    const setPersistencePromise = setPersistence(auth, browserLocalPersistence)
-      .catch(error => {
-        console.warn("Error setting local persistence, trying session persistence:", error);
+    // Setting multiple persistence types to ensure auth works across browsers
+    const persistencePromises = [
+      setPersistence(auth, browserLocalPersistence).catch(e => {
+        console.warn("Local persistence failed:", e);
         return setPersistence(auth, browserSessionPersistence);
+      }).catch(e => {
+        console.warn("Session persistence failed:", e);
+        return setPersistence(auth, inMemoryPersistence);
       })
-      .catch(error => {
-        console.error("All persistence methods failed:", error);
-      });
-      
+    ];
+    
+    await Promise.all(persistencePromises);
+    
+    // Add auth state listener for debugging
     auth.onAuthStateChanged((user) => {
-      console.log('Auth state changed:', user ? 'Logged in as ' + user.email : 'Not logged in');
+      console.log('Auth state changed:', user ? `Logged in as ${user.email}` : 'Not logged in');
       
-      // Debug user details to help with debugging
       if (user) {
         console.log('User details:', {
           uid: user.uid,
@@ -63,8 +66,8 @@ export const initializeFirebase = () => {
     });
     
     console.log('Firebase initialization complete');
-    return setPersistencePromise;
   } catch (error) {
     console.error("Firebase initialization error:", error);
+    throw error; // Re-throw to allow handling upstream
   }
 };

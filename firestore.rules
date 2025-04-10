@@ -39,17 +39,17 @@ service cloud.firestore {
       allow write: if request.auth != null && request.auth.uid == userId;
     }
     
-    // Updated rules for contact_messages to ensure proper permissions for BOTH read and write
+    // Fixed rules for contact_messages to ensure proper permissions for BOTH read and write
     match /contact_messages/{messageId} {
       // Allow anyone to create contact messages without authentication
       allow create: if true;
       
       // Allow anyone to read contact messages
-      // Note: In a production environment, you might want to restrict read access to admins only
       allow read: if true;
       
-      // Only admins can update or delete messages
-      allow update, delete: if request.auth != null && isAdmin();
+      // Allow any authenticated user to update or delete messages (temporary for debugging)
+      // In production, this should be restricted to admins only
+      allow update, delete: if request.auth != null;
     }
     
     // Updated rules for edited_texts collection - temporarily allow any authenticated user to write

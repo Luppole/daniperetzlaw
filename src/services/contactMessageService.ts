@@ -10,6 +10,7 @@ import {
   query, 
   orderBy, 
   serverTimestamp,
+  runTransaction
 } from 'firebase/firestore';
 import { FirebaseContactMessage } from '@/integrations/firebase/types';
 import { ContactMessage } from '@/types/contact-message';
@@ -66,8 +67,13 @@ export const markMessageAsRead = async (id: string): Promise<void> => {
 
 export const deleteMessage = async (id: string): Promise<void> => {
   try {
-    const messageRef = doc(db, COLLECTION_NAME, id);
-    await deleteDoc(messageRef);
+    console.log(`Attempting to delete message with ID: ${id}`);
+    // Use transaction for more reliable deletion
+    await runTransaction(db, async (transaction) => {
+      const messageRef = doc(db, COLLECTION_NAME, id);
+      transaction.delete(messageRef);
+    });
+    console.log(`Message with ID: ${id} deleted successfully`);
   } catch (error) {
     console.error('Error deleting message:', error);
     toast.error('שגיאה במחיקת ההודעה');

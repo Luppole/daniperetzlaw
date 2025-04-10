@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Navbar } from '@/components/Navbar';
@@ -11,6 +10,7 @@ import CommentSection from '@/components/comments/CommentSection';
 import { Loader2 } from 'lucide-react';
 import { getArticleById, Article as ArticleType, getAllArticles } from '@/services/articleService';
 import { toast } from 'sonner';
+import ReactMarkdown from 'react-markdown';
 import { 
   DropdownMenu,
   DropdownMenuContent,
@@ -18,7 +18,6 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-// Legal-themed high-quality images
 const LEGAL_IMAGES = [
   "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?q=80&w=2912&auto=format&fit=crop", // Legal books
   "https://images.unsplash.com/photo-1575505586569-646b2ca898fc?q=80&w=3105&auto=format&fit=crop", // Wooden gavel and law books
@@ -28,6 +27,10 @@ const LEGAL_IMAGES = [
   "https://images.unsplash.com/photo-1505664194779-8beaceb93744?q=80&w=3270&auto=format&fit=crop", // Legal document signing
 ];
 
+const getFallbackImage = (index = 0) => {
+  return LEGAL_IMAGES[index % LEGAL_IMAGES.length];
+};
+
 const Article = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -35,10 +38,12 @@ const Article = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [relatedArticles, setRelatedArticles] = useState<ArticleType[]>([]);
   const [isSaved, setIsSaved] = useState(false);
+  const [imageError, setImageError] = useState(false);
 
   useEffect(() => {
     const fetchArticleData = async () => {
       setIsLoading(true);
+      setImageError(false);
       if (id) {
         console.log('Fetching article with ID:', id);
         const fetchedArticle = await getArticleById(id);
@@ -47,21 +52,19 @@ const Article = () => {
           setArticle(fetchedArticle);
           
           const allArticles = await getAllArticles();
-          // Enhance related articles with better images
           const filtered = allArticles
             .filter(a => a.id !== id)
             .map((article, index) => {
               if (!article.image_url || article.image_url.includes('placeholder')) {
                 return {
                   ...article,
-                  image_url: LEGAL_IMAGES[index % LEGAL_IMAGES.length]
+                  image_url: getFallbackImage(index)
                 };
               }
               return article;
             });
           setRelatedArticles(filtered);
           
-          // Check if this article is saved in localStorage
           const savedArticles = JSON.parse(localStorage.getItem('savedArticles') || '[]');
           setIsSaved(savedArticles.some((item: string) => item === id));
         } else {
@@ -75,7 +78,10 @@ const Article = () => {
     window.scrollTo(0, 0);
   }, [id]);
 
-  // Share article functionality
+  const handleImageError = () => {
+    setImageError(true);
+  };
+
   const handleShare = () => {
     if (navigator.share && article) {
       navigator.share({
@@ -95,7 +101,6 @@ const Article = () => {
     }
   };
 
-  // Fallback share functionality
   const handleManualShare = () => {
     navigator.clipboard.writeText(window.location.href)
       .then(() => {
@@ -107,20 +112,17 @@ const Article = () => {
       });
   };
 
-  // Save article functionality
   const handleSave = () => {
     if (!id) return;
     
     const savedArticles = JSON.parse(localStorage.getItem('savedArticles') || '[]');
     
     if (isSaved) {
-      // Remove from saved
       const updatedSavedArticles = savedArticles.filter((articleId: string) => articleId !== id);
       localStorage.setItem('savedArticles', JSON.stringify(updatedSavedArticles));
       setIsSaved(false);
       toast.success('המאמר הוסר מהמאמרים השמורים');
     } else {
-      // Add to saved
       savedArticles.push(id);
       localStorage.setItem('savedArticles', JSON.stringify(savedArticles));
       setIsSaved(true);
@@ -128,13 +130,11 @@ const Article = () => {
     }
   };
 
-  // Print article functionality
   const handlePrint = () => {
     window.print();
     toast.success('מדפיס מאמר...');
   };
 
-  // Social media share handlers
   const handleShareToFacebook = () => {
     const url = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}`;
     window.open(url, '_blank', 'width=600,height=400');
@@ -191,22 +191,7 @@ const Article = () => {
     );
   }
 
-  const enhancedContent = article.content
-    .replace(/<h2>/g, '<h2 class="text-2xl font-bold text-law-navy mt-20 mb-12">')
-    .replace(/<h3>/g, '<h3 class="text-xl font-semibold text-law-navy mt-16 mb-10">')
-    .replace(/<p>/g, '<p class="text-gray-700 leading-relaxed mb-12 text-lg">')
-    .replace(/<ul>/g, '<ul class="list-disc list-inside mb-16 ml-8 space-y-6 text-gray-700">')
-    .replace(/<li>/g, '<li class="mb-6 leading-relaxed">')
-    .replace(
-      /(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)(?:(?!<\/h2>).)*?(<\/p>)/g, 
-      (match, p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11, p12, p13, p14, p15, p16, p17, p18, p19, p20, p21, p22, p23, p24, p25) => 
-        p1 + p2 + p3 + p4 + p5 + p6 + p7 + p8 + p9 + p10 + p11 + p12 + p13 + p14 + p15 + p16 + p17 + p18 + p19 + p20 + p21 + p22 + p23 + p24 + p25 + 
-        '<div class="my-28 mx-auto w-4/5 max-w-3xl">' +
-        '<img src="' + LEGAL_IMAGES[Math.floor(Math.random() * LEGAL_IMAGES.length)] + '" ' +
-        'class="w-full h-auto object-cover rounded-lg shadow-md" alt="תמונה להמחשה בלבד" />' +
-        '<p class="text-sm text-center text-gray-500 mt-3 italic">תמונה להמחשה בלבד</p>' +
-        '</div>'
-    );
+  const articleImage = imageError || !article.image_url ? getFallbackImage() : article.image_url;
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -253,8 +238,9 @@ const Article = () => {
               
               <div className="mb-20 overflow-hidden rounded-xl shadow-md max-h-[450px]">
                 <img 
-                  src={article.image_url || LEGAL_IMAGES[0]} 
+                  src={articleImage} 
                   alt={article.title}
+                  onError={handleImageError}
                   className="w-full h-auto object-cover transform transition-transform duration-500 hover:scale-105" 
                 />
               </div>
@@ -263,20 +249,12 @@ const Article = () => {
                 <p className="text-xl font-medium text-law-navy leading-relaxed">{article.summary}</p>
               </div>
               
-              <div 
-                className="prose prose-lg max-w-none prose-headings:text-law-navy prose-headings:font-bold 
-                          prose-p:text-gray-700 prose-p:leading-relaxed prose-p:mb-14 prose-ul:text-gray-700 
-                          prose-li:mb-6 prose-a:text-law-navy prose-a:font-medium prose-a:no-underline 
-                          hover:prose-a:underline"
-                dangerouslySetInnerHTML={{ 
-                  __html: article.content
-                    .replace(/<h2>/g, '<h2 class="text-2xl font-bold text-law-navy mt-20 mb-12">')
-                    .replace(/<h3>/g, '<h3 class="text-xl font-semibold text-law-navy mt-16 mb-10">')
-                    .replace(/<p>/g, '<p class="text-gray-700 leading-relaxed mb-12 text-lg">')
-                    .replace(/<ul>/g, '<ul class="list-disc list-inside mb-16 ml-8 space-y-6 text-gray-700">')
-                    .replace(/<li>/g, '<li class="mb-6 leading-relaxed">')
-                }} 
-              />
+              <div className="prose prose-lg max-w-none prose-headings:text-law-navy prose-headings:font-bold 
+                             prose-p:text-gray-700 prose-p:leading-relaxed prose-p:mb-14 prose-ul:text-gray-700 
+                             prose-li:mb-6 prose-a:text-law-navy prose-a:font-medium prose-a:no-underline 
+                             hover:prose-a:underline">
+                <ReactMarkdown className="text-gray-700 leading-relaxed mb-12 text-lg">{article.content}</ReactMarkdown>
+              </div>
               
               <div className="mt-28 pt-10 border-t border-gray-200">
                 <LikeButton articleId={article.id} />
@@ -307,7 +285,7 @@ const Article = () => {
                     onClick={handleSave}
                   >
                     <Bookmark className={`ml-2 h-4 w-4 ${isSaved ? 'fill-law-navy' : ''}`} />
-                    {isSaved ? 'שמור' : 'שמור'}
+                    {isSaved ? 'שמ��ר' : 'שמור'}
                   </Button>
                   <Button variant="outline" size="sm" className="flex items-center" onClick={handlePrint}>
                     <Printer className="ml-2 h-4 w-4" />

@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { z } from 'zod';
@@ -9,13 +10,15 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Card, CardContent } from '@/components/ui/card';
-import { ArrowRight, Loader2, Save } from 'lucide-react';
+import { ArrowRight, Loader2, Save, FileTextIcon, ImageIcon, EyeIcon } from 'lucide-react';
 import { Article, getArticleById, createArticle, updateArticle } from '@/services/articleService';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/integrations/firebase/client';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import ReactMarkdown from 'react-markdown';
 
 const formSchema = z.object({
   title: z.string().min(3, 'הכותרת חייבת להיות לפחות 3 תווים'),
@@ -27,6 +30,54 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
+// Example markdown templates
+const markdownTemplates = {
+  basic: `# כותרת ראשית
+
+## כותרת משנית
+
+פסקה רגילה עם **טקסט מודגש** ו*טקסט נטוי*.
+
+### רשימה
+
+- פריט ראשון
+- פריט שני
+- פריט שלישי
+
+> ציטוט חשוב מאוד.
+
+[קישור לאתר](https://example.com)
+`,
+  legal: `# סקירה משפטית: זכויות וחובות
+
+## רקע משפטי
+
+פסקת פתיחה המסבירה את הנושא המשפטי...
+
+## עיקרי החוק
+
+### סעיף 1
+תיאור הסעיף הראשון בחוק...
+
+### סעיף 2
+תיאור הסעיף השני בחוק...
+
+## פסיקה רלוונטית
+
+> "ציטוט מפסק דין חשוב" - כבוד השופת/ת X, תיק Y
+
+## מסקנות והמלצות
+
+1. המלצה ראשונה
+2. המלצה שנייה
+3. המלצה שלישית
+
+---
+
+*המידע אינו מהווה ייעוץ משפטי. יש להיוועץ בעורך דין לקבלת ייעוץ פרטני.*
+`
+};
+
 export function ArticleForm() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -36,6 +87,8 @@ export function ArticleForm() {
   const [imageUploading, setImageUploading] = useState(false);
   const [imagePreview, setImagePreview] = useState<string | null>(null);
   const [userProfile, setUserProfile] = useState<{ full_name?: string } | null>(null);
+  const [previewTab, setPreviewTab] = useState<'edit' | 'preview'>('edit');
+  const [uploadError, setUploadError] = useState<string | null>(null);
   
   const isEditing = !!id;
 
@@ -136,43 +189,68 @@ export function ArticleForm() {
     }
   };
 
+  const applyTemplate = (templateKey: keyof typeof markdownTemplates) => {
+    form.setValue('content', markdownTemplates[templateKey]);
+  };
+
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     
+    setUploadError(null);
+    
     if (file.size > 5 * 1024 * 1024) {
+      setUploadError('גודל הקובץ חייב להיות קטן מ-5MB');
       toast.error('גודל הקובץ חייב להיות קטן מ-5MB');
       return;
     }
     
     if (!file.type.startsWith('image/')) {
+      setUploadError('יש להעלות קובץ תמונה בלבד');
       toast.error('יש להעלות קובץ תמונה בלבד');
       return;
     }
     
     setImageUploading(true);
     try {
-      const filename = `article-${Date.now()}-${file.name}`;
+      // Create a unique filename to prevent collisions
+      const timestamp = Date.now();
+      const filename = `article-${timestamp}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+      
+      console.log('Uploading file:', filename);
+      
+      // Upload to Supabase storage
       const { data, error } = await supabase.storage
         .from('article-images')
-        .upload(filename, file);
+        .upload(filename, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase upload error:', error);
+        throw error;
+      }
       
+      console.log('File uploaded successfully:', data);
+      
+      // Get public URL
       const { data: publicUrlData } = supabase
         .storage
         .from('article-images')
         .getPublicUrl(data.path);
       
       const imageUrl = publicUrlData.publicUrl;
+      console.log('Image public URL:', imageUrl);
       
       form.setValue('image_url', imageUrl);
       setImagePreview(imageUrl);
       
       toast.success('התמונה הועלתה בהצלחה');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error uploading image:', error);
-      toast.error('שגיאה בהעלאת התמונה');
+      setUploadError(`שגיאה בהעלאת התמונה: ${error.message || error}`);
+      toast.error(`שגיאה בהעלאת התמונה: ${error.message || error}`);
     } finally {
       setImageUploading(false);
     }
@@ -185,6 +263,8 @@ export function ArticleForm() {
       </div>
     );
   }
+
+  const currentContent = form.watch('content');
 
   return (
     <div className="space-y-6">
@@ -281,6 +361,10 @@ export function ArticleForm() {
                             src={imagePreview} 
                             alt="תצוגה מקדימה" 
                             className="w-full h-full object-cover"
+                            onError={() => {
+                              toast.error('שגיאה בטעינת התמונה');
+                              setImagePreview(null);
+                            }}
                           />
                         </div>
                       )}
@@ -298,6 +382,9 @@ export function ArticleForm() {
                               <Loader2 className="h-4 w-4 animate-spin" />
                               מעלה תמונה...
                             </div>
+                          )}
+                          {uploadError && (
+                            <div className="text-red-500 text-sm">{uploadError}</div>
                           )}
                         </div>
                       </FormControl>
@@ -318,23 +405,73 @@ export function ArticleForm() {
                 </div>
               </div>
               
-              <FormField
-                control={form.control}
-                name="content"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>תוכן המאמר</FormLabel>
-                    <FormControl>
-                      <Textarea 
-                        placeholder="הזן את תוכן המאמר" 
-                        className="min-h-[300px]"
-                        {...field} 
-                      />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="space-y-2">
+                <div className="flex justify-between items-center">
+                  <FormLabel>תוכן המאמר (Markdown)</FormLabel>
+                  <div className="flex gap-2">
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => applyTemplate('basic')}
+                    >
+                      <FileTextIcon className="h-4 w-4 ml-2" />
+                      תבנית בסיסית
+                    </Button>
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => applyTemplate('legal')}
+                    >
+                      <FileTextIcon className="h-4 w-4 ml-2" />
+                      תבנית משפטית
+                    </Button>
+                  </div>
+                </div>
+                
+                <Tabs defaultValue="edit" onValueChange={(value) => setPreviewTab(value as 'edit' | 'preview')}>
+                  <TabsList className="mb-2">
+                    <TabsTrigger value="edit" className="flex items-center gap-1">
+                      <FileTextIcon className="h-4 w-4" />
+                      עריכה
+                    </TabsTrigger>
+                    <TabsTrigger value="preview" className="flex items-center gap-1">
+                      <EyeIcon className="h-4 w-4" />
+                      תצוגה מקדימה
+                    </TabsTrigger>
+                  </TabsList>
+                  
+                  <TabsContent value="edit">
+                    <FormField
+                      control={form.control}
+                      name="content"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormControl>
+                            <Textarea 
+                              placeholder="הזן את תוכן המאמר (markdown)" 
+                              className="min-h-[300px] font-mono text-base"
+                              {...field} 
+                            />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </TabsContent>
+                  
+                  <TabsContent value="preview">
+                    <div className="border rounded-md p-4 min-h-[300px] bg-white overflow-auto">
+                      <div className="prose prose-lg max-w-none">
+                        <ReactMarkdown>
+                          {currentContent || 'אין תוכן להצגה'}
+                        </ReactMarkdown>
+                      </div>
+                    </div>
+                  </TabsContent>
+                </Tabs>
+              </div>
               
               <div className="flex justify-end gap-4">
                 <Button

@@ -39,6 +39,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { toast } from 'sonner';
 import { ContactMessage } from '@/types/contact-message';
+import { auth } from '@/integrations/firebase/client';
 
 export function AdminMessages() {
   const [selectedMessage, setSelectedMessage] = useState<ContactMessage | null>(null);
@@ -49,9 +50,9 @@ export function AdminMessages() {
   const { data: messages, isLoading, error, refetch } = useQuery({
     queryKey: ['contactMessages'],
     queryFn: fetchContactMessages,
-    retry: 2,  // Increased retries
+    retry: 2,
     retryDelay: 1000,
-    staleTime: 30000, // 30 seconds
+    staleTime: 30000,
     refetchOnWindowFocus: true
   });
 
@@ -68,9 +69,17 @@ export function AdminMessages() {
     }
   });
 
-  // Delete message mutation
+  // Delete message mutation with improved error handling
   const deleteMutation = useMutation({
-    mutationFn: deleteMessage,
+    mutationFn: async (id: string) => {
+      // Check if user is authenticated before proceeding
+      if (!auth.currentUser) {
+        throw new Error('יש להתחבר כדי למחוק הודעות');
+      }
+      
+      console.log('Attempting to delete message with ID:', id);
+      await deleteMessage(id);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['contactMessages'] });
       toast.success('ההודעה נמחקה בהצלחה');
@@ -78,7 +87,7 @@ export function AdminMessages() {
     },
     onError: (error) => {
       console.error('Error deleting message:', error);
-      toast.error('שגיאה במחיקת ההודעה: ' + error);
+      toast.error(`שגיאה במחיקת ההודעה: ${error}`);
       setMessageToDelete(null);
     }
   });

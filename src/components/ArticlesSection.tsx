@@ -24,6 +24,7 @@ export function ArticlesSection() {
   const navigate = useNavigate();
   const [articles, setArticles] = useState<Article[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
   
   const [ref, inView] = useInView({
     triggerOnce: true,
@@ -32,24 +33,43 @@ export function ArticlesSection() {
   
   useEffect(() => {
     const fetchArticles = async () => {
-      const articlesData = await getAllArticles();
-      
-      const enhancedArticles = articlesData.slice(0, 3).map((article, index) => {
-        if (!article.image_url || article.image_url.includes('placeholder')) {
-          return {
-            ...article,
-            image_url: LEGAL_IMAGES[index % LEGAL_IMAGES.length]
-          };
-        }
-        return article;
-      });
-      
-      setArticles(enhancedArticles);
-      setIsLoading(false);
+      try {
+        const articlesData = await getAllArticles();
+        
+        const enhancedArticles = articlesData.slice(0, 3).map((article, index) => {
+          if (!article.image_url || article.image_url.includes('placeholder')) {
+            return {
+              ...article,
+              image_url: LEGAL_IMAGES[index % LEGAL_IMAGES.length]
+            };
+          }
+          return article;
+        });
+        
+        setArticles(enhancedArticles);
+      } catch (error) {
+        console.error("Error fetching articles:", error);
+      } finally {
+        setIsLoading(false);
+      }
     };
     
     fetchArticles();
   }, []);
+
+  const handleImageError = (articleId: string) => {
+    setImageErrors(prev => ({
+      ...prev,
+      [articleId]: true
+    }));
+  };
+
+  const getImageForArticle = (article: Article, index: number) => {
+    if (imageErrors[article.id] || !article.image_url || article.image_url.includes('placeholder')) {
+      return LEGAL_IMAGES[index % LEGAL_IMAGES.length];
+    }
+    return article.image_url;
+  };
 
   return (
     <section id="articles" className="section-wrapper bg-law-light py-20">
@@ -81,8 +101,9 @@ export function ArticlesSection() {
               >
                 <div className="h-52 overflow-hidden rounded-t-lg">
                   <img 
-                    src={article.image_url} 
+                    src={getImageForArticle(article, index)} 
                     alt={article.title}
+                    onError={() => handleImageError(article.id)}
                     className="w-full h-full object-cover transition-transform duration-500 hover:scale-110"
                   />
                 </div>
