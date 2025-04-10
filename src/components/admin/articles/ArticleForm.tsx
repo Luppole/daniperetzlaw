@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { z } from 'zod';
@@ -73,8 +74,8 @@ const markdownTemplates = {
 
 ---
 
-*המידע אינו מהווה ייעוץ משפטי. יש להיוועץ בעורך דין לקבלת ייעוץ פרטני.*
-`;
+*המידע אינו מהווה ייעוץ משפטי. יש להיוועץ בעורך דין לקבלת ייעוץ פרטני.*`
+};
 
 export function ArticleForm() {
   const { id } = useParams();

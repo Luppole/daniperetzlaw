@@ -68,11 +68,9 @@ export const markMessageAsRead = async (id: string): Promise<void> => {
 export const deleteMessage = async (id: string): Promise<void> => {
   try {
     console.log(`Attempting to delete message with ID: ${id}`);
-    // Use transaction for more reliable deletion
-    await runTransaction(db, async (transaction) => {
-      const messageRef = doc(db, COLLECTION_NAME, id);
-      transaction.delete(messageRef);
-    });
+    // Use a direct approach for deletion
+    const messageRef = doc(db, COLLECTION_NAME, id);
+    await deleteDoc(messageRef);
     console.log(`Message with ID: ${id} deleted successfully`);
   } catch (error) {
     console.error('Error deleting message:', error);
