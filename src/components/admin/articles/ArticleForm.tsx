@@ -15,8 +15,7 @@ import { Article, getArticleById, createArticle, updateArticle } from '@/service
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { doc, getDoc } from 'firebase/firestore';
-import { db, storage } from '@/integrations/firebase/client';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { db } from '@/integrations/firebase/client';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import ReactMarkdown from 'react-markdown';
 
@@ -198,9 +197,9 @@ export function ArticleForm() {
     
     setUploadError(null);
     
-    if (file.size > 5 * 1024 * 1024) {
-      setUploadError('גודל הקובץ חייב להיות קטן מ-5MB');
-      toast.error('גודל הקובץ חייב להיות קטן מ-5MB');
+    if (file.size > 1 * 1024 * 1024) { // Limit to 1MB for base64
+      setUploadError('גודל הקובץ חייב להיות קטן מ-1MB');
+      toast.error('גודל הקובץ חייב להיות קטן מ-1MB');
       return;
     }
     
@@ -212,28 +211,33 @@ export function ArticleForm() {
     
     setImageUploading(true);
     try {
-      const timestamp = Date.now();
-      const filename = `article-${timestamp}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+      // Convert image to base64
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const base64String = event.target?.result as string;
+        
+        console.log('Image converted to base64 successfully');
+        
+        // Set the base64 string as the image URL
+        form.setValue('image_url', base64String);
+        setImagePreview(base64String);
+        
+        setImageUploading(false);
+        toast.success('התמונה הועלתה בהצלחה');
+      };
       
-      console.log('Uploading file:', filename);
+      reader.onerror = (error) => {
+        console.error('Error reading file:', error);
+        setUploadError('שגיאה בקריאת הקובץ');
+        setImageUploading(false);
+        toast.error('שגיאה בקריאת הקובץ');
+      };
       
-      const storageRef = ref(storage, `article-images/${filename}`);
-      
-      const uploadResult = await uploadBytes(storageRef, file);
-      console.log('File uploaded successfully:', uploadResult);
-      
-      const downloadURL = await getDownloadURL(storageRef);
-      console.log('Image download URL:', downloadURL);
-      
-      form.setValue('image_url', downloadURL);
-      setImagePreview(downloadURL);
-      
-      toast.success('התמונה הועלתה בהצלחה');
+      reader.readAsDataURL(file);
     } catch (error: any) {
-      console.error('Error uploading image to Firebase Storage:', error);
+      console.error('Error converting image to base64:', error);
       setUploadError(`שגיאה בהעלאת התמונה: ${error.message || error}`);
       toast.error(`שגיאה בהעלאת התמונה: ${error.message || error}`);
-    } finally {
       setImageUploading(false);
     }
   };
@@ -368,6 +372,9 @@ export function ArticleForm() {
                           {uploadError && (
                             <div className="text-red-500 text-sm">{uploadError}</div>
                           )}
+                          <p className="text-xs text-gray-500">
+                            יש להשתמש בתמונות בגודל קטן מ-1MB. תמונות גדולות יותר עלולות להאט את האתר.
+                          </p>
                         </div>
                       </FormControl>
                     </div>
