@@ -1,0 +1,61 @@
+
+/* Reviews section specific styles */
+.reviews-animate {
+  opacity: 0;
+  transform: translateY(20px);
+  transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+}
+
+.reviews-animate.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+@keyframes float-stars {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+.stars-float {
+  animation: float-stars 3s ease-in-out infinite;
+}
+
+/* Reviews carousel custom styles */
+.reviews-carousel .embla__slide {
+  height: 100%;
+}
+
+/* Review card hover effect */
+.review-card {
+  transition: all 0.3s ease;
+}
+
+.review-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+/* Star rating animations */
+@keyframes star-pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+.star-rating:hover .star {
+  animation: star-pulse 0.5s ease-in-out;
+}
+
+/* Staggered animation for stars */
+.star-rating .star:nth-child(1) { animation-delay: 0.1s; }
+.star-rating .star:nth-child(2) { animation-delay: 0.2s; }
+.star-rating .star:nth-child(3) { animation-delay: 0.3s; }
+.star-rating .star:nth-child(4) { animation-delay: 0.4s; }
+.star-rating .star:nth-child(5) { animation-delay: 0.5s; }

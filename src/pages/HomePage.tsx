@@ -14,6 +14,7 @@ import { useAdmin } from '@/contexts/AdminContext';
 import { useTextEdit } from '@/contexts/TextEditContext';
 import { Button } from '@/components/ui/button';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { ReviewSection } from '@/components/ReviewSection';
 
 // Define images for different sections and prepare them for lazy loading
 const sectionImages = [
@@ -243,6 +244,7 @@ const HomePage = () => {
       <HeroSection />
       <AboutSection />
       <ExpertiseSection />
+      <ReviewSection />
       <ArticlesSection />
       <FaqSection />
       <ContactSection />
