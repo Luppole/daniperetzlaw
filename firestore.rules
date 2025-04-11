@@ -41,14 +41,14 @@ service cloud.firestore {
     
     // Allow access to client reviews collection
     match /client_reviews/{reviewId} {
-      // Anyone can read reviews
+      // Anyone can read approved reviews
       allow read: if true;
       // Anyone can create a review
       allow create: if true;
-      // Anyone can update reviews for testing purposes
-      allow update: if true;
-      // Anyone can delete reviews for testing purposes 
-      allow delete: if true;
+      // Only admins can update review status
+      allow update: if request.auth != null && isAdmin();
+      // Only admins can delete reviews
+      allow delete: if request.auth != null && isAdmin();
     }
     
     // Updated rules for contact_messages to ensure proper permissions

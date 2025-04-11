@@ -264,7 +264,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
           </aside>
         )}
         
-        <main className="flex-1 p-3 md:p-6 overflow-auto w-full">
+        <main className="flex-1 p-3 md:p-6 overflow-auto">
           <div className="bg-white rounded-lg shadow-sm p-4 md:p-6 min-h-[calc(100vh-120px)]">
             {children}
           </div>

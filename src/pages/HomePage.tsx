@@ -13,7 +13,7 @@ import { useAdmin } from '@/contexts/AdminContext';
 import { useTextEdit } from '@/contexts/TextEditContext';
 import { Button } from '@/components/ui/button';
 import { useIsMobile } from '@/hooks/use-mobile';
-import ReviewsSection from '@/components/ReviewsSection';
+import { ReviewsSection } from '@/components/ReviewsSection';
 
 const sectionImages = [
   '/lovable-uploads/ad835b61-e4f6-490c-8e35-d5865c9cb250.png', // Hero image

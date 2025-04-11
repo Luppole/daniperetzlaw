@@ -28,14 +28,18 @@ import {
   serverTimestamp,
   updateDoc,
   doc,
-  deleteDoc,
-  where
+  deleteDoc
 } from 'firebase/firestore';
 import { db } from '@/integrations/firebase/client';
 
 // For carousel functionality
-import useEmblaCarousel from 'embla-carousel-react';
-import Autoplay from 'embla-carousel-autoplay';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from "@/components/ui/carousel";
 
 // Review interface to match Firestore document structure
 interface Review {
@@ -98,11 +102,9 @@ const StarRating = ({
 };
 
 // Review Card Component
-const ReviewCard = ({ review, active }: { review: Review; active: boolean }) => {
+const ReviewCard = ({ review }: { review: Review }) => {
   return (
-    <Card className={`shadow-sm border border-gray-100 bg-white review-card transition-all duration-300 h-full ${
-      active ? 'scale-105 shadow-md z-10' : 'scale-95 opacity-70'
-    }`}>
+    <Card className="h-full shadow-sm hover:shadow-md transition-all duration-300 hover:scale-[1.02] border border-gray-100 bg-white review-card">
       <CardContent className="p-6 h-full flex flex-col">
         <div className="mb-4 star-rating">
           <StarRating rating={review.rating} />
@@ -150,7 +152,7 @@ const ReviewForm = ({ onClose }: { onClose: () => void }) => {
         location: data.location,
         text: data.text,
         rating: data.rating,
-        status: 'approved', // Auto-approve reviews for testing
+        status: 'pending', // All reviews start as pending until approved by admin
         userId: user?.uid || null, // Track user if they're logged in
         createdAt: serverTimestamp()
       });
@@ -277,66 +279,6 @@ const ReviewForm = ({ onClose }: { onClose: () => void }) => {
   );
 };
 
-// Enhanced Carousel Component
-const CarouselReviews = ({ reviews }: { reviews: Review[] }) => {
-  const [emblaRef, emblaApi] = useEmblaCarousel({ 
-    loop: true,
-    align: 'center',
-    skipSnaps: false
-  }, [Autoplay({ delay: 5000, stopOnInteraction: true })]);
-  
-  const [selectedIndex, setSelectedIndex] = useState(0);
-
-  useEffect(() => {
-    if (!emblaApi) return;
-
-    const onSelect = () => {
-      setSelectedIndex(emblaApi.selectedScrollSnap());
-    };
-
-    emblaApi.on('select', onSelect);
-    onSelect(); // Initialize
-
-    return () => {
-      emblaApi.off('select', onSelect);
-    };
-  }, [emblaApi]);
-
-  const scrollPrev = () => emblaApi && emblaApi.scrollPrev();
-  const scrollNext = () => emblaApi && emblaApi.scrollNext();
-
-  return (
-    <div className="relative mx-auto max-w-5xl px-4">
-      <div className="overflow-hidden" ref={emblaRef}>
-        <div className="flex py-8">
-          {reviews.map((review, index) => (
-            <div key={review.id} className="flex-grow-0 flex-shrink-0 w-full sm:w-1/2 lg:w-1/3 px-4 min-h-[250px]">
-              <ReviewCard review={review} active={index === selectedIndex} />
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <Button 
-        onClick={scrollPrev} 
-        variant="outline" 
-        size="icon" 
-        className="absolute left-0 top-1/2 transform -translate-y-1/2 z-20 bg-white rounded-full shadow-md"
-      >
-        <ChevronLeft className="h-5 w-5" />
-      </Button>
-      <Button 
-        onClick={scrollNext} 
-        variant="outline" 
-        size="icon" 
-        className="absolute right-0 top-1/2 transform -translate-y-1/2 z-20 bg-white rounded-full shadow-md"
-      >
-        <ChevronRight className="h-5 w-5" />
-      </Button>
-    </div>
-  );
-};
-
 // Main Reviews Section Component
 export const ReviewsSection = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -353,27 +295,29 @@ export const ReviewsSection = () => {
       const reviewsRef = collection(db, 'client_reviews');
       const reviewsQuery = query(
         reviewsRef, 
+        // Only fetch approved reviews for display
+        // In a real admin dashboard, you'd fetch all and filter by status
         orderBy('createdAt', 'desc')
       );
-      
       const querySnapshot = await getDocs(reviewsQuery);
       
       const fetchedReviews: Review[] = [];
       querySnapshot.forEach((doc) => {
         const data = doc.data();
-        // Include all reviews for testing purposes; in production you might want to filter by status
-        fetchedReviews.push({
-          id: doc.id,
-          text: data.text || "No text provided",
-          name: data.name || "Anonymous",
-          location: data.location || undefined,
-          rating: data.rating || 5,
-          status: data.status || 'approved',
-          createdAt: data.createdAt ? data.createdAt.toDate() : new Date(),
-        });
+        // Only include approved reviews on the public site
+        if (data.status === 'approved' || (user && data.status === 'pending')) {
+          fetchedReviews.push({
+            id: doc.id,
+            text: data.text,
+            name: data.name,
+            location: data.location || undefined,
+            rating: data.rating,
+            status: data.status,
+            createdAt: data.createdAt ? data.createdAt.toDate() : new Date(),
+          });
+        }
       });
       
-      console.log("Fetched reviews:", fetchedReviews);
       setReviews(fetchedReviews);
     } catch (error) {
       console.error('Error fetching reviews:', error);
@@ -387,56 +331,6 @@ export const ReviewsSection = () => {
   useEffect(() => {
     fetchReviews();
   }, []);
-
-  // If no reviews exist, add dummy reviews for testing
-  useEffect(() => {
-    const addDummyReviews = async () => {
-      if (!isLoading && reviews.length === 0) {
-        try {
-          console.log("Adding dummy reviews");
-          
-          const dummyReviews = [
-            {
-              name: "דוד כ.",
-              location: "תל אביב",
-              text: "עו\"ד דני פרץ עזר לי בתיק מורכב ביותר. מקצועי מאוד והשירות היה מעולה.",
-              rating: 5,
-              status: 'approved',
-              createdAt: serverTimestamp()
-            },
-            {
-              name: "רחל ל.",
-              location: "ירושלים",
-              text: "קיבלתי ייעוץ משפטי מצוין. ממליצה בחום!",
-              rating: 5,
-              status: 'approved',
-              createdAt: serverTimestamp()
-            },
-            {
-              name: "משה א.",
-              location: "חיפה",
-              text: "מקצועי, אדיב ועוזר מאוד. עו\"ד דני עזר לי להבין את המצב המשפטי שלי והציע פתרונות מעשיים.",
-              rating: 4,
-              status: 'approved',
-              createdAt: serverTimestamp()
-            }
-          ];
-          
-          for (const review of dummyReviews) {
-            await addDoc(collection(db, 'client_reviews'), review);
-          }
-          
-          // Fetch the reviews again after adding dummy data
-          await fetchReviews();
-          
-        } catch (error) {
-          console.error("Error adding dummy reviews:", error);
-        }
-      }
-    };
-    
-    addDummyReviews();
-  }, [isLoading, reviews.length]);
 
   // Calculate average rating
   const averageRating = reviews.length > 0
@@ -486,14 +380,34 @@ export const ReviewsSection = () => {
           </p>
         </div>
 
-        {/* Reviews Display - Carousel */}
+        {/* Reviews Display - Carousel for Mobile, Grid for Desktop */}
         <div className="reviews-animate">
           {isLoading ? (
             <div className="flex justify-center py-20">
               <div className="w-12 h-12 border-4 border-law-navy border-t-transparent rounded-full animate-spin"></div>
             </div>
           ) : reviews.length > 0 ? (
-            <CarouselReviews reviews={reviews} />
+            isMobile ? (
+              <Carousel className="w-full" opts={{ loop: true, align: "center" }}>
+                <CarouselContent>
+                  {reviews.map((review) => (
+                    <CarouselItem key={review.id} className="md:basis-1/2 lg:basis-1/3 p-2">
+                      <ReviewCard review={review} />
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <div className="flex justify-center mt-6">
+                  <CarouselPrevious className="static translate-y-0 transform-none mx-2" />
+                  <CarouselNext className="static translate-y-0 transform-none mx-2" />
+                </div>
+              </Carousel>
+            ) : (
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {reviews.map((review) => (
+                  <ReviewCard key={review.id} review={review} />
+                ))}
+              </div>
+            )
           ) : (
             <div className="text-center py-10">
               <p className="text-gray-500">
