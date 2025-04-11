@@ -24,19 +24,10 @@
   animation: float-stars 3s ease-in-out infinite;
 }
 
-/* Reviews carousel custom styles */
-.reviews-carousel .embla__slide {
-  height: 100%;
-}
-
 /* Review card hover effect */
 .review-card {
-  transition: all 0.3s ease;
-}
-
-.review-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1);
+  transition: all 0.4s ease;
+  height: 100%;
 }
 
 /* Star rating animations */
@@ -59,3 +50,33 @@
 .star-rating .star:nth-child(3) { animation-delay: 0.3s; }
 .star-rating .star:nth-child(4) { animation-delay: 0.4s; }
 .star-rating .star:nth-child(5) { animation-delay: 0.5s; }
+
+/* Carousel */
+.embla {
+  overflow: hidden;
+  position: relative;
+}
+
+.embla__container {
+  display: flex;
+  align-items: center;
+}
+
+.embla__slide {
+  flex: 0 0 100%;
+  min-width: 0;
+  padding: 0 15px;
+  position: relative;
+}
+
+@media (min-width: 640px) {
+  .embla__slide {
+    flex: 0 0 50%;
+  }
+}
+
+@media (min-width: 1024px) {
+  .embla__slide {
+    flex: 0 0 33.33%;
+  }
+}
