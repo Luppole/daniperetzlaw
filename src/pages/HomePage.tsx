@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, useCallback, memo, useRef } from 'react';
 import { Navbar } from '@/components/Navbar';
 import { HeroSection } from '@/components/HeroSection';
@@ -14,9 +13,8 @@ import { useAdmin } from '@/contexts/AdminContext';
 import { useTextEdit } from '@/contexts/TextEditContext';
 import { Button } from '@/components/ui/button';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { ReviewSection } from '@/components/ReviewSection';
+import { ReviewsSection } from '@/components/ReviewsSection';
 
-// Define images for different sections and prepare them for lazy loading
 const sectionImages = [
   '/lovable-uploads/ad835b61-e4f6-490c-8e35-d5865c9cb250.png', // Hero image
   '/lovable-uploads/d946344e-c289-4991-bd3a-121dffdabbbe.png', // About section
@@ -24,7 +22,6 @@ const sectionImages = [
   '/lovable-uploads/d4c52f89-de61-4c7e-b12b-62040c71d1fb.png'  // Contact section
 ];
 
-// Memoized button to prevent unnecessary re-renders
 const ScrollTopButton = memo(({ show, onClick }: { show: boolean; onClick: () => void }) => (
   <button
     onClick={onClick}
@@ -38,7 +35,6 @@ const ScrollTopButton = memo(({ show, onClick }: { show: boolean; onClick: () =>
 ));
 ScrollTopButton.displayName = 'ScrollTopButton';
 
-// Admin action buttons for mobile
 const AdminActionButtons = memo(({ isEditMode, toggleEditMode, handleResetTexts }: { 
   isEditMode: boolean;
   toggleEditMode: () => void;
@@ -88,7 +84,6 @@ const AdminActionButtons = memo(({ isEditMode, toggleEditMode, handleResetTexts 
 });
 AdminActionButtons.displayName = 'AdminActionButtons';
 
-// Optimized HomePage component
 const HomePage = () => {
   const [showScrollTop, setShowScrollTop] = useState(false);
   const location = useLocation();
@@ -97,7 +92,6 @@ const HomePage = () => {
   const observerRef = useRef<IntersectionObserver | null>(null);
   const isMobile = useIsMobile();
 
-  // Performance optimization: Throttled scroll handler
   useEffect(() => {
     let ticking = false;
     
@@ -115,9 +109,7 @@ const HomePage = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Preload images only when needed
   useEffect(() => {
-    // Only preload the first two images (most important ones)
     const preloadCriticalImages = () => {
       const imagesToPreload = sectionImages.slice(0, 2);
       imagesToPreload.forEach((src) => {
@@ -128,7 +120,6 @@ const HomePage = () => {
     
     preloadCriticalImages();
     
-    // Lazy load the other images
     const lazyLoadImages = () => {
       if ('IntersectionObserver' in window) {
         const imageObserver = new IntersectionObserver((entries, observer) => {
@@ -150,18 +141,14 @@ const HomePage = () => {
       }
     };
     
-    // Run after initial render is complete
     setTimeout(lazyLoadImages, 100);
   }, []);
-  
-  // Optimize intersection observer for animations
+
   useEffect(() => {
-    // Clean up previous observer
     if (observerRef.current) {
       observerRef.current.disconnect();
     }
     
-    // Create new intersection observer
     observerRef.current = new IntersectionObserver(
       (entries) => {
         entries.forEach((entry) => {
@@ -174,7 +161,6 @@ const HomePage = () => {
       { threshold: 0.1, rootMargin: '0px 0px -10% 0px' }
     );
 
-    // Observe all animated elements with a small delay to avoid blocking main thread
     setTimeout(() => {
       const animatedElements = document.querySelectorAll('.animate-on-scroll');
       animatedElements.forEach((element) => {
@@ -189,11 +175,9 @@ const HomePage = () => {
     };
   }, []);
 
-  // Handle hash navigation with debounce
   useEffect(() => {
     const hash = location.hash;
     if (hash) {
-      // Use requestIdleCallback or setTimeout to defer non-critical work
       const scrollToElement = () => {
         const element = document.querySelector(hash);
         if (element) {
@@ -208,22 +192,17 @@ const HomePage = () => {
       }
     }
     
-    // Add page loaded class for animations
     document.body.classList.add('page-loaded');
   }, [location]);
 
-  // Force save of edited texts before unload
   useEffect(() => {
     const handleBeforeUnload = () => {
-      // With the new Firebase implementation, we don't need to save on unload
-      // as changes are saved automatically
     };
 
     window.addEventListener('beforeunload', handleBeforeUnload);
     return () => window.removeEventListener('beforeunload', handleBeforeUnload);
   }, [isEditMode, editedTexts]);
 
-  // Memoized callbacks
   const scrollToTop = useCallback(() => {
     window.scrollTo({
       top: 0,
@@ -231,7 +210,6 @@ const HomePage = () => {
     });
   }, []);
 
-  // Function to confirm text reset
   const handleResetTexts = useCallback(() => {
     if (window.confirm('האם אתה בטוח שברצונך לאפס את כל הטקסטים המותאמים אישית?')) {
       resetTexts();
@@ -244,13 +222,12 @@ const HomePage = () => {
       <HeroSection />
       <AboutSection />
       <ExpertiseSection />
-      <ReviewSection />
+      <ReviewsSection />
       <ArticlesSection />
       <FaqSection />
       <ContactSection />
       <Footer />
       
-      {/* Admin edit mode toggle button with enhanced visibility for both mobile and desktop */}
       {isAdmin && (
         <AdminActionButtons 
           isEditMode={isEditMode} 
@@ -259,7 +236,6 @@ const HomePage = () => {
         />
       )}
       
-      {/* Optimized scroll to top button */}
       <ScrollTopButton show={showScrollTop} onClick={scrollToTop} />
     </div>
   );

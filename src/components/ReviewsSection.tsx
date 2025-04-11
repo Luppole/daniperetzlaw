@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import { Star, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -17,6 +18,20 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { ReviewsSchemaMarkup } from './ReviewsSchemaMarkup';
 import '../styles/reviews.css';
 
+// For Firebase integration
+import { 
+  collection, 
+  addDoc, 
+  getDocs, 
+  query, 
+  orderBy, 
+  serverTimestamp,
+  updateDoc,
+  doc,
+  deleteDoc
+} from 'firebase/firestore';
+import { db } from '@/integrations/firebase/client';
+
 // For carousel functionality
 import {
   Carousel,
@@ -26,37 +41,16 @@ import {
   CarouselPrevious,
 } from "@/components/ui/carousel";
 
-// Sample reviews data - in a real app, this would come from Firebase
-const initialReviews = [
-  {
-    id: '1',
-    text: 'עו״ד דני עזר לי מאוד בתיק מורכב של דיני משפחה. הוא היה מקצועי, אכפתי ותמיד זמין לענות על שאלות. ממליץ בחום!',
-    name: 'דני כ.',
-    location: 'תל אביב',
-    rating: 5,
-  },
-  {
-    id: '2',
-    text: 'קיבלתי ייעוץ מעולה בנושא משכנתא וחוזה הדירה שלי. החסכון הכספי היה משמעותי בזכות העצות המקצועיות.',
-    name: 'רונית ל.',
-    location: 'חיפה',
-    rating: 5,
-  },
-  {
-    id: '3',
-    text: 'התרשמתי מאוד מהמקצועיות והיחס האישי. עו״ד פרץ הצליח לפתור בעיה משפטית שהטרידה אותי במשך שנים. תודה!',
-    name: 'יוסי מ.',
-    location: 'ירושלים',
-    rating: 5,
-  },
-  {
-    id: '4',
-    text: 'מומלץ בחום! ליווי מקצועי ואדיב לכל אורך התהליך המשפטי.',
-    name: 'מיכל ש.',
-    location: 'רמת גן',
-    rating: 5,
-  },
-];
+// Review interface to match Firestore document structure
+interface Review {
+  id: string;
+  text: string;
+  name: string;
+  location?: string;
+  rating: number;
+  status: 'pending' | 'approved' | 'rejected';
+  createdAt: Date;
+}
 
 // Form schema for review submission
 const reviewFormSchema = z.object({
@@ -70,7 +64,15 @@ const reviewFormSchema = z.object({
 });
 
 // Star Rating Component
-const StarRating = ({ rating, interactive = false, onRatingChange = () => {} }) => {
+const StarRating = ({ 
+  rating, 
+  interactive = false, 
+  onRatingChange
+}: { 
+  rating: number, 
+  interactive?: boolean, 
+  onRatingChange?: (rating: number) => void 
+}) => {
   const [hoverRating, setHoverRating] = useState(0);
   
   return (
@@ -79,7 +81,7 @@ const StarRating = ({ rating, interactive = false, onRatingChange = () => {} }) 
         <button
           key={star}
           type="button"
-          onClick={() => interactive && onRatingChange(star)}
+          onClick={() => interactive && onRatingChange && onRatingChange(star)}
           onMouseEnter={() => interactive && setHoverRating(star)}
           onMouseLeave={() => interactive && setHoverRating(0)}
           className={`focus:outline-none ${interactive ? 'cursor-pointer' : 'cursor-default'}`}
@@ -100,11 +102,11 @@ const StarRating = ({ rating, interactive = false, onRatingChange = () => {} }) 
 };
 
 // Review Card Component
-const ReviewCard = ({ review }) => {
+const ReviewCard = ({ review }: { review: Review }) => {
   return (
-    <Card className="h-full shadow-sm hover:shadow-md transition-all duration-300 hover:scale-[1.02] border border-gray-100 bg-white">
+    <Card className="h-full shadow-sm hover:shadow-md transition-all duration-300 hover:scale-[1.02] border border-gray-100 bg-white review-card">
       <CardContent className="p-6 h-full flex flex-col">
-        <div className="mb-4">
+        <div className="mb-4 star-rating">
           <StarRating rating={review.rating} />
         </div>
         <blockquote className="text-lg font-rubik italic text-gray-700 mb-6 flex-grow">
@@ -112,7 +114,7 @@ const ReviewCard = ({ review }) => {
         </blockquote>
         <footer className="mt-auto">
           <div className="font-medium">{review.name}</div>
-          <div className="text-sm text-gray-500">{review.location}</div>
+          {review.location && <div className="text-sm text-gray-500">{review.location}</div>}
         </footer>
       </CardContent>
     </Card>
@@ -120,9 +122,10 @@ const ReviewCard = ({ review }) => {
 };
 
 // Review Form Component
-const ReviewForm = ({ onClose }) => {
+const ReviewForm = ({ onClose }: { onClose: () => void }) => {
   const { user } = useAuth();
   const [selectedRating, setSelectedRating] = useState(0);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const form = useForm({
     resolver: zodResolver(reviewFormSchema),
@@ -135,15 +138,24 @@ const ReviewForm = ({ onClose }) => {
     },
   });
 
-  const handleRatingChange = (newRating) => {
+  const handleRatingChange = (newRating: number) => {
     setSelectedRating(newRating);
     form.setValue('rating', newRating);
   };
 
-  const onSubmit = async (data) => {
+  const onSubmit = async (data: z.infer<typeof reviewFormSchema>) => {
     try {
-      // In a real implementation, this would send the review to Firebase
-      console.log('Submitting review:', data);
+      setIsSubmitting(true);
+      // Add the review to Firebase
+      await addDoc(collection(db, 'client_reviews'), {
+        name: data.name,
+        location: data.location,
+        text: data.text,
+        rating: data.rating,
+        status: 'pending', // All reviews start as pending until approved by admin
+        userId: user?.uid || null, // Track user if they're logged in
+        createdAt: serverTimestamp()
+      });
       
       // Show success message
       toast.success('חוות הדעת נשלחה בהצלחה ותפורסם לאחר אישור');
@@ -154,6 +166,8 @@ const ReviewForm = ({ onClose }) => {
     } catch (error) {
       console.error('Error submitting review:', error);
       toast.error('אירעה שגיאה בשליחת חוות הדעת. אנא נסה שוב מאוחר יותר.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -252,8 +266,12 @@ const ReviewForm = ({ onClose }) => {
           <Button type="button" variant="outline" onClick={onClose}>
             ביטול
           </Button>
-          <Button type="submit" className="bg-law-navy hover:bg-law-navy/90">
-            שלח
+          <Button 
+            type="submit" 
+            className="bg-law-navy hover:bg-law-navy/90"
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? 'שולח...' : 'שלח'}
           </Button>
         </div>
       </form>
@@ -264,13 +282,60 @@ const ReviewForm = ({ onClose }) => {
 // Main Reviews Section Component
 export const ReviewsSection = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [reviews, setReviews] = useState(initialReviews);
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const isMobile = useIsMobile();
   const { user } = useAuth();
   const sectionRef = useRef(null);
 
+  // Fetch reviews from Firebase
+  const fetchReviews = async () => {
+    setIsLoading(true);
+    try {
+      const reviewsRef = collection(db, 'client_reviews');
+      const reviewsQuery = query(
+        reviewsRef, 
+        // Only fetch approved reviews for display
+        // In a real admin dashboard, you'd fetch all and filter by status
+        orderBy('createdAt', 'desc')
+      );
+      const querySnapshot = await getDocs(reviewsQuery);
+      
+      const fetchedReviews: Review[] = [];
+      querySnapshot.forEach((doc) => {
+        const data = doc.data();
+        // Only include approved reviews on the public site
+        if (data.status === 'approved' || (user && data.status === 'pending')) {
+          fetchedReviews.push({
+            id: doc.id,
+            text: data.text,
+            name: data.name,
+            location: data.location || undefined,
+            rating: data.rating,
+            status: data.status,
+            createdAt: data.createdAt ? data.createdAt.toDate() : new Date(),
+          });
+        }
+      });
+      
+      setReviews(fetchedReviews);
+    } catch (error) {
+      console.error('Error fetching reviews:', error);
+      toast.error('אירעה שגיאה בטעינת חוות הדעת');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Fetch reviews on component mount
+  useEffect(() => {
+    fetchReviews();
+  }, []);
+
   // Calculate average rating
-  const averageRating = reviews.reduce((acc, review) => acc + review.rating, 0) / reviews.length;
+  const averageRating = reviews.length > 0
+    ? reviews.reduce((acc, review) => acc + review.rating, 0) / reviews.length
+    : 5.0; // Default if no reviews yet
 
   // Animation on scroll
   useEffect(() => {
@@ -301,14 +366,14 @@ export const ReviewsSection = () => {
       
       <div className="container mx-auto px-4 md:px-6">
         {/* Section Heading */}
-        <div className="text-center max-w-3xl mx-auto mb-16 reviews-animate opacity-0 transition-all duration-700">
+        <div className="text-center max-w-3xl mx-auto mb-16 reviews-animate">
           <div className="flex justify-center mb-4 stars-float">
             {[...Array(5)].map((_, i) => (
               <Star key={i} className="h-8 w-8 fill-yellow-400 text-yellow-400 mx-1" />
             ))}
           </div>
           <h2 className="text-3xl md:text-4xl font-bold mb-3 text-law-navy">
-            <EditableText id="reviews-section-title">★★★★★ דירוג 5.0 מלקוחות</EditableText>
+            <EditableText id="reviews-section-title">★★★★★ דירוג {averageRating.toFixed(1)} מלקוחות</EditableText>
           </h2>
           <p className="text-xl text-gray-600">
             <EditableText id="reviews-section-subtitle">סיפורים אמיתיים מאנשים שעזרנו להם</EditableText>
@@ -316,32 +381,44 @@ export const ReviewsSection = () => {
         </div>
 
         {/* Reviews Display - Carousel for Mobile, Grid for Desktop */}
-        <div className="reviews-animate opacity-0 transition-all duration-700 delay-300">
-          {isMobile ? (
-            <Carousel className="w-full" opts={{ loop: true, align: "center" }}>
-              <CarouselContent>
+        <div className="reviews-animate">
+          {isLoading ? (
+            <div className="flex justify-center py-20">
+              <div className="w-12 h-12 border-4 border-law-navy border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          ) : reviews.length > 0 ? (
+            isMobile ? (
+              <Carousel className="w-full" opts={{ loop: true, align: "center" }}>
+                <CarouselContent>
+                  {reviews.map((review) => (
+                    <CarouselItem key={review.id} className="md:basis-1/2 lg:basis-1/3 p-2">
+                      <ReviewCard review={review} />
+                    </CarouselItem>
+                  ))}
+                </CarouselContent>
+                <div className="flex justify-center mt-6">
+                  <CarouselPrevious className="static translate-y-0 transform-none mx-2" />
+                  <CarouselNext className="static translate-y-0 transform-none mx-2" />
+                </div>
+              </Carousel>
+            ) : (
+              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {reviews.map((review) => (
-                  <CarouselItem key={review.id} className="md:basis-1/2 lg:basis-1/3 p-2">
-                    <ReviewCard review={review} />
-                  </CarouselItem>
+                  <ReviewCard key={review.id} review={review} />
                 ))}
-              </CarouselContent>
-              <div className="flex justify-center mt-6">
-                <CarouselPrevious className="static translate-y-0 transform-none mx-2" />
-                <CarouselNext className="static translate-y-0 transform-none mx-2" />
               </div>
-            </Carousel>
+            )
           ) : (
-            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {reviews.map((review) => (
-                <ReviewCard key={review.id} review={review} />
-              ))}
+            <div className="text-center py-10">
+              <p className="text-gray-500">
+                <EditableText id="reviews-empty">טרם התווספו חוות דעת. היה הראשון להוסיף חוות דעת!</EditableText>
+              </p>
             </div>
           )}
         </div>
 
         {/* "Share Your Experience" Button */}
-        <div className="mt-14 text-center reviews-animate opacity-0 transition-all duration-700 delay-600">
+        <div className="mt-14 text-center reviews-animate">
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>
               <Button className="bg-law-navy hover:bg-law-navy/90 text-white px-8 py-6 rounded-md text-lg shadow-md hover:shadow-lg transition-all">
@@ -360,7 +437,7 @@ export const ReviewsSection = () => {
         </div>
 
         {/* Trust Signals */}
-        <div className="mt-20 reviews-animate opacity-0 transition-all duration-700 delay-900">
+        <div className="mt-20 reviews-animate">
           <div className="flex flex-wrap justify-center items-center gap-8">
             <div className="flex items-center bg-white px-6 py-3 rounded-md shadow-sm">
               <img src="/placeholder.svg" alt="לשכת עורכי הדין" className="h-12 w-auto" />

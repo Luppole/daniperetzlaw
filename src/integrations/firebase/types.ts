@@ -58,6 +58,17 @@ export interface FirebaseReview {
   user_profile?: FirebaseProfile;
 }
 
+export interface FirebaseClientReview {
+  id?: string;
+  name: string;
+  location?: string;
+  text: string;
+  rating: number;
+  status: 'pending' | 'approved' | 'rejected';
+  userId?: string | null;
+  createdAt: Timestamp;
+}
+
 export interface FirebaseUser {
   uid: string;
   email: string | null;

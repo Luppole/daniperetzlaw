@@ -39,6 +39,18 @@ service cloud.firestore {
       allow write: if request.auth != null && request.auth.uid == userId;
     }
     
+    // Allow access to client reviews collection
+    match /client_reviews/{reviewId} {
+      // Anyone can read approved reviews
+      allow read: if true;
+      // Anyone can create a review
+      allow create: if true;
+      // Only admins can update review status
+      allow update: if request.auth != null && isAdmin();
+      // Only admins can delete reviews
+      allow delete: if request.auth != null && isAdmin();
+    }
+    
     // Updated rules for contact_messages to ensure proper permissions
     match /contact_messages/{messageId} {
       // Allow anyone to create contact messages without authentication
