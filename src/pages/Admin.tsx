@@ -30,7 +30,7 @@ const Admin = () => {
 
   if (authLoading || adminLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-law-light">
+      <div className="min-h-screen w-full flex items-center justify-center bg-law-light">
         <Loader2 className="h-10 w-10 text-law-navy animate-spin mx-auto" />
       </div>
     );
@@ -43,16 +43,18 @@ const Admin = () => {
 
   return (
     <SidebarProvider>
-      <AdminLayout>
-        <Routes>
-          <Route index element={<AdminDashboard />} />
-          <Route path="articles/*" element={<AdminArticles />} />
-          <Route path="appointments" element={<AdminAppointments />} />
-          <Route path="comments" element={<AdminComments />} />
-          <Route path="messages" element={<AdminMessages />} />
-          <Route path="*" element={<Navigate to="/admin" replace />} />
-        </Routes>
-      </AdminLayout>
+      <div className="w-full">
+        <AdminLayout>
+          <Routes>
+            <Route index element={<AdminDashboard />} />
+            <Route path="articles/*" element={<AdminArticles />} />
+            <Route path="appointments" element={<AdminAppointments />} />
+            <Route path="comments" element={<AdminComments />} />
+            <Route path="messages" element={<AdminMessages />} />
+            <Route path="*" element={<Navigate to="/admin" replace />} />
+          </Routes>
+        </AdminLayout>
+      </div>
     </SidebarProvider>
   );
 }

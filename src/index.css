@@ -539,3 +539,112 @@
   @apply bg-gray-100 text-gray-400 cursor-not-allowed border-gray-200;
   pointer-events: none;
 }
+
+/* Improved responsiveness for mobile devices */
+@media (max-width: 640px) {
+  h1 {
+    @apply text-3xl;
+  }
+  
+  h2 {
+    @apply text-2xl;
+  }
+  
+  h3 {
+    @apply text-xl;
+  }
+  
+  h4 {
+    @apply text-lg;
+  }
+  
+  h5 {
+    @apply text-base;
+  }
+  
+  h6 {
+    @apply text-sm;
+  }
+  
+  .section-wrapper {
+    @apply py-10 px-4;
+  }
+  
+  .section-title {
+    @apply text-3xl;
+  }
+  
+  .section-subtitle {
+    @apply text-lg mb-6;
+  }
+  
+  /* Adjust mobile spacing */
+  .py-16 {
+    @apply py-10;
+  }
+  
+  /* Make sure images don't overflow on mobile */
+  img {
+    @apply max-w-full;
+  }
+  
+  /* Ensure buttons are properly sized on mobile */
+  button, .button {
+    @apply text-sm px-3 py-1.5;
+  }
+  
+  /* Improve form elements readability on mobile */
+  input, select, textarea {
+    @apply text-base;
+  }
+}
+
+/* Ensure admin panels are responsive */
+.admin-panel {
+  @apply w-full overflow-x-auto;
+}
+
+.admin-table {
+  @apply min-w-full;
+}
+
+/* Improved mobile navigation */
+.mobile-nav {
+  @apply fixed top-0 right-0 w-full h-screen bg-white z-50 transform transition-transform duration-300;
+}
+
+.mobile-nav.open {
+  @apply translate-x-0;
+}
+
+.mobile-nav.closed {
+  @apply translate-x-full;
+}
+
+/* Ensure full-width containers on mobile */
+.full-width-container {
+  @apply w-full max-w-full px-4 md:px-8;
+}
+
+/* Better tap targets for mobile */
+.mobile-tap-target {
+  @apply min-h-[44px] min-w-[44px];
+}
+
+/* Additional optimization for smaller images on mobile */
+.optimized-image-mobile {
+  @apply w-full h-auto object-cover max-h-[300px];
+}
+
+/* Admin panel specific responsive adjustments */
+.admin-content {
+  @apply w-full overflow-hidden;
+}
+
+.admin-sidebar {
+  @apply w-full md:w-72;
+}
+
+.admin-main {
+  @apply w-full p-2 md:p-6;
+}

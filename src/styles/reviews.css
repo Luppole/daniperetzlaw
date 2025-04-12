@@ -25,13 +25,29 @@
 }
 
 /* Reviews carousel custom styles */
+.reviews-carousel {
+  width: 100%;
+}
+
 .reviews-carousel .embla__slide {
   height: 100%;
+}
+
+/* Carousel slide sizes */
+.reviews-carousel.embla__slide {
+  transition: all 0.3s ease;
+}
+
+/* Center slide styling */
+.reviews-carousel .embla__slide--center {
+  transform: scale(1.05);
+  z-index: 2;
 }
 
 /* Review card hover effect */
 .review-card {
   transition: all 0.3s ease;
+  max-width: 100%;
 }
 
 .review-card:hover {
@@ -59,3 +75,29 @@
 .star-rating .star:nth-child(3) { animation-delay: 0.3s; }
 .star-rating .star:nth-child(4) { animation-delay: 0.4s; }
 .star-rating .star:nth-child(5) { animation-delay: 0.5s; }
+
+/* Mobile-specific styles */
+@media (max-width: 768px) {
+  .reviews-carousel .embla__slide {
+    padding: 0 8px;
+  }
+  
+  .review-card {
+    font-size: 0.9rem;
+    padding: 1rem;
+  }
+  
+  .review-card h4 {
+    font-size: 1rem;
+  }
+  
+  .review-card p {
+    font-size: 0.85rem;
+    line-height: 1.4;
+  }
+  
+  .star-rating .star {
+    width: 16px;
+    height: 16px;
+  }
+}

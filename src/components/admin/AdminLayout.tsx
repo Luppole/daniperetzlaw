@@ -87,9 +87,9 @@ export function AdminLayout({ children }: AdminLayoutProps) {
   };
 
   return (
-    <div className="min-h-screen bg-law-light/30 flex flex-col">
+    <div className="min-h-screen w-full bg-law-light/30 flex flex-col">
       {/* Header */}
-      <div className="bg-white p-4 shadow flex justify-between items-center">
+      <div className="bg-white p-4 shadow flex justify-between items-center w-full">
         <div className="flex items-center">
           {isMobile && (
             <Button 
@@ -153,7 +153,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         </div>
       </div>
       
-      <div className="flex flex-1 relative">
+      <div className="flex flex-1 relative w-full">
         {/* Mobile Sidebar (Slide-in) */}
         {isMobile && (
           <div 
@@ -234,7 +234,7 @@ export function AdminLayout({ children }: AdminLayoutProps) {
         
         {/* Desktop Sidebar */}
         {!isMobile && (
-          <aside className="w-64 bg-white shadow-md hidden md:block">
+          <aside className="w-72 bg-white shadow-md hidden md:block">
             <nav className="p-4">
               <ul className="space-y-2">
                 {links.map((link) => (

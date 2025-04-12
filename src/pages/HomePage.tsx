@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState, useCallback, memo, useRef } from 'react';
 import { Navbar } from '@/components/Navbar';
 import { HeroSection } from '@/components/HeroSection';
@@ -25,12 +26,12 @@ const sectionImages = [
 const ScrollTopButton = memo(({ show, onClick }: { show: boolean; onClick: () => void }) => (
   <button
     onClick={onClick}
-    className={`fixed bottom-6 left-6 bg-law-navy text-white p-3 rounded-full shadow-lg transition-all duration-300 z-30 ${
+    className={`fixed bottom-6 left-6 bg-law-navy text-white p-2 md:p-3 rounded-full shadow-lg transition-all duration-300 z-30 ${
       show ? 'opacity-80 transform translate-y-0 hover:opacity-100' : 'opacity-0 transform translate-y-10 pointer-events-none'
     }`}
     aria-label="Scroll to top"
   >
-    <ArrowUp size={20} />
+    <ArrowUp size={isMobile() ? 16 : 20} />
   </button>
 ));
 ScrollTopButton.displayName = 'ScrollTopButton';
@@ -217,7 +218,7 @@ const HomePage = () => {
   }, [resetTexts]);
 
   return (
-    <div className="min-h-screen overflow-x-hidden">
+    <div className="min-h-screen overflow-x-hidden w-full">
       <Navbar />
       <HeroSection />
       <AboutSection />
