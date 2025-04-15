@@ -18,7 +18,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { animate } from '@/hooks/use-motion';
+import { useMotion } from '@/hooks/use-motion';
 
 const LEGAL_IMAGES = [
   "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?q=80&w=2912&auto=format&fit=crop", // Legal books
@@ -42,6 +42,7 @@ const Article = () => {
   const [isSaved, setIsSaved] = useState(false);
   const [imageError, setImageError] = useState(false);
   const [pageLoaded, setPageLoaded] = useState(false);
+  const { animate } = useMotion();
 
   useEffect(() => {
     const fetchArticleData = async () => {
@@ -132,7 +133,7 @@ const Article = () => {
         }, { delay: 0.7 });
       }
     }
-  }, [pageLoaded, article]);
+  }, [pageLoaded, article, animate]);
 
   const handleImageError = () => {
     setImageError(true);

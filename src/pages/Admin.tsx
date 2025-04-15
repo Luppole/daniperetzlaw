@@ -11,12 +11,13 @@ import { AdminComments } from '@/components/admin/AdminComments';
 import { AdminMessages } from '@/components/admin/AdminMessages';
 import { Loader2 } from 'lucide-react';
 import { SidebarProvider } from '@/components/ui/sidebar';
-import { animate } from 'motion';
+import { useMotion } from '@/hooks/use-motion';
 
 const Admin = () => {
   const { isAdmin, isLoading: adminLoading } = useAdmin();
   const { user, isLoading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const { animate } = useMotion();
 
   useEffect(() => {
     // If not loading and either not logged in or not admin, redirect to login
@@ -43,7 +44,7 @@ const Admin = () => {
         });
       }
     }
-  }, [isAdmin, user, authLoading, adminLoading]);
+  }, [isAdmin, user, authLoading, adminLoading, animate]);
 
   if (authLoading || adminLoading) {
     return (

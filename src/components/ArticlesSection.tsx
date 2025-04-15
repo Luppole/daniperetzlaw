@@ -10,7 +10,7 @@ import { MappedArticle } from '@/types/sanity';
 import { getAllSanityArticles } from '@/services/sanityService';
 import { Loader2 } from 'lucide-react';
 import { EditableText } from '@/components/EditableText';
-import { animate } from '@/hooks/use-motion';
+import { useMotion } from '@/hooks/use-motion';
 
 // Legal-themed high-quality images
 const LEGAL_IMAGES = [
@@ -27,6 +27,7 @@ export function ArticlesSection() {
   const [articles, setArticles] = useState<MappedArticle[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
+  const { animate } = useMotion();
   
   const [ref, inView] = useInView({
     triggerOnce: true,
@@ -92,7 +93,7 @@ export function ArticlesSection() {
         }
       });
     }
-  }, [inView, articles.length]);
+  }, [inView, articles.length, animate]);
 
   const handleImageError = (articleId: string) => {
     setImageErrors(prev => ({

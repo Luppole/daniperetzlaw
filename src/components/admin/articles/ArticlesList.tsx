@@ -24,7 +24,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Edit, Trash2, Plus, RefreshCw, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
-import { animate } from 'motion';
+import { useMotion } from '@/hooks/use-motion';
 
 interface ArticlesListProps {
   onImportArticles?: () => Promise<void>;
@@ -37,6 +37,7 @@ export function ArticlesList({ onImportArticles }: ArticlesListProps) {
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [isImporting, setIsImporting] = useState(false);
   const [pageLoaded, setPageLoaded] = useState(false);
+  const { animate } = useMotion();
 
   const fetchArticles = async () => {
     setIsLoading(true);
@@ -92,7 +93,7 @@ export function ArticlesList({ onImportArticles }: ArticlesListProps) {
         }
       });
     }
-  }, [pageLoaded, isLoading, articles.length]);
+  }, [pageLoaded, isLoading, articles.length, animate]);
 
   const handleDelete = async (id: string) => {
     try {
@@ -129,7 +130,7 @@ export function ArticlesList({ onImportArticles }: ArticlesListProps) {
   return (
     <div className="container py-6">
       <div className="page-header flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">ניהול מאמרים</h1>
+        <h1 className="text-2xl font-bold">ניהול מא��רים</h1>
         <div className="flex gap-2">
           {onImportArticles && (
             <Button 

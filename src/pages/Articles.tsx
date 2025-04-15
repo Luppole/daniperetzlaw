@@ -11,7 +11,7 @@ import LikeCount from '@/components/LikeCount';
 import { getAllSanityArticles } from '@/services/sanityService';
 import { MappedArticle } from '@/types/sanity';
 import { Loader2 } from 'lucide-react';
-import { animate } from 'motion';
+import { useMotion } from '@/hooks/use-motion';
 
 const Articles = () => {
   const navigate = useNavigate();
@@ -21,6 +21,7 @@ const Articles = () => {
   const [articles, setArticles] = useState<MappedArticle[]>([]);
   const [categories, setCategories] = useState<string[]>([]);
   const [pageLoaded, setPageLoaded] = useState(false);
+  const { animate } = useMotion();
   
   useEffect(() => {
     const fetchArticles = async () => {
@@ -107,7 +108,7 @@ const Articles = () => {
         }
       }
     }
-  }, [pageLoaded, isLoading, articles.length]);
+  }, [pageLoaded, isLoading, articles.length, animate]);
 
   // Filter articles based on search query and category
   const filteredArticles = articles.filter(article => {
@@ -243,10 +244,9 @@ const Articles = () => {
           ) : (
             <div className="text-center py-16 bg-law-light rounded-lg opacity-0" ref={(el) => {
               if (el && pageLoaded) {
-                motion(el, {
-                  opacity: [0, 1],
-                  delay: 0.8
-                });
+                animate(el, {
+                  opacity: [0, 1]
+                }, { delay: 0.8 });
               }
             }}>
               <h3 className="text-2xl font-bold font-rubik text-law-navy mb-4">לא נמצאו תוצאות</h3>
