@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Navbar } from '@/components/Navbar';
@@ -90,7 +91,10 @@ const Article = () => {
         animate(h1Element, {
           opacity: [0, 1],
           y: [30, 0]
-        }, { delay: 0.2 });
+        }, { 
+          duration: 0.5,
+          delay: 0.2 
+        });
       }
       
       const metaElement = document.querySelector('.article-meta');
@@ -98,7 +102,10 @@ const Article = () => {
         animate(metaElement, {
           opacity: [0, 1],
           y: [20, 0]
-        }, { delay: 0.3 });
+        }, { 
+          duration: 0.5,
+          delay: 0.3 
+        });
       }
       
       const imageElement = document.querySelector('.article-image');
@@ -106,7 +113,10 @@ const Article = () => {
         animate(imageElement, {
           opacity: [0, 1],
           scale: [0.95, 1]
-        }, { delay: 0.4 });
+        }, { 
+          duration: 0.5,
+          delay: 0.4 
+        });
       }
       
       const summaryElement = document.querySelector('.article-summary');
@@ -114,7 +124,10 @@ const Article = () => {
         animate(summaryElement, {
           opacity: [0, 1],
           x: [-20, 0]
-        }, { delay: 0.5 });
+        }, { 
+          duration: 0.5,
+          delay: 0.5 
+        });
       }
       
       const contentElement = document.querySelector('.article-content');
@@ -122,7 +135,10 @@ const Article = () => {
         animate(contentElement, {
           opacity: [0, 1],
           y: [20, 0]
-        }, { delay: 0.6 });
+        }, { 
+          duration: 0.5,
+          delay: 0.6 
+        });
       }
       
       const sidebarElement = document.querySelector('.article-sidebar');
@@ -130,7 +146,10 @@ const Article = () => {
         animate(sidebarElement, {
           opacity: [0, 1],
           x: [30, 0]
-        }, { delay: 0.7 });
+        }, { 
+          duration: 0.5,
+          delay: 0.7 
+        });
       }
     }
   }, [pageLoaded, article, animate]);
@@ -424,7 +443,9 @@ const Article = () => {
                         if (el && pageLoaded) {
                           animate(el, {
                             opacity: [0, 1],
-                            y: [10, 0],
+                            y: [10, 0]
+                          }, {
+                            duration: 0.5,
                             delay: 0.8 + (index * 0.1)
                           });
                         }
@@ -457,7 +478,9 @@ const Article = () => {
                     if (el && pageLoaded) {
                       animate(el, {
                         opacity: [0, 1],
-                        y: [10, 0],
+                        y: [10, 0]
+                      }, {
+                        duration: 0.5,
                         delay: 1.2
                       });
                     }
@@ -480,7 +503,9 @@ const Article = () => {
                   if (el && pageLoaded) {
                     animate(el, {
                       opacity: [0, 1],
-                      y: [20, 0],
+                      y: [20, 0]
+                    }, {
+                      duration: 0.5,
                       delay: 1.3
                     });
                   }
