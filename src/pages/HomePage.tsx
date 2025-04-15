@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState, useCallback, memo, useRef } from 'react';
 import { Navbar } from '@/components/Navbar';
 import { HeroSection } from '@/components/HeroSection';
@@ -15,7 +14,7 @@ import { useTextEdit } from '@/contexts/TextEditContext';
 import { Button } from '@/components/ui/button';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { ReviewsSection } from '@/components/ReviewsSection';
-import { animate } from 'motion';
+import { animate } from '@/hooks/use-motion';
 
 const sectionImages = [
   '/lovable-uploads/ad835b61-e4f6-490c-8e35-d5865c9cb250.png', // Hero image
@@ -33,15 +32,13 @@ const ScrollTopButton = memo(({ show, onClick }: { show: boolean; onClick: () =>
       if (show) {
         animate(buttonRef.current, {
           opacity: [0, 0.8],
-          y: [20, 0],
-          duration: 0.3
-        });
+          y: [20, 0]
+        }, { duration: 0.3 });
       } else {
         animate(buttonRef.current, {
           opacity: [0.8, 0],
-          y: [0, 20],
-          duration: 0.3
-        });
+          y: [0, 20]
+        }, { duration: 0.3 });
       }
     }
   }, [show]);
@@ -74,16 +71,14 @@ const AdminActionButtons = memo(({ isEditMode, toggleEditMode, handleResetTexts 
     if (containerRef.current) {
       animate(containerRef.current, {
         opacity: [0, 1],
-        y: [20, 0],
-        delay: 0.3
-      });
+        y: [20, 0]
+      }, { delay: 0.3 });
       
       const buttons = containerRef.current.querySelectorAll('button');
       buttons.forEach((button, index) => {
         animate(button, {
-          scale: [0.8, 1],
-          delay: 0.4 + (index * 0.1)
-        });
+          scale: [0.8, 1]
+        }, { delay: 0.4 + (index * 0.1) });
       });
     }
   }, []);
@@ -198,21 +193,16 @@ const HomePage = () => {
       observerRef.current.disconnect();
     }
     
-    // Instead of using traditional IntersectionObserver for animations,
-    // we'll use Motion's more flexible animation system
     setTimeout(() => {
       const animatedElements = document.querySelectorAll('.animate-on-scroll');
       animatedElements.forEach((element) => {
-        // Create an intersection observer just for detection
         const observer = new IntersectionObserver((entries) => {
           entries.forEach((entry) => {
             if (entry.isIntersecting) {
-              // When element is in view, animate it with Motion
               animate(element, {
                 opacity: [0, 1],
-                y: [30, 0],
-                duration: 0.8
-              });
+                y: [30, 0]
+              }, { duration: 0.8 });
               observer.unobserve(element);
             }
           });
@@ -248,11 +238,12 @@ const HomePage = () => {
     
     document.body.classList.add('page-loaded');
     
-    // Initial page load animations
-    animate('body', {
-      opacity: [0.6, 1],
-      duration: 0.5
-    });
+    const bodyElement = document.querySelector('body');
+    if (bodyElement) {
+      animate(bodyElement, {
+        opacity: [0.6, 1]
+      }, { duration: 0.5 });
+    }
     
   }, [location]);
 

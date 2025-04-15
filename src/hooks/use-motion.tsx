@@ -1,96 +1,69 @@
 
-import React, { useEffect, useRef } from 'react';
-import { animate, AnimationOptionsWithOverrides } from 'motion';
-import { animations } from '@/utils/motionUtils';
+import { useCallback, useEffect, useRef } from 'react';
+import { animate as motionAnimate, AnimationOptionsWithValueOverrides, MotionKeyframesDefinition } from 'motion';
 
-// Hook to apply motion animations when an element enters the viewport
-export function useMotionOnScroll(
-  animation: keyof typeof animations,
-  options: { threshold?: number; delay?: number } = {}
-) {
-  const { threshold = 0.1, delay = 0 } = options;
-  const ref = useRef<HTMLDivElement>(null);
-  
-  useEffect(() => {
-    const element = ref.current;
-    if (!element) return;
-    
-    const animationFn = animations[animation];
-    if (!animationFn) return;
-    
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          animate(element, animationFn(delay));
-          observer.unobserve(element);
-        }
-      });
-    }, { threshold, rootMargin: '0px 0px -10% 0px' });
-    
-    observer.observe(element);
-    
-    return () => observer.disconnect();
-  }, [animation, threshold, delay]);
-  
-  return ref;
-}
+type AnimateOptions = AnimationOptionsWithValueOverrides;
 
-// Component wrapper for motion animations
-interface MotionWrapperProps {
-  children: React.ReactNode;
-  animation: keyof typeof animations;
-  delay?: number;
-  className?: string;
-  threshold?: number;
-  style?: React.CSSProperties;
-  id?: string;
-}
+// Helper functions that wrap the motion library functions
+export const useMotion = () => {
+  // Safe wrapper around motion.animate
+  const animateElement = useCallback((
+    target: string | Element | null,
+    keyframes: MotionKeyframesDefinition,
+    options?: AnimateOptions
+  ) => {
+    if (!target) return;
+    
+    try {
+      if (typeof target === 'string') {
+        const elements = document.querySelectorAll(target);
+        elements.forEach(element => {
+          motionAnimate(element, keyframes, options);
+        });
+      } else {
+        motionAnimate(target, keyframes, options);
+      }
+    } catch (error) {
+      console.error('Animation error:', error);
+    }
+  }, []);
 
-export const MotionWrapper: React.FC<MotionWrapperProps> = ({
-  children,
-  animation,
-  delay = 0,
-  className = '',
-  threshold = 0.1,
-  style = {},
-  id
-}) => {
-  const ref = useMotionOnScroll(animation, { threshold, delay });
-  
-  return (
-    <div ref={ref} className={className} style={{ opacity: 0, ...style }} id={id}>
-      {children}
-    </div>
+  return { animate: animateElement };
+};
+
+// Utility functions for common animations
+export const fadeIn = (element: Element | null, delay = 0) => {
+  if (!element) return;
+  motionAnimate(
+    element,
+    { opacity: [0, 1] },
+    { duration: 0.5, delay }
   );
 };
 
-// Custom hook to create a motion timeline for sequenced animations
-export function useMotionTimeline(initialDelay = 0.2, staggerDelay = 0.1) {
-  const items = useRef<Array<{ element: HTMLElement; animation: AnimationOptionsWithOverrides }>>([]);
-  
-  const addToTimeline = (element: HTMLElement, animationName: keyof typeof animations) => {
-    const animationFn = animations[animationName];
-    if (!animationFn) return;
-    
-    items.current.push({
-      element,
-      animation: animationFn(0) // We'll handle the delay in the play function
-    });
-  };
-  
-  const play = () => {
-    items.current.forEach((item, index) => {
-      const delay = initialDelay + (index * staggerDelay);
-      animate(item.element, {
-        ...item.animation,
-        delay
-      });
-    });
-  };
-  
-  const clear = () => {
-    items.current = [];
-  };
-  
-  return { addToTimeline, play, clear };
-}
+export const fadeInUp = (element: Element | null, delay = 0) => {
+  if (!element) return;
+  motionAnimate(
+    element,
+    { 
+      opacity: [0, 1],
+      y: [20, 0]
+    },
+    { duration: 0.5, delay }
+  );
+};
+
+export const scaleIn = (element: Element | null, delay = 0) => {
+  if (!element) return;
+  motionAnimate(
+    element,
+    { 
+      opacity: [0, 1],
+      scale: [0.9, 1]
+    },
+    { duration: 0.5, delay }
+  );
+};
+
+// Direct export of the motion animate function for simpler cases
+export { motionAnimate as animate };

@@ -18,7 +18,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { animate } from 'motion';
+import { animate } from '@/hooks/use-motion';
 
 const LEGAL_IMAGES = [
   "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?q=80&w=2912&auto=format&fit=crop", // Legal books
@@ -84,41 +84,53 @@ const Article = () => {
 
   useEffect(() => {
     if (pageLoaded && article) {
-      animate('h1', {
-        opacity: [0, 1],
-        y: [30, 0],
-        delay: 0.2
-      });
+      const h1Element = document.querySelector('h1');
+      if (h1Element) {
+        animate(h1Element, {
+          opacity: [0, 1],
+          y: [30, 0]
+        }, { delay: 0.2 });
+      }
       
-      animate('.article-meta', {
-        opacity: [0, 1],
-        y: [20, 0],
-        delay: 0.3
-      });
+      const metaElement = document.querySelector('.article-meta');
+      if (metaElement) {
+        animate(metaElement, {
+          opacity: [0, 1],
+          y: [20, 0]
+        }, { delay: 0.3 });
+      }
       
-      animate('.article-image', {
-        opacity: [0, 1],
-        scale: [0.95, 1],
-        delay: 0.4
-      });
+      const imageElement = document.querySelector('.article-image');
+      if (imageElement) {
+        animate(imageElement, {
+          opacity: [0, 1],
+          scale: [0.95, 1]
+        }, { delay: 0.4 });
+      }
       
-      animate('.article-summary', {
-        opacity: [0, 1],
-        x: [-20, 0],
-        delay: 0.5
-      });
+      const summaryElement = document.querySelector('.article-summary');
+      if (summaryElement) {
+        animate(summaryElement, {
+          opacity: [0, 1],
+          x: [-20, 0]
+        }, { delay: 0.5 });
+      }
       
-      animate('.article-content', {
-        opacity: [0, 1],
-        y: [20, 0],
-        delay: 0.6
-      });
+      const contentElement = document.querySelector('.article-content');
+      if (contentElement) {
+        animate(contentElement, {
+          opacity: [0, 1],
+          y: [20, 0]
+        }, { delay: 0.6 });
+      }
       
-      animate('.article-sidebar', {
-        opacity: [0, 1],
-        x: [30, 0],
-        delay: 0.7
-      });
+      const sidebarElement = document.querySelector('.article-sidebar');
+      if (sidebarElement) {
+        animate(sidebarElement, {
+          opacity: [0, 1],
+          x: [30, 0]
+        }, { delay: 0.7 });
+      }
     }
   }, [pageLoaded, article]);
 

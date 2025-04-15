@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Calendar, ArrowLeft } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,7 +10,7 @@ import { MappedArticle } from '@/types/sanity';
 import { getAllSanityArticles } from '@/services/sanityService';
 import { Loader2 } from 'lucide-react';
 import { EditableText } from '@/components/EditableText';
-import { animate } from 'motion';
+import { animate } from '@/hooks/use-motion';
 
 // Legal-themed high-quality images
 const LEGAL_IMAGES = [
@@ -61,26 +62,34 @@ export function ArticlesSection() {
   useEffect(() => {
     // Apply Motion animations when section is in view
     if (inView && articles.length > 0) {
-      animate('.section-title', {
-        opacity: [0, 1],
-        y: [30, 0],
-        delay: 0.2
-      });
+      // Animate title
+      const titleElement = document.querySelector('.section-title');
+      if (titleElement) {
+        animate(titleElement, {
+          opacity: [0, 1],
+          y: [30, 0]
+        }, { delay: 0.2 });
+      }
       
-      animate('.section-subtitle', {
-        opacity: [0, 1],
-        y: [20, 0],
-        delay: 0.4
-      });
+      // Animate subtitle
+      const subtitleElement = document.querySelector('.section-subtitle');
+      if (subtitleElement) {
+        animate(subtitleElement, {
+          opacity: [0, 1],
+          y: [20, 0]
+        }, { delay: 0.4 });
+      }
       
       // Animate article cards with staggered delay
       articles.forEach((_, index) => {
-        animate(`.article-card-${index}`, {
-          opacity: [0, 1],
-          y: [30, 0],
-          scale: [0.95, 1],
-          delay: 0.5 + (index * 0.15)
-        });
+        const cardElement = document.querySelector(`.article-card-${index}`);
+        if (cardElement) {
+          animate(cardElement, {
+            opacity: [0, 1],
+            y: [30, 0],
+            scale: [0.95, 1]
+          }, { delay: 0.5 + (index * 0.15) });
+        }
       });
     }
   }, [inView, articles.length]);
@@ -182,9 +191,8 @@ export function ArticlesSection() {
             if (el && inView) {
               animate(el, {
                 opacity: [0, 1],
-                y: [20, 0],
-                delay: 0.8
-              });
+                y: [20, 0]
+              }, { delay: 0.8 });
             }
           }}
         >
