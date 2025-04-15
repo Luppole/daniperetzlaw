@@ -1,56 +1,56 @@
 
-import { MotionKeyframesDefinition } from 'motion';
+import { animate, AnimationOptionsWithOverrides } from 'motion';
 
 // Common animation presets for use throughout the application
 export const animations = {
-  fadeIn: (delay = 0): MotionKeyframesDefinition => ({
+  fadeIn: (delay = 0): AnimationOptionsWithOverrides => ({
     opacity: [0, 1],
     duration: 0.6,
     delay
   }),
   
-  fadeOut: (delay = 0): MotionKeyframesDefinition => ({
+  fadeOut: (delay = 0): AnimationOptionsWithOverrides => ({
     opacity: [1, 0],
     duration: 0.3,
     delay
   }),
   
-  slideUp: (delay = 0): MotionKeyframesDefinition => ({
+  slideUp: (delay = 0): AnimationOptionsWithOverrides => ({
     opacity: [0, 1],
     y: [30, 0],
     duration: 0.6,
     delay
   }),
   
-  slideDown: (delay = 0): MotionKeyframesDefinition => ({
+  slideDown: (delay = 0): AnimationOptionsWithOverrides => ({
     opacity: [0, 1],
     y: [-30, 0],
     duration: 0.6,
     delay
   }),
   
-  slideRight: (delay = 0): MotionKeyframesDefinition => ({
+  slideRight: (delay = 0): AnimationOptionsWithOverrides => ({
     opacity: [0, 1],
     x: [-30, 0],
     duration: 0.6,
     delay
   }),
   
-  slideLeft: (delay = 0): MotionKeyframesDefinition => ({
+  slideLeft: (delay = 0): AnimationOptionsWithOverrides => ({
     opacity: [0, 1],
     x: [30, 0],
     duration: 0.6,
     delay
   }),
   
-  scaleIn: (delay = 0): MotionKeyframesDefinition => ({
+  scaleIn: (delay = 0): AnimationOptionsWithOverrides => ({
     opacity: [0, 1],
     scale: [0.9, 1],
     duration: 0.5,
     delay
   }),
   
-  bounce: (delay = 0): MotionKeyframesDefinition => ({
+  bounce: (delay = 0): AnimationOptionsWithOverrides => ({
     y: [0, -15, 0],
     duration: 1,
     delay,
@@ -58,7 +58,7 @@ export const animations = {
     easing: 'ease-in-out'
   }),
   
-  pulse: (delay = 0): MotionKeyframesDefinition => ({
+  pulse: (delay = 0): AnimationOptionsWithOverrides => ({
     scale: [1, 1.05, 1],
     duration: 1.5,
     delay,
@@ -67,21 +67,21 @@ export const animations = {
   }),
   
   // Staggered animation for list items
-  stagger: (elements: HTMLElement[], animation: MotionKeyframesDefinition, staggerDelay = 0.1) => {
+  stagger: (elements: HTMLElement[], animation: AnimationOptionsWithOverrides, staggerDelay = 0.1) => {
     elements.forEach((element, index) => {
       const delay = animation.delay || 0;
       animation.delay = delay + (index * staggerDelay);
-      motion(element, animation);
+      animate(element, animation);
     });
   }
 };
 
 // Helper function to animate elements when they enter the viewport
-export const animateOnScroll = (element: HTMLElement, animation: MotionKeyframesDefinition) => {
+export const animateOnScroll = (element: HTMLElement, animation: AnimationOptionsWithOverrides) => {
   const observer = new IntersectionObserver((entries) => {
     entries.forEach((entry) => {
       if (entry.isIntersecting) {
-        motion(element, animation);
+        animate(element, animation);
         observer.unobserve(element);
       }
     });

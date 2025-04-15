@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { Calendar, ArrowLeft } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,7 +9,7 @@ import { MappedArticle } from '@/types/sanity';
 import { getAllSanityArticles } from '@/services/sanityService';
 import { Loader2 } from 'lucide-react';
 import { EditableText } from '@/components/EditableText';
-import { motion } from 'motion';
+import { animate } from 'motion';
 
 // Legal-themed high-quality images
 const LEGAL_IMAGES = [
@@ -62,13 +61,13 @@ export function ArticlesSection() {
   useEffect(() => {
     // Apply Motion animations when section is in view
     if (inView && articles.length > 0) {
-      motion('.section-title', {
+      animate('.section-title', {
         opacity: [0, 1],
         y: [30, 0],
         delay: 0.2
       });
       
-      motion('.section-subtitle', {
+      animate('.section-subtitle', {
         opacity: [0, 1],
         y: [20, 0],
         delay: 0.4
@@ -76,7 +75,7 @@ export function ArticlesSection() {
       
       // Animate article cards with staggered delay
       articles.forEach((_, index) => {
-        motion(`.article-card-${index}`, {
+        animate(`.article-card-${index}`, {
           opacity: [0, 1],
           y: [30, 0],
           scale: [0.95, 1],
@@ -181,7 +180,7 @@ export function ArticlesSection() {
           style={{ transform: 'translateY(20px)' }}
           ref={(el) => {
             if (el && inView) {
-              motion(el, {
+              animate(el, {
                 opacity: [0, 1],
                 y: [20, 0],
                 delay: 0.8

@@ -1,6 +1,6 @@
 
 import React, { useEffect, useRef } from 'react';
-import { motion, MotionKeyframesDefinition } from 'motion';
+import { animate, AnimationOptionsWithOverrides } from 'motion';
 import { animations } from '@/utils/motionUtils';
 
 // Hook to apply motion animations when an element enters the viewport
@@ -21,7 +21,7 @@ export function useMotionOnScroll(
     const observer = new IntersectionObserver((entries) => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
-          motion(element, animationFn(delay));
+          animate(element, animationFn(delay));
           observer.unobserve(element);
         }
       });
@@ -66,7 +66,7 @@ export const MotionWrapper: React.FC<MotionWrapperProps> = ({
 
 // Custom hook to create a motion timeline for sequenced animations
 export function useMotionTimeline(initialDelay = 0.2, staggerDelay = 0.1) {
-  const items = useRef<Array<{ element: HTMLElement; animation: MotionKeyframesDefinition }>>([]);
+  const items = useRef<Array<{ element: HTMLElement; animation: AnimationOptionsWithOverrides }>>([]);
   
   const addToTimeline = (element: HTMLElement, animationName: keyof typeof animations) => {
     const animationFn = animations[animationName];
@@ -81,7 +81,7 @@ export function useMotionTimeline(initialDelay = 0.2, staggerDelay = 0.1) {
   const play = () => {
     items.current.forEach((item, index) => {
       const delay = initialDelay + (index * staggerDelay);
-      motion(item.element, {
+      animate(item.element, {
         ...item.animation,
         delay
       });

@@ -15,7 +15,7 @@ import { useTextEdit } from '@/contexts/TextEditContext';
 import { Button } from '@/components/ui/button';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { ReviewsSection } from '@/components/ReviewsSection';
-import { motion } from 'motion';
+import { animate } from 'motion';
 
 const sectionImages = [
   '/lovable-uploads/ad835b61-e4f6-490c-8e35-d5865c9cb250.png', // Hero image
@@ -31,13 +31,13 @@ const ScrollTopButton = memo(({ show, onClick }: { show: boolean; onClick: () =>
   useEffect(() => {
     if (buttonRef.current) {
       if (show) {
-        motion(buttonRef.current, {
+        animate(buttonRef.current, {
           opacity: [0, 0.8],
           y: [20, 0],
           duration: 0.3
         });
       } else {
-        motion(buttonRef.current, {
+        animate(buttonRef.current, {
           opacity: [0.8, 0],
           y: [0, 20],
           duration: 0.3
@@ -72,7 +72,7 @@ const AdminActionButtons = memo(({ isEditMode, toggleEditMode, handleResetTexts 
   
   useEffect(() => {
     if (containerRef.current) {
-      motion(containerRef.current, {
+      animate(containerRef.current, {
         opacity: [0, 1],
         y: [20, 0],
         delay: 0.3
@@ -80,7 +80,7 @@ const AdminActionButtons = memo(({ isEditMode, toggleEditMode, handleResetTexts 
       
       const buttons = containerRef.current.querySelectorAll('button');
       buttons.forEach((button, index) => {
-        motion(button, {
+        animate(button, {
           scale: [0.8, 1],
           delay: 0.4 + (index * 0.1)
         });
@@ -208,7 +208,7 @@ const HomePage = () => {
           entries.forEach((entry) => {
             if (entry.isIntersecting) {
               // When element is in view, animate it with Motion
-              motion(element, {
+              animate(element, {
                 opacity: [0, 1],
                 y: [30, 0],
                 duration: 0.8
@@ -249,7 +249,7 @@ const HomePage = () => {
     document.body.classList.add('page-loaded');
     
     // Initial page load animations
-    motion('body', {
+    animate('body', {
       opacity: [0.6, 1],
       duration: 0.5
     });
