@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { 
@@ -19,7 +20,7 @@ import {
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Calendar, Loader2, MailOpen, Phone, Trash2, User } from 'lucide-react';
-import { format } from 'date-fns';
+import { format, parse } from 'date-fns';
 import { he } from 'date-fns/locale';
 import { toast } from 'sonner';
 import { Appointment } from '@/types/appointments';
@@ -116,13 +117,35 @@ export function AdminAppointments() {
   };
 
   const formatDate = (dateString: string) => {
-    return format(new Date(dateString), 'dd/MM/yyyy', { locale: he });
+    try {
+      return format(new Date(dateString), 'dd/MM/yyyy', { locale: he });
+    } catch (error) {
+      console.error('Error formatting date:', dateString, error);
+      return dateString;
+    }
   };
 
   const formatDateTime = (dateString: string, timeString: string) => {
-    const [day, month, year] = dateString.split('/');
-    const date = new Date(`${year}-${month}-${day}T${timeString}:00`);
-    return format(date, 'EEEE, dd בMMMM yyyy בשעה HH:mm', { locale: he });
+    try {
+      // Check if dateString is in yyyy-MM-dd format
+      if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+        // If it's already in yyyy-MM-dd format, use it directly
+        const date = new Date(`${dateString}T${timeString}:00`);
+        return format(date, 'EEEE, dd בMMMM yyyy בשעה HH:mm', { locale: he });
+      } else if (/^\d{2}\/\d{2}\/\d{4}$/.test(dateString)) {
+        // If it's in dd/MM/yyyy format, parse it
+        const parsedDate = parse(dateString, 'dd/MM/yyyy', new Date());
+        const formattedDate = format(parsedDate, 'yyyy-MM-dd');
+        const date = new Date(`${formattedDate}T${timeString}:00`);
+        return format(date, 'EEEE, dd בMMMM yyyy בשעה HH:mm', { locale: he });
+      } else {
+        console.error('Unsupported date format:', dateString);
+        return `${dateString} ${timeString}`;
+      }
+    } catch (error) {
+      console.error('Error formatting date and time:', dateString, timeString, error);
+      return `${dateString} ${timeString}`;
+    }
   };
 
   const getStatusBadge = (status: string) => {
