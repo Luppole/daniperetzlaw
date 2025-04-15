@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Navbar } from '@/components/Navbar';
@@ -9,7 +8,8 @@ import { Card } from '@/components/ui/card';
 import LikeButton from '@/components/LikeButton';
 import CommentSection from '@/components/comments/CommentSection';
 import { Loader2 } from 'lucide-react';
-import { getSanityArticleById, getAllSanityArticles, PortableTextRenderer } from '@/services/sanityService';
+import { getSanityArticleById, getAllSanityArticles } from '@/services/sanityService';
+import { PortableTextRenderer } from '@/components/PortableTextRenderer';
 import { MappedArticle } from '@/types/sanity';
 import { toast } from 'sonner';
 import { 
@@ -18,7 +18,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { motion } from 'motion';
+import { animate } from 'motion';
 
 const LEGAL_IMAGES = [
   "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?q=80&w=2912&auto=format&fit=crop", // Legal books
@@ -82,40 +82,39 @@ const Article = () => {
     window.scrollTo(0, 0);
   }, [id]);
 
-  // Apply Motion animations when page loads
   useEffect(() => {
     if (pageLoaded && article) {
-      motion('h1', {
+      animate('h1', {
         opacity: [0, 1],
         y: [30, 0],
         delay: 0.2
       });
       
-      motion('.article-meta', {
+      animate('.article-meta', {
         opacity: [0, 1],
         y: [20, 0],
         delay: 0.3
       });
       
-      motion('.article-image', {
+      animate('.article-image', {
         opacity: [0, 1],
         scale: [0.95, 1],
         delay: 0.4
       });
       
-      motion('.article-summary', {
+      animate('.article-summary', {
         opacity: [0, 1],
         x: [-20, 0],
         delay: 0.5
       });
       
-      motion('.article-content', {
+      animate('.article-content', {
         opacity: [0, 1],
         y: [20, 0],
         delay: 0.6
       });
       
-      motion('.article-sidebar', {
+      animate('.article-sidebar', {
         opacity: [0, 1],
         x: [30, 0],
         delay: 0.7
@@ -410,7 +409,7 @@ const Article = () => {
                       className="border-b border-gray-100 pb-8 last:border-0 hover:bg-gray-50 p-4 rounded-lg transition-colors"
                       ref={(el) => {
                         if (el && pageLoaded) {
-                          motion(el, {
+                          animate(el, {
                             opacity: [0, 1],
                             y: [10, 0],
                             delay: 0.8 + (index * 0.1)
@@ -443,7 +442,7 @@ const Article = () => {
                   className="mt-10"
                   ref={(el) => {
                     if (el && pageLoaded) {
-                      motion(el, {
+                      animate(el, {
                         opacity: [0, 1],
                         y: [10, 0],
                         delay: 1.2
@@ -466,7 +465,7 @@ const Article = () => {
                 className="bg-law-navy text-white rounded-lg p-8 shadow-lg"
                 ref={(el) => {
                   if (el && pageLoaded) {
-                    motion(el, {
+                    animate(el, {
                       opacity: [0, 1],
                       y: [20, 0],
                       delay: 1.3
