@@ -11,6 +11,7 @@ import { AdminComments } from '@/components/admin/AdminComments';
 import { AdminMessages } from '@/components/admin/AdminMessages';
 import { Loader2 } from 'lucide-react';
 import { SidebarProvider } from '@/components/ui/sidebar';
+import { motion } from 'motion';
 
 const Admin = () => {
   const { isAdmin, isLoading: adminLoading } = useAdmin();
@@ -28,6 +29,18 @@ const Admin = () => {
     }
   }, [isAdmin, user, authLoading, adminLoading, navigate]);
 
+  useEffect(() => {
+    // Apply entrance animation when admin panel loads
+    if (!authLoading && !adminLoading && isAdmin && user) {
+      motion('.admin-content', {
+        opacity: [0, 1],
+        y: [20, 0],
+        duration: 0.5,
+        delay: 0.2
+      });
+    }
+  }, [isAdmin, user, authLoading, adminLoading]);
+
   if (authLoading || adminLoading) {
     return (
       <div className="min-h-screen w-full flex items-center justify-center bg-law-light">
@@ -43,7 +56,7 @@ const Admin = () => {
 
   return (
     <SidebarProvider>
-      <div className="w-full">
+      <div className="w-full admin-content" style={{ opacity: 0 }}>
         <AdminLayout>
           <Routes>
             <Route index element={<AdminDashboard />} />

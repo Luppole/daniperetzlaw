@@ -15,6 +15,7 @@ import { useTextEdit } from '@/contexts/TextEditContext';
 import { Button } from '@/components/ui/button';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { ReviewsSection } from '@/components/ReviewsSection';
+import { motion } from 'motion';
 
 const sectionImages = [
   '/lovable-uploads/ad835b61-e4f6-490c-8e35-d5865c9cb250.png', // Hero image
@@ -25,13 +26,34 @@ const sectionImages = [
 
 const ScrollTopButton = memo(({ show, onClick }: { show: boolean; onClick: () => void }) => {
   const isMobile = useIsMobile();
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  
+  useEffect(() => {
+    if (buttonRef.current) {
+      if (show) {
+        motion(buttonRef.current, {
+          opacity: [0, 0.8],
+          y: [20, 0],
+          duration: 0.3
+        });
+      } else {
+        motion(buttonRef.current, {
+          opacity: [0.8, 0],
+          y: [0, 20],
+          duration: 0.3
+        });
+      }
+    }
+  }, [show]);
   
   return (
     <button
+      ref={buttonRef}
       onClick={onClick}
-      className={`fixed bottom-6 left-6 bg-law-navy text-white p-2 md:p-3 rounded-full shadow-lg transition-all duration-300 z-30 ${
-        show ? 'opacity-80 transform translate-y-0 hover:opacity-100' : 'opacity-0 transform translate-y-10 pointer-events-none'
+      className={`fixed bottom-6 left-6 bg-law-navy text-white p-2 md:p-3 rounded-full shadow-lg z-30 ${
+        show ? '' : 'pointer-events-none'
       }`}
+      style={{ opacity: 0 }}
       aria-label="Scroll to top"
     >
       <ArrowUp size={isMobile ? 16 : 20} />
@@ -46,9 +68,31 @@ const AdminActionButtons = memo(({ isEditMode, toggleEditMode, handleResetTexts 
   handleResetTexts: () => void;
 }) => {
   const isMobile = useIsMobile();
+  const containerRef = useRef<HTMLDivElement>(null);
+  
+  useEffect(() => {
+    if (containerRef.current) {
+      motion(containerRef.current, {
+        opacity: [0, 1],
+        y: [20, 0],
+        delay: 0.3
+      });
+      
+      const buttons = containerRef.current.querySelectorAll('button');
+      buttons.forEach((button, index) => {
+        motion(button, {
+          scale: [0.8, 1],
+          delay: 0.4 + (index * 0.1)
+        });
+      });
+    }
+  }, []);
   
   return (
-    <div className={`fixed ${isMobile ? 'top-auto bottom-20 right-4' : 'top-24 left-6'} z-40 flex ${isMobile ? 'flex-row-reverse' : 'flex-col'} gap-2`}>
+    <div 
+      ref={containerRef} 
+      className={`fixed ${isMobile ? 'top-auto bottom-20 right-4' : 'top-24 left-6'} z-40 flex ${isMobile ? 'flex-row-reverse' : 'flex-col'} gap-2 opacity-0`}
+    >
       <Button
         onClick={toggleEditMode}
         size={isMobile ? "icon" : "default"}
@@ -154,22 +198,27 @@ const HomePage = () => {
       observerRef.current.disconnect();
     }
     
-    observerRef.current = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.classList.add('show');
-            observerRef.current?.unobserve(entry.target);
-          }
-        });
-      },
-      { threshold: 0.1, rootMargin: '0px 0px -10% 0px' }
-    );
-
+    // Instead of using traditional IntersectionObserver for animations,
+    // we'll use Motion's more flexible animation system
     setTimeout(() => {
       const animatedElements = document.querySelectorAll('.animate-on-scroll');
       animatedElements.forEach((element) => {
-        observerRef.current?.observe(element);
+        // Create an intersection observer just for detection
+        const observer = new IntersectionObserver((entries) => {
+          entries.forEach((entry) => {
+            if (entry.isIntersecting) {
+              // When element is in view, animate it with Motion
+              motion(element, {
+                opacity: [0, 1],
+                y: [30, 0],
+                duration: 0.8
+              });
+              observer.unobserve(element);
+            }
+          });
+        }, { threshold: 0.1, rootMargin: '0px 0px -10% 0px' });
+        
+        observer.observe(element);
       });
     }, 100);
 
@@ -198,10 +247,18 @@ const HomePage = () => {
     }
     
     document.body.classList.add('page-loaded');
+    
+    // Initial page load animations
+    motion('body', {
+      opacity: [0.6, 1],
+      duration: 0.5
+    });
+    
   }, [location]);
 
   useEffect(() => {
     const handleBeforeUnload = () => {
+      // Any cleanup or warning logic here
     };
 
     window.addEventListener('beforeunload', handleBeforeUnload);

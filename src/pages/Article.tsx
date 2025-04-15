@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Navbar } from '@/components/Navbar';
@@ -8,15 +9,16 @@ import { Card } from '@/components/ui/card';
 import LikeButton from '@/components/LikeButton';
 import CommentSection from '@/components/comments/CommentSection';
 import { Loader2 } from 'lucide-react';
-import { getArticleById, Article as ArticleType, getAllArticles } from '@/services/articleService';
+import { getSanityArticleById, getAllSanityArticles, PortableTextRenderer } from '@/services/sanityService';
+import { MappedArticle } from '@/types/sanity';
 import { toast } from 'sonner';
-import ReactMarkdown from 'react-markdown';
 import { 
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { motion } from 'motion';
 
 const LEGAL_IMAGES = [
   "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?q=80&w=2912&auto=format&fit=crop", // Legal books
@@ -34,26 +36,27 @@ const getFallbackImage = (index = 0) => {
 const Article = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [article, setArticle] = useState<ArticleType | null>(null);
+  const [article, setArticle] = useState<MappedArticle | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [relatedArticles, setRelatedArticles] = useState<ArticleType[]>([]);
+  const [relatedArticles, setRelatedArticles] = useState<MappedArticle[]>([]);
   const [isSaved, setIsSaved] = useState(false);
   const [imageError, setImageError] = useState(false);
+  const [pageLoaded, setPageLoaded] = useState(false);
 
   useEffect(() => {
     const fetchArticleData = async () => {
       setIsLoading(true);
       setImageError(false);
       if (id) {
-        console.log('Fetching article with ID:', id);
-        const fetchedArticle = await getArticleById(id);
+        console.log('Fetching article with ID or slug:', id);
+        const fetchedArticle = await getSanityArticleById(id);
         
         if (fetchedArticle) {
           setArticle(fetchedArticle);
           
-          const allArticles = await getAllArticles();
+          const allArticles = await getAllSanityArticles();
           const filtered = allArticles
-            .filter(a => a.id !== id)
+            .filter(a => a.id !== fetchedArticle.id)
             .map((article, index) => {
               if (!article.image_url || article.image_url.includes('placeholder')) {
                 return {
@@ -66,17 +69,59 @@ const Article = () => {
           setRelatedArticles(filtered);
           
           const savedArticles = JSON.parse(localStorage.getItem('savedArticles') || '[]');
-          setIsSaved(savedArticles.some((item: string) => item === id));
+          setIsSaved(savedArticles.some((item: string) => item === fetchedArticle.id));
         } else {
           toast.error('המאמר לא נמצא');
         }
       }
       setIsLoading(false);
+      setPageLoaded(true);
     };
 
     fetchArticleData();
     window.scrollTo(0, 0);
   }, [id]);
+
+  // Apply Motion animations when page loads
+  useEffect(() => {
+    if (pageLoaded && article) {
+      motion('h1', {
+        opacity: [0, 1],
+        y: [30, 0],
+        delay: 0.2
+      });
+      
+      motion('.article-meta', {
+        opacity: [0, 1],
+        y: [20, 0],
+        delay: 0.3
+      });
+      
+      motion('.article-image', {
+        opacity: [0, 1],
+        scale: [0.95, 1],
+        delay: 0.4
+      });
+      
+      motion('.article-summary', {
+        opacity: [0, 1],
+        x: [-20, 0],
+        delay: 0.5
+      });
+      
+      motion('.article-content', {
+        opacity: [0, 1],
+        y: [20, 0],
+        delay: 0.6
+      });
+      
+      motion('.article-sidebar', {
+        opacity: [0, 1],
+        x: [30, 0],
+        delay: 0.7
+      });
+    }
+  }, [pageLoaded, article]);
 
   const handleImageError = () => {
     setImageError(true);
@@ -113,17 +158,17 @@ const Article = () => {
   };
 
   const handleSave = () => {
-    if (!id) return;
+    if (!article?.id) return;
     
     const savedArticles = JSON.parse(localStorage.getItem('savedArticles') || '[]');
     
     if (isSaved) {
-      const updatedSavedArticles = savedArticles.filter((articleId: string) => articleId !== id);
+      const updatedSavedArticles = savedArticles.filter((articleId: string) => articleId !== article.id);
       localStorage.setItem('savedArticles', JSON.stringify(updatedSavedArticles));
       setIsSaved(false);
       toast.success('המאמר הוסר מהמאמרים השמורים');
     } else {
-      savedArticles.push(id);
+      savedArticles.push(article.id);
       localStorage.setItem('savedArticles', JSON.stringify(savedArticles));
       setIsSaved(true);
       toast.success('המאמר נשמר בהצלחה');
@@ -193,18 +238,6 @@ const Article = () => {
 
   const articleImage = imageError || !article.image_url ? getFallbackImage() : article.image_url;
 
-  // Custom components for ReactMarkdown to preserve whitespace and line breaks
-  const components = {
-    // Add extra spacing between paragraphs
-    p: ({ children }: { children: React.ReactNode }) => (
-      <p className="mb-14 whitespace-pre-line">{children}</p>
-    ),
-    // Preserve spacing in list items
-    li: ({ children }: { children: React.ReactNode }) => (
-      <li className="mb-6 whitespace-pre-line">{children}</li>
-    ),
-  };
-
   return (
     <div className="min-h-screen flex flex-col">
       <Navbar />
@@ -232,10 +265,12 @@ const Article = () => {
           </div>
           
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-16">
-            <div className="lg:col-span-2 animate-fade-in">
-              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-law-navy mb-14 leading-tight">{article.title}</h1>
+            <div className="lg:col-span-2">
+              <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-law-navy mb-14 leading-tight opacity-0">
+                {article.title}
+              </h1>
               
-              <div className="flex flex-wrap items-center mb-16 text-law-gray text-sm">
+              <div className="flex flex-wrap items-center mb-16 text-law-gray text-sm article-meta opacity-0">
                 <div className="flex items-center ml-6 mb-2">
                   <Calendar className="h-4 w-4 ml-1" />
                   <span>{article.date}</span>
@@ -248,7 +283,7 @@ const Article = () => {
                 </div>
               </div>
               
-              <div className="mb-20 overflow-hidden rounded-xl shadow-md max-h-[450px]">
+              <div className="mb-20 overflow-hidden rounded-xl shadow-md max-h-[450px] article-image opacity-0">
                 <img 
                   src={articleImage} 
                   alt={article.title}
@@ -257,20 +292,15 @@ const Article = () => {
                 />
               </div>
               
-              <div className="bg-law-light p-12 rounded-lg mb-24 border-r-4 border-law-navy">
+              <div className="bg-law-light p-12 rounded-lg mb-24 border-r-4 border-law-navy article-summary opacity-0">
                 <p className="text-xl font-medium text-law-navy leading-relaxed">{article.summary}</p>
               </div>
               
-              <div className="prose prose-lg max-w-none prose-headings:text-law-navy prose-headings:font-bold 
-                             prose-p:text-gray-700 prose-p:leading-relaxed prose-p:mb-14 prose-ul:text-gray-700 
-                             prose-li:mb-6 prose-a:text-law-navy prose-a:font-medium prose-a:no-underline 
-                             hover:prose-a:underline">
-                <ReactMarkdown 
-                  className="text-gray-700 leading-relaxed mb-12 text-lg whitespace-pre-line"
-                  components={components}
-                >
-                  {article.content}
-                </ReactMarkdown>
+              <div className="article-content opacity-0 prose prose-lg max-w-none prose-headings:text-law-navy prose-headings:font-bold 
+                           prose-p:text-gray-700 prose-p:leading-relaxed prose-p:mb-14 prose-ul:text-gray-700 
+                           prose-li:mb-6 prose-a:text-law-navy prose-a:font-medium prose-a:no-underline 
+                           hover:prose-a:underline">
+                <PortableTextRenderer content={article.content} />
               </div>
               
               <div className="mt-28 pt-10 border-t border-gray-200">
@@ -318,13 +348,13 @@ const Article = () => {
                   variant="outline" 
                   className="flex items-center justify-center py-6"
                   onClick={() => {
-                    const prevId = String(parseInt(id || '0') - 1);
-                    if (parseInt(prevId) > 0) {
-                      navigate(`/articles/${prevId}`);
+                    if (relatedArticles.length > 0) {
+                      const prevArticle = relatedArticles[relatedArticles.length - 1];
+                      navigate(prevArticle.slug ? `/articles/${prevArticle.slug}` : `/articles/${prevArticle.id}`);
                       window.scrollTo(0, 0);
                     }
                   }}
-                  disabled={parseInt(id || '0') <= 1}
+                  disabled={relatedArticles.length === 0}
                 >
                   <ArrowRight className="ml-3 h-5 w-5" />
                   המאמר הקודם
@@ -333,13 +363,13 @@ const Article = () => {
                   variant="outline" 
                   className="flex items-center justify-center py-6"
                   onClick={() => {
-                    const nextId = String(parseInt(id || '0') + 1);
-                    if (relatedArticles.some(article => article.id === nextId)) {
-                      navigate(`/articles/${nextId}`);
+                    if (relatedArticles.length > 0) {
+                      const nextArticle = relatedArticles[0];
+                      navigate(nextArticle.slug ? `/articles/${nextArticle.slug}` : `/articles/${nextArticle.id}`);
                       window.scrollTo(0, 0);
                     }
                   }}
-                  disabled={!relatedArticles.some(article => article.id === String(parseInt(id || '0') + 1))}
+                  disabled={relatedArticles.length === 0}
                 >
                   המאמר הבא
                   <ArrowLeft className="mr-3 h-5 w-5" />
@@ -347,8 +377,8 @@ const Article = () => {
               </div>
             </div>
             
-            <div className="lg:col-span-1">
-              <Card className="mb-12 p-8 bg-law-light border-none shadow-md hover:shadow-lg transition-shadow animate-fade-in relative">
+            <div className="lg:col-span-1 article-sidebar opacity-0">
+              <Card className="mb-12 p-8 bg-law-light border-none shadow-md hover:shadow-lg transition-shadow relative">
                 <div className="flex items-center mb-8">
                   <div className="h-16 w-16 rounded-full overflow-hidden ml-4 border-2 border-white shadow-md">
                     <img 
@@ -371,17 +401,30 @@ const Article = () => {
                 </Button>
               </Card>
               
-              <div className="bg-white rounded-lg shadow-md p-8 mb-12 animate-fade-in" style={{ animationDelay: '0.2s' }}>
+              <div className="bg-white rounded-lg shadow-md p-8 mb-12">
                 <h3 className="text-xl font-bold text-law-navy mb-8 border-r-4 border-law-navy pr-4">מאמרים נוספים</h3>
                 <div className="space-y-8">
-                  {relatedArticles.slice(0, 3).map((relatedArticle) => (
-                    <div key={relatedArticle.id} className="border-b border-gray-100 pb-8 last:border-0 hover:bg-gray-50 p-4 rounded-lg transition-colors">
+                  {relatedArticles.slice(0, 3).map((relatedArticle, index) => (
+                    <div 
+                      key={relatedArticle.id} 
+                      className="border-b border-gray-100 pb-8 last:border-0 hover:bg-gray-50 p-4 rounded-lg transition-colors"
+                      ref={(el) => {
+                        if (el && pageLoaded) {
+                          motion(el, {
+                            opacity: [0, 1],
+                            y: [10, 0],
+                            delay: 0.8 + (index * 0.1)
+                          });
+                        }
+                      }}
+                      style={{ opacity: 0 }}
+                    >
                       <h4 className="font-medium text-law-navy mb-4 hover:text-law-navy/70 transition-colors text-lg">
                         <a 
-                          href={`/articles/${relatedArticle.id}`}
+                          href={relatedArticle.slug ? `/articles/${relatedArticle.slug}` : `/articles/${relatedArticle.id}`}
                           onClick={(e) => {
                             e.preventDefault();
-                            navigate(`/articles/${relatedArticle.id}`);
+                            navigate(relatedArticle.slug ? `/articles/${relatedArticle.slug}` : `/articles/${relatedArticle.id}`);
                             window.scrollTo(0, 0);
                           }}
                           className="hover-link"
@@ -396,7 +439,19 @@ const Article = () => {
                     </div>
                   ))}
                 </div>
-                <div className="mt-10">
+                <div 
+                  className="mt-10"
+                  ref={(el) => {
+                    if (el && pageLoaded) {
+                      motion(el, {
+                        opacity: [0, 1],
+                        y: [10, 0],
+                        delay: 1.2
+                      });
+                    }
+                  }}
+                  style={{ opacity: 0 }}
+                >
                   <Button 
                     variant="outline" 
                     className="w-full border-law-navy text-law-navy hover:bg-law-navy hover:text-white transition-all py-5"
@@ -407,7 +462,19 @@ const Article = () => {
                 </div>
               </div>
               
-              <div className="bg-law-navy text-white rounded-lg p-8 shadow-lg animate-fade-in" style={{ animationDelay: '0.3s' }}>
+              <div 
+                className="bg-law-navy text-white rounded-lg p-8 shadow-lg"
+                ref={(el) => {
+                  if (el && pageLoaded) {
+                    motion(el, {
+                      opacity: [0, 1],
+                      y: [20, 0],
+                      delay: 1.3
+                    });
+                  }
+                }}
+                style={{ opacity: 0 }}
+              >
                 <h3 className="text-2xl font-bold mb-8">זקוק לייעוץ משפטי?</h3>
                 <p className="mb-10 leading-relaxed">אנו מציעים ייעוץ מקצועי בתחומים מגוונים. צור קשר עוד היום לפגישת ייעוץ ראשונית.</p>
                 <Button 

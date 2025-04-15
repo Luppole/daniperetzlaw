@@ -6,9 +6,11 @@ import { Button } from '@/components/ui/button';
 import { useNavigate } from 'react-router-dom';
 import { useInView } from 'react-intersection-observer';
 import LikeCount from '@/components/LikeCount';
-import { getAllArticles, Article } from '@/services/articleService';
+import { MappedArticle } from '@/types/sanity';
+import { getAllSanityArticles } from '@/services/sanityService';
 import { Loader2 } from 'lucide-react';
 import { EditableText } from '@/components/EditableText';
+import { motion } from 'motion';
 
 // Legal-themed high-quality images
 const LEGAL_IMAGES = [
@@ -22,7 +24,7 @@ const LEGAL_IMAGES = [
 
 export function ArticlesSection() {
   const navigate = useNavigate();
-  const [articles, setArticles] = useState<Article[]>([]);
+  const [articles, setArticles] = useState<MappedArticle[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [imageErrors, setImageErrors] = useState<Record<string, boolean>>({});
   
@@ -34,7 +36,7 @@ export function ArticlesSection() {
   useEffect(() => {
     const fetchArticles = async () => {
       try {
-        const articlesData = await getAllArticles();
+        const articlesData = await getAllSanityArticles();
         
         const enhancedArticles = articlesData.slice(0, 3).map((article, index) => {
           if (!article.image_url || article.image_url.includes('placeholder')) {
@@ -57,6 +59,33 @@ export function ArticlesSection() {
     fetchArticles();
   }, []);
 
+  useEffect(() => {
+    // Apply Motion animations when section is in view
+    if (inView && articles.length > 0) {
+      motion('.section-title', {
+        opacity: [0, 1],
+        y: [30, 0],
+        delay: 0.2
+      });
+      
+      motion('.section-subtitle', {
+        opacity: [0, 1],
+        y: [20, 0],
+        delay: 0.4
+      });
+      
+      // Animate article cards with staggered delay
+      articles.forEach((_, index) => {
+        motion(`.article-card-${index}`, {
+          opacity: [0, 1],
+          y: [30, 0],
+          scale: [0.95, 1],
+          delay: 0.5 + (index * 0.15)
+        });
+      });
+    }
+  }, [inView, articles.length]);
+
   const handleImageError = (articleId: string) => {
     setImageErrors(prev => ({
       ...prev,
@@ -64,7 +93,7 @@ export function ArticlesSection() {
     }));
   };
 
-  const getImageForArticle = (article: Article, index: number) => {
+  const getImageForArticle = (article: MappedArticle, index: number) => {
     if (imageErrors[article.id] || !article.image_url || article.image_url.includes('placeholder')) {
       return LEGAL_IMAGES[index % LEGAL_IMAGES.length];
     }
@@ -74,12 +103,11 @@ export function ArticlesSection() {
   return (
     <section id="articles" className="section-wrapper bg-law-light py-20">
       <div className="container mx-auto" ref={ref}>
-        <div className={`text-center mb-20 transition-all duration-700 transform ${inView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}>
-          <h2 className="section-title text-3xl md:text-4xl font-bold font-rubik text-law-navy mb-6 relative inline-block">
+        <div className="text-center mb-20">
+          <h2 className="section-title text-3xl md:text-4xl font-bold font-rubik text-law-navy mb-6 relative inline-block opacity-0">
             <EditableText id="articles-title">מאמרים משפטיים</EditableText>
           </h2>
-          <p className="section-subtitle text-lg text-law-gray transition-opacity duration-700 delay-200 font-heebo" 
-             style={{ opacity: inView ? 1 : 0, transitionDelay: '400ms' }}>
+          <p className="section-subtitle text-lg text-law-gray font-heebo opacity-0">
             <EditableText id="articles-subtitle">ידע וחדשות מעולם המשפט</EditableText>
           </p>
         </div>
@@ -93,11 +121,7 @@ export function ArticlesSection() {
             {articles.map((article, index) => (
               <Card 
                 key={article.id} 
-                className={`border border-gray-200 hover:shadow-lg transition-all duration-500 flex flex-col h-full transform hover:translate-y-[-5px] hover:border-law-navy/30 ${inView ? 'animate-fade-in' : 'opacity-0'}`}
-                style={{ 
-                  animationDelay: `${(index * 0.15) + 0.5}s`,
-                  transitionDelay: `${index * 0.1}s`
-                }}
+                className={`article-card-${index} border border-gray-200 hover:shadow-lg transition-all duration-500 flex flex-col h-full transform hover:translate-y-[-5px] hover:border-law-navy/30 opacity-0`}
               >
                 <div className="h-52 overflow-hidden rounded-t-lg">
                   <img 
@@ -117,10 +141,10 @@ export function ArticlesSection() {
                   </div>
                   <CardTitle className="text-xl font-rubik font-bold text-law-navy line-clamp-2 group">
                     <a 
-                      href={`/articles/${article.id}`}
+                      href={article.slug ? `/articles/${article.slug}` : `/articles/${article.id}`}
                       onClick={(e) => {
                         e.preventDefault();
-                        navigate(`/articles/${article.id}`);
+                        navigate(article.slug ? `/articles/${article.slug}` : `/articles/${article.id}`);
                         window.scrollTo(0, 0);
                       }}
                       className="hover:text-law-navy/80 transition-colors duration-300"
@@ -139,7 +163,7 @@ export function ArticlesSection() {
                     variant="ghost" 
                     className="text-law-navy hover:bg-law-navy/10 p-0 group transition-all duration-300 font-heebo"
                     onClick={() => {
-                      navigate(`/articles/${article.id}`);
+                      navigate(article.slug ? `/articles/${article.slug}` : `/articles/${article.id}`);
                       window.scrollTo(0, 0);
                     }}
                   >
@@ -152,8 +176,19 @@ export function ArticlesSection() {
           </div>
         )}
         
-        <div className={`text-center mt-16 transition-all duration-700 delay-500 transform ${inView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'}`}
-             style={{ transitionDelay: '800ms' }}>
+        <div 
+          className="text-center mt-16 opacity-0"
+          style={{ transform: 'translateY(20px)' }}
+          ref={(el) => {
+            if (el && inView) {
+              motion(el, {
+                opacity: [0, 1],
+                y: [20, 0],
+                delay: 0.8
+              });
+            }
+          }}
+        >
           <Button 
             variant="outline" 
             className="border-law-navy text-law-navy hover:bg-law-navy hover:text-white transition-all duration-300 transform hover:scale-105 font-heebo py-6 px-8"

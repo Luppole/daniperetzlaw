@@ -1,6 +1,9 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getAllArticles, deleteArticle, Article } from '@/services/articleService';
+import { getAllSanityArticles } from '@/services/sanityService';
+import { MappedArticle } from '@/types/sanity';
+import { deleteArticle } from '@/services/articleService';
 import { Button } from '@/components/ui/button';
 import {
   Table,
@@ -20,8 +23,9 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Edit, Trash2, Plus, RefreshCw } from 'lucide-react';
+import { Edit, Trash2, Plus, RefreshCw, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
+import { motion } from 'motion';
 
 interface ArticlesListProps {
   onImportArticles?: () => Promise<void>;
@@ -29,15 +33,16 @@ interface ArticlesListProps {
 
 export function ArticlesList({ onImportArticles }: ArticlesListProps) {
   const navigate = useNavigate();
-  const [articles, setArticles] = useState<Article[]>([]);
+  const [articles, setArticles] = useState<MappedArticle[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [deleteTarget, setDeleteTarget] = useState<string | null>(null);
   const [isImporting, setIsImporting] = useState(false);
+  const [pageLoaded, setPageLoaded] = useState(false);
 
   const fetchArticles = async () => {
     setIsLoading(true);
     try {
-      const data = await getAllArticles();
+      const data = await getAllSanityArticles();
       setArticles(data);
     } catch (error) {
       console.error('Error fetching articles:', error);
@@ -49,7 +54,33 @@ export function ArticlesList({ onImportArticles }: ArticlesListProps) {
 
   useEffect(() => {
     fetchArticles();
+    setPageLoaded(true);
   }, []);
+
+  // Apply Motion animations when page loads
+  useEffect(() => {
+    if (pageLoaded && !isLoading) {
+      motion('.page-header', {
+        opacity: [0, 1],
+        y: [20, 0],
+      });
+      
+      motion('.articles-list', {
+        opacity: [0, 1],
+        y: [20, 0],
+        delay: 0.2
+      });
+      
+      // Animate article rows with staggered delay
+      articles.forEach((_, index) => {
+        motion(`.article-row-${index}`, {
+          opacity: [0, 1],
+          x: [-10, 0],
+          delay: 0.3 + (index * 0.05)
+        });
+      });
+    }
+  }, [pageLoaded, isLoading, articles.length]);
 
   const handleDelete = async (id: string) => {
     try {
@@ -79,9 +110,13 @@ export function ArticlesList({ onImportArticles }: ArticlesListProps) {
     }
   };
 
+  const openSanityStudio = () => {
+    window.open('https://daniplaw.sanity.studio/desk/article', '_blank');
+  };
+
   return (
     <div className="container py-6">
-      <div className="flex justify-between items-center mb-6">
+      <div className="page-header flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold">ניהול מאמרים</h1>
         <div className="flex gap-2">
           {onImportArticles && (
@@ -96,6 +131,14 @@ export function ArticlesList({ onImportArticles }: ArticlesListProps) {
             </Button>
           )}
           <Button 
+            variant="outline" 
+            className="flex items-center gap-2"
+            onClick={openSanityStudio}
+          >
+            <ExternalLink className="h-4 w-4" />
+            Sanity Studio
+          </Button>
+          <Button 
             onClick={() => navigate('/admin/articles/new')}
             className="flex items-center gap-2"
           >
@@ -103,6 +146,14 @@ export function ArticlesList({ onImportArticles }: ArticlesListProps) {
             מאמר חדש
           </Button>
         </div>
+      </div>
+      
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+        <h3 className="text-blue-700 font-medium mb-2">שדרוג בממשק הניהול</h3>
+        <p className="text-sm text-blue-600">
+          האתר שודרג להשתמש ב-Sanity.io לניהול מאמרים. ניתן להמשיך לנהל מאמרים כאן, 
+          אך מומלץ להשתמש בממשק Sanity החדש לחוויית עריכה משופרת עם כלי עריכה מתקדמים.
+        </p>
       </div>
 
       {isLoading ? (
@@ -113,16 +164,26 @@ export function ArticlesList({ onImportArticles }: ArticlesListProps) {
       ) : articles.length === 0 ? (
         <div className="text-center py-10 bg-gray-50 rounded-md">
           <p className="text-gray-500 mb-4">לא נמצאו מאמרים</p>
-          <Button 
-            onClick={() => navigate('/admin/articles/new')}
-            className="flex items-center gap-2"
-          >
-            <Plus className="h-4 w-4" />
-            יצירת מאמר חדש
-          </Button>
+          <div className="flex gap-4 justify-center">
+            <Button 
+              onClick={() => navigate('/admin/articles/new')}
+              className="flex items-center gap-2"
+            >
+              <Plus className="h-4 w-4" />
+              יצירת מאמר חדש
+            </Button>
+            <Button 
+              variant="outline"
+              onClick={openSanityStudio}
+              className="flex items-center gap-2"
+            >
+              <ExternalLink className="h-4 w-4" />
+              Sanity Studio
+            </Button>
+          </div>
         </div>
       ) : (
-        <div className="bg-white rounded-md shadow overflow-hidden">
+        <div className="bg-white rounded-md shadow overflow-hidden articles-list">
           <Table>
             <TableHeader>
               <TableRow>
@@ -134,8 +195,8 @@ export function ArticlesList({ onImportArticles }: ArticlesListProps) {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {articles.map((article) => (
-                <TableRow key={article.id}>
+              {articles.map((article, index) => (
+                <TableRow key={article.id} className={`article-row-${index}`}>
                   <TableCell className="font-medium">{article.title}</TableCell>
                   <TableCell>{article.category}</TableCell>
                   <TableCell>{article.date}</TableCell>

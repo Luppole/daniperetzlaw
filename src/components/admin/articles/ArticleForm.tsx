@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { z } from 'zod';
@@ -10,13 +11,14 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Card, CardContent } from '@/components/ui/card';
 import { ArrowRight, Loader2, Save, FileTextIcon, ImageIcon, EyeIcon } from 'lucide-react';
-import { Article, getArticleById, createArticle, updateArticle } from '@/services/articleService';
+import { getArticleById, updateArticle, createArticle } from '@/services/articleService';
 import { toast } from 'sonner';
 import { useAuth } from '@/contexts/AuthContext';
 import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/integrations/firebase/client';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import ReactMarkdown from 'react-markdown';
+import { sanityClient, urlFor } from '@/integrations/sanity/client';
+import { motion } from 'motion';
 
 const formSchema = z.object({
   title: z.string().min(3, 'הכותרת חייבת להיות לפחות 3 תווים'),
@@ -28,51 +30,28 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-const markdownTemplates = {
-  basic: `# כותרת ראשית
-
-## כותרת משנית
-
-פסקה רגילה עם **טקסט מודגש** ו*טקסט נטוי*.
-
-### רשימה
-
-- פריט ראשון
-- פריט שני
-- פריט שלישי
-
-> ציטוט חשוב מאוד.
-
-[קישור לאתר](https://example.com)
-`,
-  legal: `# סקירה משפטית: זכויות וחובות
-
-## רקע משפטי
-
-פסקת פתיחה המסבירה את הנושא המשפטי...
-
-## עיקרי החוק
-
-### סעיף 1
-תיאור הסעיף הראשון בחוק...
-
-### סעיף 2
-תיאור הסעיף השני בחוק...
-
-## פסיקה רלוונטית
-
-> "ציטוט מפסק דין חשוב" - כבוד השופת/ת X, תיק Y
-
-## מסקנות והמלצות
-
-1. המלצה ראשונה
-2. המלצה שנייה
-3. המלצה שלישית
-
----
-
-*המידע אינו מהווה ייעוץ משפטי. יש להיוועץ בעורך דין לקבלת ייעוץ פרטני.*`
-};
+// Notice about Sanity integration
+const SanityIntegrationNotice = () => (
+  <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+    <h3 className="text-blue-700 font-medium mb-2 flex items-center">
+      <FileTextIcon className="ml-2 h-5 w-5" />
+      שדרוג בממשק הניהול
+    </h3>
+    <p className="text-sm text-blue-600 leading-relaxed">
+      האתר משתמש כעת ב-Sanity.io לניהול מאמרים, המציע ממשק עריכה מתקדם. 
+      עדיין ניתן לערוך מאמרים כאן, אך מומלץ להשתמש בממשק Sanity לחוויית עריכה משופרת.
+    </p>
+    <div className="mt-3">
+      <Button 
+        variant="outline"
+        className="text-sm"
+        onClick={() => window.open(`https://daniplaw.sanity.studio/desk/article`, '_blank')}
+      >
+        עבור לממשק Sanity
+      </Button>
+    </div>
+  </div>
+);
 
 export function ArticleForm() {
   const { id } = useParams();
@@ -85,6 +64,7 @@ export function ArticleForm() {
   const [userProfile, setUserProfile] = useState<{ full_name?: string } | null>(null);
   const [previewTab, setPreviewTab] = useState<'edit' | 'preview'>('edit');
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [pageLoaded, setPageLoaded] = useState(false);
   
   const isEditing = !!id;
 
@@ -98,6 +78,37 @@ export function ArticleForm() {
       image_url: '',
     },
   });
+
+  useEffect(() => {
+    setPageLoaded(true);
+    
+    // Apply Motion animations when page loads
+    if (isEditing) {
+      motion('.page-title', {
+        opacity: [0, 1],
+        y: [20, 0],
+        delay: 0.2
+      });
+    } else {
+      motion('.page-title', {
+        opacity: [0, 1],
+        x: [-20, 0],
+        delay: 0.2
+      });
+    }
+    
+    motion('.card-animate', {
+      opacity: [0, 1],
+      y: [20, 0],
+      delay: 0.3
+    });
+    
+    motion('.button-container', {
+      opacity: [0, 1],
+      y: [10, 0],
+      delay: 0.5
+    });
+  }, [isEditing]);
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -168,6 +179,7 @@ export function ArticleForm() {
         image_url: values.image_url || '',
       };
 
+      // Try to create or update in Firebase first
       if (isEditing && id) {
         await updateArticle(id, articleData);
         toast.success('המאמר עודכן בהצלחה');
@@ -175,6 +187,9 @@ export function ArticleForm() {
         await createArticle(articleData);
         toast.success('המאמר נוסף בהצלחה');
       }
+      
+      // Inform about Sanity update
+      toast.info('שינויים יסונכרנו עם Sanity בדקות הקרובות');
       
       navigate('/admin/articles');
     } catch (error) {
@@ -185,19 +200,15 @@ export function ArticleForm() {
     }
   };
 
-  const applyTemplate = (templateKey: keyof typeof markdownTemplates) => {
-    form.setValue('content', markdownTemplates[templateKey]);
-  };
-
   const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     
     setUploadError(null);
     
-    if (file.size > 1 * 1024 * 1024) { // Limit to 1MB for base64
-      setUploadError('גודל הקובץ חייב להיות קטן מ-1MB');
-      toast.error('גודל הקובץ חייב להיות קטן מ-1MB');
+    if (file.size > 2 * 1024 * 1024) { // Limit to 2MB
+      setUploadError('גודל הקובץ חייב להיות קטן מ-2MB');
+      toast.error('גודל הקובץ חייב להיות קטן מ-2MB');
       return;
     }
     
@@ -248,17 +259,6 @@ export function ArticleForm() {
     );
   }
 
-  const currentContent = form.watch('content');
-
-  const previewComponents = {
-    p: ({ children }: { children: React.ReactNode }) => (
-      <p className="mb-4 whitespace-pre-line">{children}</p>
-    ),
-    li: ({ children }: { children: React.ReactNode }) => (
-      <li className="mb-2 whitespace-pre-line">{children}</li>
-    ),
-  };
-
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -270,13 +270,15 @@ export function ArticleForm() {
           >
             <ArrowRight className="h-4 w-4" />
           </Button>
-          <h2 className="text-3xl font-bold text-law-navy">
+          <h2 className="page-title text-3xl font-bold text-law-navy opacity-0">
             {isEditing ? 'עריכת מאמר' : 'מאמר חדש'}
           </h2>
         </div>
       </div>
       
-      <Card>
+      <SanityIntegrationNotice />
+      
+      <Card className="card-animate opacity-0">
         <CardContent className="pt-6">
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
@@ -380,7 +382,7 @@ export function ArticleForm() {
                             <div className="text-red-500 text-sm">{uploadError}</div>
                           )}
                           <p className="text-xs text-gray-500">
-                            יש להשתמש בתמונות בגודל קטן מ-1MB. תמונות גדולות יותר עלולות להאט את האתר.
+                            יש להשתמש בתמונות בגודל קטן מ-2MB. תמונות גדולות יותר עלולות להאט את האתר.
                           </p>
                         </div>
                       </FormControl>
@@ -403,27 +405,8 @@ export function ArticleForm() {
               
               <div className="space-y-2">
                 <div className="flex justify-between items-center">
-                  <FormLabel>תוכן המאמר (Markdown)</FormLabel>
-                  <div className="flex gap-2">
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => applyTemplate('basic')}
-                    >
-                      <FileTextIcon className="h-4 w-4 ml-2" />
-                      תבנית בסיסית
-                    </Button>
-                    <Button 
-                      type="button" 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => applyTemplate('legal')}
-                    >
-                      <FileTextIcon className="h-4 w-4 ml-2" />
-                      תבנית משפטית
-                    </Button>
-                  </div>
+                  <FormLabel>תוכן המאמר</FormLabel>
+                  <p className="text-sm text-gray-500">לעריכה מתקדמת יותר, השתמש בממשק Sanity</p>
                 </div>
                 
                 <Tabs defaultValue="edit" onValueChange={(value) => setPreviewTab(value as 'edit' | 'preview')}>
@@ -446,7 +429,7 @@ export function ArticleForm() {
                         <FormItem>
                           <FormControl>
                             <Textarea 
-                              placeholder="הזן את תוכן המאמר (markdown)" 
+                              placeholder="הזן את תוכן המאמר" 
                               className="min-h-[300px] font-mono text-base"
                               {...field} 
                             />
@@ -459,17 +442,15 @@ export function ArticleForm() {
                   
                   <TabsContent value="preview">
                     <div className="border rounded-md p-4 min-h-[300px] bg-white overflow-auto">
-                      <div className="prose prose-lg max-w-none">
-                        <ReactMarkdown components={previewComponents}>
-                          {currentContent || 'אין תוכן להצגה'}
-                        </ReactMarkdown>
+                      <div className="prose prose-lg max-w-none whitespace-pre-line">
+                        {form.watch('content')}
                       </div>
                     </div>
                   </TabsContent>
                 </Tabs>
               </div>
               
-              <div className="flex justify-end gap-4">
+              <div className="flex justify-end gap-4 button-container opacity-0">
                 <Button
                   type="button"
                   variant="outline"
