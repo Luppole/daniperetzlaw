@@ -11,7 +11,7 @@ import LikeCount from '@/components/LikeCount';
 import { getAllSanityArticles } from '@/services/sanityService';
 import { MappedArticle } from '@/types/sanity';
 import { Loader2 } from 'lucide-react';
-import { motion } from 'motion';
+import { animate } from 'motion';
 
 const Articles = () => {
   const navigate = useNavigate();
@@ -49,42 +49,62 @@ const Articles = () => {
   useEffect(() => {
     if (pageLoaded) {
       // Animate header section
-      motion('.page-title', {
-        opacity: [0, 1],
-        y: [30, 0],
-        delay: 0.2
-      });
+      const pageTitle = document.querySelector('.page-title');
+      if (pageTitle) {
+        animate(pageTitle, {
+          opacity: [0, 1],
+          y: [30, 0]
+        }, {
+          delay: 0.2
+        });
+      }
       
-      motion('.page-description', {
-        opacity: [0, 1],
-        y: [20, 0],
-        delay: 0.4
-      });
+      const pageDescription = document.querySelector('.page-description');
+      if (pageDescription) {
+        animate(pageDescription, {
+          opacity: [0, 1],
+          y: [20, 0]
+        }, {
+          delay: 0.4
+        });
+      }
       
       // Animate search section
-      motion('.search-filter-container', {
-        opacity: [0, 1],
-        y: [20, 0],
-        scale: [0.98, 1],
-        delay: 0.6
-      });
+      const searchFilterContainer = document.querySelector('.search-filter-container');
+      if (searchFilterContainer) {
+        animate(searchFilterContainer, {
+          opacity: [0, 1],
+          y: [20, 0],
+          scale: [0.98, 1]
+        }, {
+          delay: 0.6
+        });
+      }
       
       // Animate articles with staggered delay
       if (!isLoading) {
         articles.forEach((_, index) => {
-          motion(`.article-card-${index}`, {
-            opacity: [0, 1],
-            y: [30, 0],
-            delay: 0.7 + (index * 0.1 > 1.5 ? 1.5 : index * 0.1) // Cap the max delay
-          });
+          const articleElement = document.querySelector(`.article-card-${index}`);
+          if (articleElement) {
+            animate(articleElement, {
+              opacity: [0, 1],
+              y: [30, 0]
+            }, {
+              delay: 0.7 + (index * 0.1 > 1.5 ? 1.5 : index * 0.1) // Cap the max delay
+            });
+          }
         });
         
         // Animate CTA section
-        motion('.cta-section', {
-          opacity: [0, 1],
-          y: [20, 0],
-          delay: 1.2
-        });
+        const ctaSection = document.querySelector('.cta-section');
+        if (ctaSection) {
+          animate(ctaSection, {
+            opacity: [0, 1],
+            y: [20, 0]
+          }, {
+            delay: 1.2
+          });
+        }
       }
     }
   }, [pageLoaded, isLoading, articles.length]);

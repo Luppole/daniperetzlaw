@@ -1,6 +1,6 @@
 
 import { useCallback, useEffect, useRef } from 'react';
-import { animate as motionAnimate, AnimationOptionsWithValueOverrides, MotionKeyframesDefinition } from 'motion';
+import { animate as motionAnimate, AnimationOptionsWithValueOverrides, DOMKeyframesDefinition } from 'motion';
 
 type AnimateOptions = AnimationOptionsWithValueOverrides;
 
@@ -9,7 +9,7 @@ export const useMotion = () => {
   // Safe wrapper around motion.animate
   const animateElement = useCallback((
     target: string | Element | null,
-    keyframes: MotionKeyframesDefinition,
+    keyframes: DOMKeyframesDefinition,
     options?: AnimateOptions
   ) => {
     if (!target) return;

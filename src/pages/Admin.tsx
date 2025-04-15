@@ -11,7 +11,7 @@ import { AdminComments } from '@/components/admin/AdminComments';
 import { AdminMessages } from '@/components/admin/AdminMessages';
 import { Loader2 } from 'lucide-react';
 import { SidebarProvider } from '@/components/ui/sidebar';
-import { motion } from 'motion';
+import { animate } from 'motion';
 
 const Admin = () => {
   const { isAdmin, isLoading: adminLoading } = useAdmin();
@@ -32,12 +32,16 @@ const Admin = () => {
   useEffect(() => {
     // Apply entrance animation when admin panel loads
     if (!authLoading && !adminLoading && isAdmin && user) {
-      motion('.admin-content', {
-        opacity: [0, 1],
-        y: [20, 0],
-        duration: 0.5,
-        delay: 0.2
-      });
+      const adminContent = document.querySelector('.admin-content');
+      if (adminContent) {
+        animate(adminContent, {
+          opacity: [0, 1],
+          y: [20, 0]
+        }, {
+          duration: 0.5,
+          delay: 0.2
+        });
+      }
     }
   }, [isAdmin, user, authLoading, adminLoading]);
 

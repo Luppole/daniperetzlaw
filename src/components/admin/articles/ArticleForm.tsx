@@ -1,4 +1,3 @@
-
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { z } from 'zod';
@@ -18,7 +17,7 @@ import { doc, getDoc } from 'firebase/firestore';
 import { db } from '@/integrations/firebase/client';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { sanityClient, urlFor } from '@/integrations/sanity/client';
-import { motion } from 'motion';
+import { animate } from 'motion';
 
 const formSchema = z.object({
   title: z.string().min(3, 'הכותרת חייבת להיות לפחות 3 תווים'),
@@ -30,7 +29,6 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>;
 
-// Notice about Sanity integration
 const SanityIntegrationNotice = () => (
   <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
     <h3 className="text-blue-700 font-medium mb-2 flex items-center">
@@ -82,32 +80,47 @@ export function ArticleForm() {
   useEffect(() => {
     setPageLoaded(true);
     
-    // Apply Motion animations when page loads
     if (isEditing) {
-      motion('.page-title', {
-        opacity: [0, 1],
-        y: [20, 0],
-        delay: 0.2
-      });
+      const pageTitle = document.querySelector('.page-title');
+      if (pageTitle) {
+        animate(pageTitle, {
+          opacity: [0, 1],
+          y: [20, 0]
+        }, {
+          delay: 0.2
+        });
+      }
     } else {
-      motion('.page-title', {
+      const pageTitle = document.querySelector('.page-title');
+      if (pageTitle) {
+        animate(pageTitle, {
+          opacity: [0, 1],
+          x: [-20, 0]
+        }, {
+          delay: 0.2
+        });
+      }
+    }
+    
+    const cardAnimate = document.querySelector('.card-animate');
+    if (cardAnimate) {
+      animate(cardAnimate, {
         opacity: [0, 1],
-        x: [-20, 0],
-        delay: 0.2
+        y: [20, 0]
+      }, {
+        delay: 0.3
       });
     }
     
-    motion('.card-animate', {
-      opacity: [0, 1],
-      y: [20, 0],
-      delay: 0.3
-    });
-    
-    motion('.button-container', {
-      opacity: [0, 1],
-      y: [10, 0],
-      delay: 0.5
-    });
+    const buttonContainer = document.querySelector('.button-container');
+    if (buttonContainer) {
+      animate(buttonContainer, {
+        opacity: [0, 1],
+        y: [10, 0]
+      }, {
+        delay: 0.5
+      });
+    }
   }, [isEditing]);
 
   useEffect(() => {
@@ -179,7 +192,6 @@ export function ArticleForm() {
         image_url: values.image_url || '',
       };
 
-      // Try to create or update in Firebase first
       if (isEditing && id) {
         await updateArticle(id, articleData);
         toast.success('המאמר עודכן בהצלחה');
@@ -188,7 +200,6 @@ export function ArticleForm() {
         toast.success('המאמר נוסף בהצלחה');
       }
       
-      // Inform about Sanity update
       toast.info('שינויים יסונכרנו עם Sanity בדקות הקרובות');
       
       navigate('/admin/articles');
@@ -206,7 +217,7 @@ export function ArticleForm() {
     
     setUploadError(null);
     
-    if (file.size > 2 * 1024 * 1024) { // Limit to 2MB
+    if (file.size > 2 * 1024 * 1024) {
       setUploadError('גודל הקובץ חייב להיות קטן מ-2MB');
       toast.error('גודל הקובץ חייב להיות קטן מ-2MB');
       return;
@@ -220,14 +231,12 @@ export function ArticleForm() {
     
     setImageUploading(true);
     try {
-      // Convert image to base64
       const reader = new FileReader();
       reader.onload = (event) => {
         const base64String = event.target?.result as string;
         
         console.log('Image converted to base64 successfully');
         
-        // Set the base64 string as the image URL
         form.setValue('image_url', base64String);
         setImagePreview(base64String);
         

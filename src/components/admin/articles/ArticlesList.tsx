@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getAllSanityArticles } from '@/services/sanityService';
@@ -25,7 +24,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { Edit, Trash2, Plus, RefreshCw, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
-import { animate } from '@/hooks/use-motion';
+import { animate } from 'motion';
 
 interface ArticlesListProps {
   onImportArticles?: () => Promise<void>;
@@ -57,7 +56,6 @@ export function ArticlesList({ onImportArticles }: ArticlesListProps) {
     setPageLoaded(true);
   }, []);
 
-  // Apply Motion animations when page loads
   useEffect(() => {
     if (pageLoaded && !isLoading) {
       const headerElement = document.querySelector('.page-header');
@@ -65,6 +63,8 @@ export function ArticlesList({ onImportArticles }: ArticlesListProps) {
         animate(headerElement, {
           opacity: [0, 1],
           y: [20, 0]
+        }, {
+          duration: 0.5
         });
       }
       
@@ -73,17 +73,22 @@ export function ArticlesList({ onImportArticles }: ArticlesListProps) {
         animate(listElement, {
           opacity: [0, 1],
           y: [20, 0]
-        }, { delay: 0.2 });
+        }, { 
+          duration: 0.5,
+          delay: 0.2 
+        });
       }
       
-      // Animate article rows with staggered delay
       articles.forEach((_, index) => {
         const rowElement = document.querySelector(`.article-row-${index}`);
         if (rowElement) {
           animate(rowElement, {
             opacity: [0, 1],
             x: [-10, 0]
-          }, { delay: 0.3 + (index * 0.05) });
+          }, { 
+            duration: 0.5,
+            delay: 0.3 + (index * 0.05) 
+          });
         }
       });
     }
